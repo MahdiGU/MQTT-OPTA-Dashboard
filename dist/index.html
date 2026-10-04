@@ -216,8 +216,9 @@
         <section class="panel publish-panel" aria-labelledby="publishTitle">
           <div class="eyebrow">Outgoing message</div><h2 id="publishTitle">Publish command</h2>
           <div class="delivery-spec" aria-label="Publish settings: QoS zero, retain off">QoS 0 · Retain off</div>
-          <textarea class="payload" id="publishPayload" spellcheck="false" aria-label="JSON message to publish">{"outputs":{"D0":1,"D1":0,"D2":0,"D3":0}}</textarea>
+          <textarea class="payload" id="publishPayload" spellcheck="false" aria-label="Plain-text message to publish">1</textarea>
           <div class="payload-actions"><span class="message" id="publishMessage" aria-live="polite">Connect to send a message</span><button class="button" id="publishButton" type="button" disabled>Send message</button></div>
+          <p class="note">The message is sent exactly as typed, without JSON encoding.</p>
         </section>
 
         <section class="panel telemetry" aria-labelledby="telemetryTitle">
@@ -395,14 +396,7 @@
         els.publishMessage.className = "message error";
         return;
       }
-      let body;
-      try {
-        body = JSON.stringify(JSON.parse(els.publishPayload.value));
-      } catch (error) {
-        els.publishMessage.textContent = `Invalid JSON: ${error.message}`;
-        els.publishMessage.className = "message error";
-        return;
-      }
+      const body = els.publishPayload.value;
       const topic = els.sendTopic.value.trim();
       if (!topic) {
         els.publishMessage.textContent = "Enter a send topic";
