@@ -41,9 +41,9 @@
       color: var(--text);
     }
 
-    button, input, summary { font: inherit; }
+    button, input, select, summary { font: inherit; }
     button, summary { -webkit-tap-highlight-color: transparent; }
-    button:focus-visible, input:focus-visible, summary:focus-visible {
+    button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {
       outline: 3px solid rgba(158, 231, 211, .34);
       outline-offset: 2px;
     }
@@ -81,7 +81,7 @@
     h2 { margin: 4px 0 0; font-size: 1.25rem; letter-spacing: -.02em; }
     .count { color: var(--muted); font: .79rem ui-monospace, SFMono-Regular, Menlo, monospace; padding-top: 5px; }
     .led-grid { display: grid; gap: 12px; padding: 19px 22px 22px; }
-    .led-grid.outputs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .led-grid.outputs, .led-grid.leds { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .led-grid.inputs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .channel {
       min-height: 152px; padding: 16px; border: 1px solid var(--line); border-radius: 14px;
@@ -108,12 +108,12 @@
     .connect-panel { padding: 22px; }
     .form { display: grid; gap: 15px; margin-top: 20px; }
     label { display: grid; gap: 7px; color: var(--muted); font-size: .82rem; font-weight: 650; }
-    input {
+    input, select {
       width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #07110f; color: var(--text);
       padding: 11px 12px; font-size: .9rem; min-height: 44px;
     }
     input::placeholder { color: #60746d; }
-    input:focus { border-color: #4d7c6e; }
+    input:focus, select:focus { border-color: #4d7c6e; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     details { border-top: 1px solid var(--line); padding-top: 13px; }
     summary { cursor: pointer; color: var(--mint); font-size: .83rem; font-weight: 650; }
@@ -137,6 +137,7 @@
 
     .payload-panel, .publish-panel { padding: 20px 22px; }
     .delivery-spec { display: inline-flex; margin-top: 10px; padding: 6px 9px; border: 1px solid var(--line-bright); border-radius: 999px; color: var(--mint); background: rgba(8, 25, 20, .72); font: 700 .72rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .05em; }
+    .command-builder { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
     .payload {
       width: 100%; min-height: 132px; resize: vertical; margin-top: 16px; color: #c5e9df; background: #050d0b;
       border: 1px solid var(--line); border-radius: 11px; padding: 13px; font: .78rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -158,7 +159,7 @@
       .layout { margin-top: 16px; gap: 16px; }
       .main { gap: 16px; }
       .panel-head, .led-grid { padding-left: 16px; padding-right: 16px; }
-      .led-grid.outputs, .led-grid.inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .led-grid.outputs, .led-grid.leds, .led-grid.inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .channel { min-height: 132px; }
       .led { width: 50px; height: 50px; }
       .rail { display: flex; }
@@ -187,6 +188,11 @@
           <div class="led-grid outputs" id="outputs"></div>
         </section>
 
+        <section class="panel" aria-labelledby="ledsTitle">
+          <div class="panel-head"><div><div class="eyebrow">Front panel</div><h2 id="ledsTitle">Status LEDs</h2></div><div class="count" id="ledCount">0 / 4 ON</div></div>
+          <div class="led-grid leds" id="leds"></div>
+        </section>
+
         <section class="panel" aria-labelledby="inputsTitle">
           <div class="panel-head"><div><div class="eyebrow">Sensors</div><h2 id="inputsTitle">Digital inputs</h2></div><div class="count" id="inputCount">0 / 8 ON</div></div>
           <div class="led-grid inputs" id="inputs"></div>
@@ -197,9 +203,10 @@
         <section class="panel connect-panel" aria-labelledby="connectionTitle">
           <div class="eyebrow">Data source</div><h2 id="connectionTitle">MQTT connection</h2>
           <form class="form" id="connectionForm">
-            <label>Broker WebSocket URL<input id="broker" type="url" autocomplete="url" value="wss://broker.emqx.io:8084/mqtt" required /></label>
-            <label>Receive topic<input id="receiveTopic" type="text" value="devices/io/status" required /></label>
-            <label>Send topic<input id="sendTopic" type="text" value="devices/io/command" required /></label>
+            <label>Broker WebSocket URL<input id="broker" type="url" autocomplete="url" value="wss://s4aa124d.ala.us-east-1.emqxsl.com:8084/mqtt" required /></label>
+            <label>Telemetry topic<input id="receiveTopic" type="text" value="opta/outputs" required /></label>
+            <label>Device-status topic<input id="statusTopic" type="text" value="opta/status" required /></label>
+            <label>Command topic<input id="sendTopic" type="text" value="opta/cmd" required /></label>
             <details>
               <summary>Authentication &amp; client settings</summary>
               <div class="row">
@@ -210,15 +217,19 @@
             </details>
             <div class="actions"><button class="button" id="connectButton" type="submit">Connect</button><button class="button secondary" id="disconnectButton" type="button" disabled>Stop</button></div>
           </form>
-          <p class="note">Incoming payloads are read from the receive topic. Messages you send go only to the send topic. Use a <strong>wss://</strong> broker on this secure page.</p>
+          <p class="note">Enter the same EMQX username and password as the Opta. Keep this dashboard client ID different from <strong>opta-diag-01</strong> so both clients remain connected.</p>
         </section>
 
         <section class="panel publish-panel" aria-labelledby="publishTitle">
           <div class="eyebrow">Outgoing message</div><h2 id="publishTitle">Publish command</h2>
           <div class="delivery-spec" aria-label="Publish settings: QoS zero, retain off">QoS 0 · Retain off</div>
-          <textarea class="payload" id="publishPayload" spellcheck="false" aria-label="Plain-text message to publish">1</textarea>
-          <div class="payload-actions"><span class="message" id="publishMessage" aria-live="polite">Connect to send a message</span><button class="button" id="publishButton" type="button" disabled>Send message</button></div>
-          <p class="note">The message is sent exactly as typed, without JSON encoding.</p>
+          <div class="command-builder">
+            <label>Target<select id="commandTarget"><option>D0</option><option>D1</option><option>D2</option><option>D3</option><option>LED0</option><option>LED1</option><option>LED2</option><option>LED3</option><option>ALL</option></select></label>
+            <label>Action<select id="commandAction"><option>ON</option><option>OFF</option><option>TOGGLE</option></select></label>
+          </div>
+          <textarea class="payload" id="publishPayload" spellcheck="false" aria-label="Plain-text command to publish">D0 ON</textarea>
+          <div class="payload-actions"><span class="message" id="publishMessage" aria-live="polite">Connect to send a command</span><button class="button" id="publishButton" type="button" disabled>Send command</button></div>
+          <p class="note">Commands use <strong>&lt;TARGET&gt; &lt;ACTION&gt;</strong> and are sent exactly as typed. Examples: D1 TOGGLE, LED2 OFF, ALL OFF.</p>
         </section>
 
         <section class="panel telemetry" aria-labelledby="telemetryTitle">
@@ -228,13 +239,14 @@
             <div class="metric"><div class="metric-label">Uptime</div><div class="metric-value" id="uptime">04:12</div></div>
             <div class="metric"><div class="metric-label">RSSI</div><div class="metric-value" id="rssi">−36 dBm</div></div>
             <div class="metric"><div class="metric-label">Messages</div><div class="metric-value" id="messages">1</div></div>
+            <div class="metric"><div class="metric-label">Opta status</div><div class="metric-value" id="deviceStatus">Unknown</div></div>
           </div>
           <div class="timestamp" id="timestamp">Showing the supplied sample payload</div>
         </section>
 
         <section class="panel payload-panel" aria-labelledby="payloadTitle">
           <div class="eyebrow">Test bench</div><h2 id="payloadTitle">Payload simulator</h2>
-          <textarea class="payload" id="payload" spellcheck="false" aria-label="JSON payload">{"seq":8,"up_s":252,"rssi":-36,"outputs":{"D0":0,"D1":0,"D2":0,"D3":0},"inputs":{"I1":0,"I2":0,"I3":0,"I4":0,"I5":0,"I6":0,"I7":0,"I8":0}}</textarea>
+          <textarea class="payload" id="payload" spellcheck="false" aria-label="JSON payload">{"seq":8,"up_s":252,"rssi":-36,"outputs":{"D0":0,"D1":0,"D2":0,"D3":0},"leds":{"L0":0,"L1":0,"L2":0,"L3":0},"inputs":{"I1":0,"I2":0,"I3":0,"I4":0,"I5":0,"I6":0,"I7":0,"I8":0}}</textarea>
           <div class="payload-actions"><span class="message" id="message" aria-live="polite"></span><button class="button secondary" id="applyPayload" type="button">Apply payload</button></div>
         </section>
       </aside>
@@ -243,24 +255,26 @@
 
   <script>
     const OUTPUT_KEYS = ["D0", "D1", "D2", "D3"];
+    const LED_KEYS = ["L0", "L1", "L2", "L3"];
     const INPUT_KEYS = ["I1", "I2", "I3", "I4", "I5", "I6", "I7", "I8"];
-    const sample = { seq: 8, up_s: 252, rssi: -36, outputs: { D0: 0, D1: 0, D2: 0, D3: 0 }, inputs: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0 } };
+    const sample = { seq: 8, up_s: 252, rssi: -36, outputs: { D0: 0, D1: 0, D2: 0, D3: 0 }, leds: { L0: 0, L1: 0, L2: 0, L3: 0 }, inputs: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0 } };
     const state = { payload: sample, messages: 1, published: 0, client: null };
 
     const $ = (id) => document.getElementById(id);
     const els = {
-      outputs: $("outputs"), inputs: $("inputs"), outputCount: $("outputCount"), inputCount: $("inputCount"),
-      seq: $("seq"), uptime: $("uptime"), rssi: $("rssi"), messages: $("messages"), timestamp: $("timestamp"),
-      message: $("message"), payload: $("payload"), form: $("connectionForm"), broker: $("broker"), receiveTopic: $("receiveTopic"), sendTopic: $("sendTopic"),
+      outputs: $("outputs"), leds: $("leds"), inputs: $("inputs"), outputCount: $("outputCount"), ledCount: $("ledCount"), inputCount: $("inputCount"),
+      seq: $("seq"), uptime: $("uptime"), rssi: $("rssi"), messages: $("messages"), deviceStatus: $("deviceStatus"), timestamp: $("timestamp"),
+      message: $("message"), payload: $("payload"), form: $("connectionForm"), broker: $("broker"), receiveTopic: $("receiveTopic"), statusTopic: $("statusTopic"), sendTopic: $("sendTopic"),
       username: $("username"), password: $("password"), clientId: $("clientId"), connect: $("connectButton"),
       disconnect: $("disconnectButton"), statusDot: $("statusDot"), connectionText: $("connectionText"),
-      publishPayload: $("publishPayload"), publishMessage: $("publishMessage"), publishButton: $("publishButton")
+      publishPayload: $("publishPayload"), publishMessage: $("publishMessage"), publishButton: $("publishButton"), commandTarget: $("commandTarget"), commandAction: $("commandAction")
     };
 
     function channelMarkup(key) {
       return `<article class="channel" id="channel-${key}" aria-label="${key} is off"><span class="channel-name">${key}</span><span class="led" aria-hidden="true"></span><span class="channel-value">LOW · 0</span></article>`;
     }
     els.outputs.innerHTML = OUTPUT_KEYS.map(channelMarkup).join("");
+    els.leds.innerHTML = LED_KEYS.map(channelMarkup).join("");
     els.inputs.innerHTML = INPUT_KEYS.map(channelMarkup).join("");
 
     function normalizeBit(value, key) {
@@ -270,13 +284,14 @@
 
     function validatePayload(value) {
       if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Payload must be a JSON object");
-      if (!value.outputs || !value.inputs) throw new Error("Payload needs outputs and inputs objects");
+      if (!value.outputs || !value.leds || !value.inputs) throw new Error("Payload needs outputs, leds and inputs objects");
       const normalized = {
         seq: Number(value.seq), up_s: Number(value.up_s), rssi: Number(value.rssi),
-        outputs: {}, inputs: {}
+        outputs: {}, leds: {}, inputs: {}
       };
       if (![normalized.seq, normalized.up_s, normalized.rssi].every(Number.isFinite)) throw new Error("seq, up_s and rssi must be numbers");
       OUTPUT_KEYS.forEach((key) => normalized.outputs[key] = normalizeBit(value.outputs[key], key));
+      LED_KEYS.forEach((key) => normalized.leds[key] = normalizeBit(value.leds[key], key));
       INPUT_KEYS.forEach((key) => normalized.inputs[key] = normalizeBit(value.inputs[key], key));
       return normalized;
     }
@@ -307,6 +322,7 @@
       state.payload = next;
       state.messages += 1;
       renderBank(OUTPUT_KEYS, next.outputs, els.outputCount);
+      renderBank(LED_KEYS, next.leds, els.ledCount);
       renderBank(INPUT_KEYS, next.inputs, els.inputCount);
       els.seq.textContent = next.seq;
       els.uptime.textContent = formatUptime(next.up_s);
@@ -332,14 +348,13 @@
     }
 
     function savePreferences() {
-      localStorage.setItem("mqtt-io-preferences", JSON.stringify({ broker: els.broker.value, receiveTopic: els.receiveTopic.value, sendTopic: els.sendTopic.value, username: els.username.value, clientId: els.clientId.value }));
+      localStorage.setItem("mqtt-io-preferences", JSON.stringify({ profile: "opta-v1", broker: els.broker.value, receiveTopic: els.receiveTopic.value, statusTopic: els.statusTopic.value, sendTopic: els.sendTopic.value, username: els.username.value, clientId: els.clientId.value }));
     }
 
     try {
       const saved = JSON.parse(localStorage.getItem("mqtt-io-preferences") || "null");
-      if (saved) {
-        if (saved.topic && !saved.receiveTopic) saved.receiveTopic = saved.topic;
-        ["broker", "receiveTopic", "sendTopic", "username", "clientId"].forEach((key) => { if (saved[key]) els[key].value = saved[key]; });
+      if (saved?.profile === "opta-v1") {
+        ["broker", "receiveTopic", "statusTopic", "sendTopic", "username", "clientId"].forEach((key) => { if (saved[key]) els[key].value = saved[key]; });
       }
     } catch (_) {}
     if (!els.clientId.value) els.clientId.value = `io-monitor-${Math.random().toString(16).slice(2, 10)}`;
@@ -359,16 +374,22 @@
       els.disconnect.disabled = false;
 
       client.on("connect", () => {
-        client.subscribe(els.receiveTopic.value.trim(), { qos: 0 }, (error) => {
+        const topics = [els.receiveTopic.value.trim(), els.statusTopic.value.trim()];
+        client.subscribe(topics, { qos: 0 }, (error) => {
           if (error) { showMessage(`Subscribe failed: ${error.message}`, "error"); return; }
           setConnection("online", "Live connection");
-          showMessage(`Listening on ${els.receiveTopic.value.trim()}`, "success");
+          showMessage(`Listening on ${topics.join(" and ")}`, "success");
         });
       });
       client.on("reconnect", () => setConnection("connecting", "Reconnecting…"));
       client.on("message", (topic, data) => {
         try {
           const raw = data.toString();
+          if (topic === els.statusTopic.value.trim()) {
+            const status = raw.trim().toLowerCase();
+            els.deviceStatus.textContent = status === "online" ? "Online" : status === "offline" ? "Offline" : raw.trim() || "Unknown";
+            return;
+          }
           const parsed = JSON.parse(raw);
           applyPayload(parsed, `MQTT · ${topic}`);
           els.payload.value = JSON.stringify(parsed, null, 2);
@@ -376,7 +397,7 @@
         } catch (error) { showMessage(`Ignored message: ${error.message}`, "error"); }
       });
       client.on("error", (error) => { setConnection("", "Connection error"); showMessage(error.message, "error"); });
-      client.on("close", () => { if (state.client === client) setConnection("", "Disconnected"); });
+      client.on("close", () => { if (state.client === client) { setConnection("", "Disconnected"); els.deviceStatus.textContent = "Unknown"; } });
     });
 
     els.disconnect.addEventListener("click", () => {
@@ -386,9 +407,16 @@
       setConnection("", "Disconnected");
       els.disconnect.disabled = true;
       els.publishButton.disabled = true;
-      els.publishMessage.textContent = "Connect to send a message";
+      els.publishMessage.textContent = "Connect to send a command";
+      els.deviceStatus.textContent = "Unknown";
       showMessage("Connection closed");
     });
+
+    function composeCommand() {
+      els.publishPayload.value = `${els.commandTarget.value} ${els.commandAction.value}`;
+    }
+    els.commandTarget.addEventListener("change", composeCommand);
+    els.commandAction.addEventListener("change", composeCommand);
 
     els.publishButton.addEventListener("click", () => {
       if (!state.client?.connected) {
@@ -428,6 +456,7 @@
     });
 
     renderBank(OUTPUT_KEYS, sample.outputs, els.outputCount);
+    renderBank(LED_KEYS, sample.leds, els.ledCount);
     renderBank(INPUT_KEYS, sample.inputs, els.inputCount);
 
     const modelContext = document.modelContext;
@@ -450,9 +479,10 @@
           properties: {
             seq: { type: "number" }, up_s: { type: "number" }, rssi: { type: "number" },
             outputs: { type: "object", properties: Object.fromEntries(OUTPUT_KEYS.map(k => [k, { type: "integer", enum: [0,1] }])), required: OUTPUT_KEYS, additionalProperties: false },
+            leds: { type: "object", properties: Object.fromEntries(LED_KEYS.map(k => [k, { type: "integer", enum: [0,1] }])), required: LED_KEYS, additionalProperties: false },
             inputs: { type: "object", properties: Object.fromEntries(INPUT_KEYS.map(k => [k, { type: "integer", enum: [0,1] }])), required: INPUT_KEYS, additionalProperties: false }
           },
-          required: ["seq", "up_s", "rssi", "outputs", "inputs"], additionalProperties: false
+          required: ["seq", "up_s", "rssi", "outputs", "leds", "inputs"], additionalProperties: false
         },
         annotations: { readOnlyHint: false, untrustedContentHint: true },
         execute(input) {
