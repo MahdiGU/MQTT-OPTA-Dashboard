@@ -135,7 +135,7 @@
     .metric-value { margin-top: 7px; font: 700 1.13rem ui-monospace, SFMono-Regular, Menlo, monospace; }
     .timestamp { margin-top: 12px; color: var(--muted); font-size: .79rem; }
 
-    .payload-panel { padding: 20px 22px; }
+    .payload-panel, .publish-panel { padding: 20px 22px; }
     .payload {
       width: 100%; min-height: 132px; resize: vertical; margin-top: 16px; color: #c5e9df; background: #050d0b;
       border: 1px solid var(--line); border-radius: 11px; padding: 13px; font: .78rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -148,7 +148,7 @@
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
       .rail { display: grid; grid-template-columns: 1fr 1fr; }
-      .payload-panel { grid-column: 1 / -1; }
+      .payload-panel, .publish-panel { grid-column: 1 / -1; }
     }
     @media (max-width: 680px) {
       .shell { padding: 16px; }
@@ -197,7 +197,8 @@
           <div class="eyebrow">Data source</div><h2 id="connectionTitle">MQTT connection</h2>
           <form class="form" id="connectionForm">
             <label>Broker WebSocket URL<input id="broker" type="url" autocomplete="url" value="wss://broker.emqx.io:8084/mqtt" required /></label>
-            <label>Topic<input id="topic" type="text" value="devices/io/status" required /></label>
+            <label>Receive topic<input id="receiveTopic" type="text" value="devices/io/status" required /></label>
+            <label>Send topic<input id="sendTopic" type="text" value="devices/io/command" required /></label>
             <details>
               <summary>Authentication &amp; client settings</summary>
               <div class="row">
@@ -208,7 +209,13 @@
             </details>
             <div class="actions"><button class="button" id="connectButton" type="submit">Connect</button><button class="button secondary" id="disconnectButton" type="button" disabled>Stop</button></div>
           </form>
-          <p class="note">Use a <strong>wss://</strong> broker on this secure page. Credentials stay in this browser tab; the password is never saved.</p>
+          <p class="note">Incoming payloads are read from the receive topic. Messages you send go only to the send topic. Use a <strong>wss://</strong> broker on this secure page.</p>
+        </section>
+
+        <section class="panel publish-panel" aria-labelledby="publishTitle">
+          <div class="eyebrow">Outgoing message</div><h2 id="publishTitle">Publish command</h2>
+          <textarea class="payload" id="publishPayload" spellcheck="false" aria-label="JSON message to publish">{"outputs":{"D0":1,"D1":0,"D2":0,"D3":0}}</textarea>
+          <div class="payload-actions"><span class="message" id="publishMessage" aria-live="polite">Connect to send a message</span><button class="button" id="publishButton" type="button" disabled>Send message</button></div>
         </section>
 
         <section class="panel telemetry" aria-labelledby="telemetryTitle">
@@ -235,15 +242,16 @@
     const OUTPUT_KEYS = ["D0", "D1", "D2", "D3"];
     const INPUT_KEYS = ["I1", "I2", "I3", "I4", "I5", "I6", "I7", "I8"];
     const sample = { seq: 8, up_s: 252, rssi: -36, outputs: { D0: 0, D1: 0, D2: 0, D3: 0 }, inputs: { I1: 0, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0 } };
-    const state = { payload: sample, messages: 1, client: null };
+    const state = { payload: sample, messages: 1, published: 0, client: null };
 
     const $ = (id) => document.getElementById(id);
     const els = {
       outputs: $("outputs"), inputs: $("inputs"), outputCount: $("outputCount"), inputCount: $("inputCount"),
       seq: $("seq"), uptime: $("uptime"), rssi: $("rssi"), messages: $("messages"), timestamp: $("timestamp"),
-      message: $("message"), payload: $("payload"), form: $("connectionForm"), broker: $("broker"), topic: $("topic"),
+      message: $("message"), payload: $("payload"), form: $("connectionForm"), broker: $("broker"), receiveTopic: $("receiveTopic"), sendTopic: $("sendTopic"),
       username: $("username"), password: $("password"), clientId: $("clientId"), connect: $("connectButton"),
-      disconnect: $("disconnectButton"), statusDot: $("statusDot"), connectionText: $("connectionText")
+      disconnect: $("disconnectButton"), statusDot: $("statusDot"), connectionText: $("connectionText"),
+      publishPayload: $("publishPayload"), publishMessage: $("publishMessage"), publishButton: $("publishButton")
     };
 
     function channelMarkup(key) {
@@ -316,15 +324,20 @@
       const connected = mode === "online";
       els.connect.disabled = mode === "connecting" || connected;
       els.disconnect.disabled = !state.client;
+      els.publishButton.disabled = !connected;
+      if (connected && state.published === 0) els.publishMessage.textContent = `Ready to publish to ${els.sendTopic.value.trim()}`;
     }
 
     function savePreferences() {
-      localStorage.setItem("mqtt-io-preferences", JSON.stringify({ broker: els.broker.value, topic: els.topic.value, username: els.username.value, clientId: els.clientId.value }));
+      localStorage.setItem("mqtt-io-preferences", JSON.stringify({ broker: els.broker.value, receiveTopic: els.receiveTopic.value, sendTopic: els.sendTopic.value, username: els.username.value, clientId: els.clientId.value }));
     }
 
     try {
       const saved = JSON.parse(localStorage.getItem("mqtt-io-preferences") || "null");
-      if (saved) ["broker", "topic", "username", "clientId"].forEach((key) => { if (saved[key]) els[key].value = saved[key]; });
+      if (saved) {
+        if (saved.topic && !saved.receiveTopic) saved.receiveTopic = saved.topic;
+        ["broker", "receiveTopic", "sendTopic", "username", "clientId"].forEach((key) => { if (saved[key]) els[key].value = saved[key]; });
+      }
     } catch (_) {}
     if (!els.clientId.value) els.clientId.value = `io-monitor-${Math.random().toString(16).slice(2, 10)}`;
 
@@ -343,18 +356,18 @@
       els.disconnect.disabled = false;
 
       client.on("connect", () => {
-        client.subscribe(els.topic.value.trim(), { qos: 0 }, (error) => {
+        client.subscribe(els.receiveTopic.value.trim(), { qos: 0 }, (error) => {
           if (error) { showMessage(`Subscribe failed: ${error.message}`, "error"); return; }
           setConnection("online", "Live connection");
-          showMessage(`Listening on ${els.topic.value.trim()}`, "success");
+          showMessage(`Listening on ${els.receiveTopic.value.trim()}`, "success");
         });
       });
       client.on("reconnect", () => setConnection("connecting", "Reconnecting…"));
-      client.on("message", (_topic, data) => {
+      client.on("message", (topic, data) => {
         try {
           const raw = data.toString();
           const parsed = JSON.parse(raw);
-          applyPayload(parsed, "MQTT message");
+          applyPayload(parsed, `MQTT · ${topic}`);
           els.payload.value = JSON.stringify(parsed, null, 2);
           showMessage("Message received", "success");
         } catch (error) { showMessage(`Ignored message: ${error.message}`, "error"); }
@@ -369,7 +382,45 @@
       if (client) client.end(true);
       setConnection("", "Disconnected");
       els.disconnect.disabled = true;
+      els.publishButton.disabled = true;
+      els.publishMessage.textContent = "Connect to send a message";
       showMessage("Connection closed");
+    });
+
+    els.publishButton.addEventListener("click", () => {
+      if (!state.client?.connected) {
+        els.publishMessage.textContent = "Connect to the broker first";
+        els.publishMessage.className = "message error";
+        return;
+      }
+      let body;
+      try {
+        body = JSON.stringify(JSON.parse(els.publishPayload.value));
+      } catch (error) {
+        els.publishMessage.textContent = `Invalid JSON: ${error.message}`;
+        els.publishMessage.className = "message error";
+        return;
+      }
+      const topic = els.sendTopic.value.trim();
+      if (!topic) {
+        els.publishMessage.textContent = "Enter a send topic";
+        els.publishMessage.className = "message error";
+        return;
+      }
+      els.publishButton.disabled = true;
+      els.publishMessage.textContent = "Sending…";
+      els.publishMessage.className = "message";
+      state.client.publish(topic, body, { qos: 0 }, (error) => {
+        els.publishButton.disabled = false;
+        if (error) {
+          els.publishMessage.textContent = `Send failed: ${error.message}`;
+          els.publishMessage.className = "message error";
+          return;
+        }
+        state.published += 1;
+        els.publishMessage.textContent = `Sent ${state.published} message${state.published === 1 ? "" : "s"} to ${topic}`;
+        els.publishMessage.className = "message success";
+      });
     });
 
     $("applyPayload").addEventListener("click", () => {
