@@ -136,6 +136,7 @@
     .timestamp { margin-top: 12px; color: var(--muted); font-size: .79rem; }
 
     .payload-panel, .publish-panel { padding: 20px 22px; }
+    .delivery-spec { display: inline-flex; margin-top: 10px; padding: 6px 9px; border: 1px solid var(--line-bright); border-radius: 999px; color: var(--mint); background: rgba(8, 25, 20, .72); font: 700 .72rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .05em; }
     .payload {
       width: 100%; min-height: 132px; resize: vertical; margin-top: 16px; color: #c5e9df; background: #050d0b;
       border: 1px solid var(--line); border-radius: 11px; padding: 13px; font: .78rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -214,6 +215,7 @@
 
         <section class="panel publish-panel" aria-labelledby="publishTitle">
           <div class="eyebrow">Outgoing message</div><h2 id="publishTitle">Publish command</h2>
+          <div class="delivery-spec" aria-label="Publish settings: QoS zero, retain off">QoS 0 · Retain off</div>
           <textarea class="payload" id="publishPayload" spellcheck="false" aria-label="JSON message to publish">{"outputs":{"D0":1,"D1":0,"D2":0,"D3":0}}</textarea>
           <div class="payload-actions"><span class="message" id="publishMessage" aria-live="polite">Connect to send a message</span><button class="button" id="publishButton" type="button" disabled>Send message</button></div>
         </section>
@@ -410,7 +412,7 @@
       els.publishButton.disabled = true;
       els.publishMessage.textContent = "Sending…";
       els.publishMessage.className = "message";
-      state.client.publish(topic, body, { qos: 0 }, (error) => {
+      state.client.publish(topic, body, { qos: 0, retain: false }, (error) => {
         els.publishButton.disabled = false;
         if (error) {
           els.publishMessage.textContent = `Send failed: ${error.message}`;
@@ -418,7 +420,7 @@
           return;
         }
         state.published += 1;
-        els.publishMessage.textContent = `Sent ${state.published} message${state.published === 1 ? "" : "s"} to ${topic}`;
+        els.publishMessage.textContent = `Sent ${state.published} message${state.published === 1 ? "" : "s"} to ${topic} · QoS 0 · not retained`;
         els.publishMessage.className = "message success";
       });
     });
