@@ -11,22 +11,21 @@ A browser-based dashboard for monitoring and controlling an Arduino Opta over MQ
 
 The browser connects through MQTT over secure WebSockets (`wss://...:8084/mqtt`). Enter the broker username and password in the dashboard; passwords are not stored.
 
-The IO1 analog lamp sensor is expected in the telemetry payload as:
+The telemetry payload is expected in this format:
 
 ```json
-"inputs": {
-  "I1": { "voltage": 12.6, "temperature": 42.4 },
-  "I2": 0,
-  "I3": 0,
-  "I4": 0,
-  "I5": 0,
-  "I6": 0,
-  "I7": 0,
-  "I8": 0
+{
+  "seq": 12,
+  "up_s": 345,
+  "rssi": -45,
+  "outputs": {"D0":0,"D1":1,"D2":0,"D3":0},
+  "leds": {"L0":1,"L1":0,"L2":0,"L3":0},
+  "i1": {"volts":5.00,"temp_c":25.0,"fault":0},
+  "inputs": {"I2":0,"I3":1,"I4":0,"I5":0,"I6":0,"I7":0,"I8":0}
 }
 ```
 
-For compatibility, a numeric `I1` value is displayed as voltage with temperature unavailable. The aliases `voltage_v`, `temperature_c`, and `temp_c` are also accepted.
+`i1.fault` must be `0` for normal operation or `1` for a sensor fault. The dashboard highlights the lamp card in red when a fault is reported.
 
 ## Run locally
 

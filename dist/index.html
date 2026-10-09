@@ -89,6 +89,8 @@
       background: radial-gradient(circle at 18% 8%, rgba(247,191,85,.13), transparent 46%), rgba(3, 12, 9, .52);
       display: flex; flex-direction: column; justify-content: space-between;
     }
+    .lamp-card.fault { border-color: rgba(255,93,102,.54); background: radial-gradient(circle at 18% 8%, rgba(255,93,102,.15), transparent 46%), rgba(3, 12, 9, .52); }
+    .lamp-card.fault .lamp-icon, .lamp-card.fault .sensor-tag { color: var(--red); }
     .lamp-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
     .sensor-tag { color: var(--amber); font: 700 .7rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .1em; text-transform: uppercase; }
     .lamp-icon { width: 58px; height: 58px; color: var(--amber); filter: drop-shadow(0 0 12px rgba(247,191,85,.28)); }
@@ -98,6 +100,9 @@
     .analog-metric { padding: 15px; border: 1px solid var(--line); border-radius: 11px; background: rgba(4,13,10,.58); }
     .analog-label { color: var(--muted); font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; }
     .analog-value { margin-top: 9px; font: 750 1.4rem ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text); }
+    .fault-state { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 15px; border: 1px solid var(--line); border-radius: 11px; background: rgba(4,13,10,.58); }
+    .fault-value { color: var(--green); font: 750 .78rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; }
+    .lamp-card.fault .fault-value { color: var(--red); }
     .digital-inputs { min-width: 0; }
     .digital-inputs-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 24px; margin-bottom: 10px; }
     .digital-inputs .led-grid { padding: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -218,7 +223,7 @@
         <section class="panel" aria-labelledby="inputsTitle">
           <div class="panel-head"><div><div class="eyebrow">Sensors</div><h2 id="inputsTitle">Lamp &amp; digital inputs</h2></div></div>
           <div class="sensor-layout">
-            <article class="lamp-card" aria-label="IO1 lamp analog sensor">
+            <article class="lamp-card" id="lampCard" aria-label="IO1 lamp analog sensor, normal">
               <div class="lamp-heading">
                 <div><div class="sensor-tag">IO1 · Analog</div><div class="lamp-title">Lamp monitor</div><div class="lamp-subtitle">Live electrical and thermal measurements</div></div>
                 <svg class="lamp-icon" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M20 28c0-8 5.4-14 12-14s12 6 12 14c0 5.2-2.2 8.2-5.8 12-1.4 1.5-2.2 3.1-2.2 5H28c0-1.9-.8-3.5-2.2-5-3.6-3.8-5.8-6.8-5.8-12Z" stroke="currentColor" stroke-width="3"/><path d="M28 50h8M29.5 55h5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M32 4v4M9 28H5M59 28h-4M15 11l3 3M49 11l-3 3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
@@ -226,6 +231,7 @@
               <div class="analog-metrics">
                 <div class="analog-metric"><div class="analog-label">Measured voltage</div><div class="analog-value" id="lampVoltage">0.00 V</div></div>
                 <div class="analog-metric"><div class="analog-label">Temperature</div><div class="analog-value" id="lampTemperature">0.0 °C</div></div>
+                <div class="fault-state"><div class="analog-label">Sensor fault</div><div class="fault-value" id="lampFault">NORMAL · 0</div></div>
               </div>
             </article>
             <div class="digital-inputs">
@@ -272,9 +278,9 @@
         <section class="panel telemetry" aria-labelledby="telemetryTitle">
           <div class="eyebrow">Latest message</div><h2 id="telemetryTitle">Device telemetry</h2>
           <div class="metric-grid">
-            <div class="metric"><div class="metric-label">Sequence</div><div class="metric-value" id="seq">8</div></div>
-            <div class="metric"><div class="metric-label">Uptime</div><div class="metric-value" id="uptime">04:12</div></div>
-            <div class="metric"><div class="metric-label">RSSI</div><div class="metric-value" id="rssi">−36 dBm</div></div>
+            <div class="metric"><div class="metric-label">Sequence</div><div class="metric-value" id="seq">12</div></div>
+            <div class="metric"><div class="metric-label">Uptime</div><div class="metric-value" id="uptime">05:45</div></div>
+            <div class="metric"><div class="metric-label">RSSI</div><div class="metric-value" id="rssi">−45 dBm</div></div>
             <div class="metric"><div class="metric-label">Messages</div><div class="metric-value" id="messages">1</div></div>
             <div class="metric"><div class="metric-label">Opta status</div><div class="metric-value" id="deviceStatus">Unknown</div></div>
           </div>
@@ -283,7 +289,7 @@
 
         <section class="panel payload-panel" aria-labelledby="payloadTitle">
           <div class="eyebrow">Test bench</div><h2 id="payloadTitle">Payload simulator</h2>
-          <textarea class="payload" id="payload" spellcheck="false" aria-label="JSON payload">{"seq":8,"up_s":252,"rssi":-36,"outputs":{"D0":0,"D1":0,"D2":0,"D3":0},"leds":{"L0":0,"L1":0,"L2":0,"L3":0},"inputs":{"I1":{"voltage":12.6,"temperature":42.4},"I2":0,"I3":0,"I4":0,"I5":0,"I6":0,"I7":0,"I8":0}}</textarea>
+          <textarea class="payload" id="payload" spellcheck="false" aria-label="JSON payload">{"seq":12,"up_s":345,"rssi":-45,"outputs":{"D0":0,"D1":1,"D2":0,"D3":0},"leds":{"L0":1,"L1":0,"L2":0,"L3":0},"i1":{"volts":5.00,"temp_c":25.0,"fault":0},"inputs":{"I2":0,"I3":1,"I4":0,"I5":0,"I6":0,"I7":0,"I8":0}}</textarea>
           <div class="payload-actions"><span class="message" id="message" aria-live="polite"></span><button class="button secondary" id="applyPayload" type="button">Apply payload</button></div>
         </section>
       </aside>
@@ -294,13 +300,13 @@
     const OUTPUT_KEYS = ["D0", "D1", "D2", "D3"];
     const LED_KEYS = ["L0", "L1", "L2", "L3"];
     const INPUT_KEYS = ["I2", "I3", "I4", "I5", "I6", "I7", "I8"];
-    const sample = { seq: 8, up_s: 252, rssi: -36, outputs: { D0: 0, D1: 0, D2: 0, D3: 0 }, leds: { L0: 0, L1: 0, L2: 0, L3: 0 }, inputs: { I1: { voltage: 12.6, temperature: 42.4 }, I2: 0, I3: 0, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0 } };
+    const sample = { seq: 12, up_s: 345, rssi: -45, outputs: { D0: 0, D1: 1, D2: 0, D3: 0 }, leds: { L0: 1, L1: 0, L2: 0, L3: 0 }, i1: { volts: 5.00, temp_c: 25.0, fault: 0 }, inputs: { I2: 0, I3: 1, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0 } };
     const state = { payload: sample, messages: 1, published: 0, client: null };
 
     const $ = (id) => document.getElementById(id);
     const els = {
       outputs: $("outputs"), leds: $("leds"), inputs: $("inputs"), outputCount: $("outputCount"), ledCount: $("ledCount"), inputCount: $("inputCount"),
-      seq: $("seq"), uptime: $("uptime"), rssi: $("rssi"), messages: $("messages"), deviceStatus: $("deviceStatus"), timestamp: $("timestamp"), lampVoltage: $("lampVoltage"), lampTemperature: $("lampTemperature"),
+      seq: $("seq"), uptime: $("uptime"), rssi: $("rssi"), messages: $("messages"), deviceStatus: $("deviceStatus"), timestamp: $("timestamp"), lampCard: $("lampCard"), lampVoltage: $("lampVoltage"), lampTemperature: $("lampTemperature"), lampFault: $("lampFault"),
       message: $("message"), payload: $("payload"), form: $("connectionForm"), broker: $("broker"), receiveTopic: $("receiveTopic"), statusTopic: $("statusTopic"), sendTopic: $("sendTopic"),
       username: $("username"), password: $("password"), clientId: $("clientId"), connect: $("connectButton"),
       disconnect: $("disconnectButton"), statusDot: $("statusDot"), connectionText: $("connectionText"),
@@ -320,26 +326,24 @@
     }
 
     function normalizeLamp(value) {
-      if (typeof value === "number" && Number.isFinite(value)) return { voltage: value, temperature: null };
-      if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("I1 must contain analog voltage and temperature measurements");
-      const voltage = Number(value.voltage ?? value.voltage_v);
-      const temperature = Number(value.temperature ?? value.temperature_c ?? value.temp_c);
-      if (!Number.isFinite(voltage)) throw new Error("I1 voltage must be a number");
-      if (!Number.isFinite(temperature)) throw new Error("I1 temperature must be a number");
-      return { voltage, temperature };
+      if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("i1 must contain volts, temp_c and fault");
+      const volts = Number(value.volts);
+      const temp_c = Number(value.temp_c);
+      if (!Number.isFinite(volts)) throw new Error("i1.volts must be a number");
+      if (!Number.isFinite(temp_c)) throw new Error("i1.temp_c must be a number");
+      return { volts, temp_c, fault: normalizeBit(value.fault, "i1.fault") };
     }
 
     function validatePayload(value) {
       if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Payload must be a JSON object");
-      if (!value.outputs || !value.leds || !value.inputs) throw new Error("Payload needs outputs, leds and inputs objects");
+      if (!value.outputs || !value.leds || !value.i1 || !value.inputs) throw new Error("Payload needs outputs, leds, i1 and inputs objects");
       const normalized = {
         seq: Number(value.seq), up_s: Number(value.up_s), rssi: Number(value.rssi),
-        outputs: {}, leds: {}, inputs: {}
+        outputs: {}, leds: {}, i1: normalizeLamp(value.i1), inputs: {}
       };
       if (![normalized.seq, normalized.up_s, normalized.rssi].every(Number.isFinite)) throw new Error("seq, up_s and rssi must be numbers");
       OUTPUT_KEYS.forEach((key) => normalized.outputs[key] = normalizeBit(value.outputs[key], key));
       LED_KEYS.forEach((key) => normalized.leds[key] = normalizeBit(value.leds[key], key));
-      normalized.inputs.I1 = normalizeLamp(value.inputs.I1);
       INPUT_KEYS.forEach((key) => normalized.inputs[key] = normalizeBit(value.inputs[key], key));
       return normalized;
     }
@@ -366,8 +370,12 @@
     }
 
     function renderLamp(lamp) {
-      els.lampVoltage.textContent = `${lamp.voltage.toFixed(2)} V`;
-      els.lampTemperature.textContent = lamp.temperature === null ? "— °C" : `${lamp.temperature.toFixed(1)} °C`;
+      const hasFault = lamp.fault === 1;
+      els.lampVoltage.textContent = `${lamp.volts.toFixed(2)} V`;
+      els.lampTemperature.textContent = `${lamp.temp_c.toFixed(1)} °C`;
+      els.lampFault.textContent = hasFault ? "FAULT · 1" : "NORMAL · 0";
+      els.lampCard.classList.toggle("fault", hasFault);
+      els.lampCard.setAttribute("aria-label", `IO1 lamp analog sensor, ${hasFault ? "fault" : "normal"}`);
     }
 
     function applyPayload(payload, source = "Payload applied") {
@@ -377,7 +385,7 @@
       renderBank(OUTPUT_KEYS, next.outputs, els.outputCount);
       renderBank(LED_KEYS, next.leds, els.ledCount);
       renderBank(INPUT_KEYS, next.inputs, els.inputCount);
-      renderLamp(next.inputs.I1);
+      renderLamp(next.i1);
       els.seq.textContent = next.seq;
       els.uptime.textContent = formatUptime(next.up_s);
       els.rssi.textContent = `${String(next.rssi).replace("-", "−")} dBm`;
@@ -512,7 +520,7 @@
     renderBank(OUTPUT_KEYS, sample.outputs, els.outputCount);
     renderBank(LED_KEYS, sample.leds, els.ledCount);
     renderBank(INPUT_KEYS, sample.inputs, els.inputCount);
-    renderLamp(sample.inputs.I1);
+    renderLamp(sample.i1);
 
     const modelContext = document.modelContext;
     if (modelContext?.registerTool) {
@@ -535,9 +543,10 @@
             seq: { type: "number" }, up_s: { type: "number" }, rssi: { type: "number" },
             outputs: { type: "object", properties: Object.fromEntries(OUTPUT_KEYS.map(k => [k, { type: "integer", enum: [0,1] }])), required: OUTPUT_KEYS, additionalProperties: false },
             leds: { type: "object", properties: Object.fromEntries(LED_KEYS.map(k => [k, { type: "integer", enum: [0,1] }])), required: LED_KEYS, additionalProperties: false },
-            inputs: { type: "object", properties: { I1: { type: "object", properties: { voltage: { type: "number" }, temperature: { type: "number" } }, required: ["voltage", "temperature"], additionalProperties: false }, ...Object.fromEntries(INPUT_KEYS.map(k => [k, { type: "integer", enum: [0,1] }])) }, required: ["I1", ...INPUT_KEYS], additionalProperties: false }
+            i1: { type: "object", properties: { volts: { type: "number" }, temp_c: { type: "number" }, fault: { type: "integer", enum: [0,1] } }, required: ["volts", "temp_c", "fault"], additionalProperties: false },
+            inputs: { type: "object", properties: Object.fromEntries(INPUT_KEYS.map(k => [k, { type: "integer", enum: [0,1] }])), required: INPUT_KEYS, additionalProperties: false }
           },
-          required: ["seq", "up_s", "rssi", "outputs", "leds", "inputs"], additionalProperties: false
+          required: ["seq", "up_s", "rssi", "outputs", "leds", "i1", "inputs"], additionalProperties: false
         },
         annotations: { readOnlyHint: false, untrustedContentHint: true },
         execute(input) {
