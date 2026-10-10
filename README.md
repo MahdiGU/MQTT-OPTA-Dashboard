@@ -40,6 +40,14 @@ Serve the `dist` directory with any static web server, then open the local URL i
 
 The production dashboard is a static site. Its source is contained in `dist/index.html`.
 
+## Android APK
+
+The `Poultry_Demo_Arduino` branch also contains a native Android wrapper for the dashboard. It loads the same interface from the packaged `app/src/main/assets/index.html` file and connects to the MQTT broker through secure WebSockets.
+
+Every push to this branch runs the **Build Android APK** GitHub Actions workflow. Download the `Poultry-Demo-Arduino-debug-apk` artifact from the completed workflow run and install `app-debug.apk` on Android 8.0 or newer.
+
+To build locally, open the repository in Android Studio (JDK 17, Android SDK 35) or run `gradle :app:assembleDebug` with Gradle 8.9.
+
 ## Security
 
 Do not commit Wi-Fi passwords, MQTT passwords, certificates, or other credentials. Use a unique MQTT client ID for the dashboard so it does not disconnect the Opta client.

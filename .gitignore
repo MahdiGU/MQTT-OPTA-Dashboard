@@ -1,3 +1,11 @@
+.gradle/
+.idea/
+local.properties
+**/build/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
 .sites-runtime/
 .sites-stage*/
 node_modules/
