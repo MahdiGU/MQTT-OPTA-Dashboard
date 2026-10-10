@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - Poultry_Demo_Arduino
+      - Poultry_Demo_Android_Background
   workflow_dispatch:
 
 permissions:

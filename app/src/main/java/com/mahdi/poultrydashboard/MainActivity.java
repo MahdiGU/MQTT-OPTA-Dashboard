@@ -1,33 +1,41 @@
 package com.mahdi.poultrydashboard;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
 import android.os.Build;
-import android.view.WindowManager;
+import android.os.Bundle;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import org.json.JSONObject;
+
 public final class MainActivity extends Activity {
-    private static final String ALERT_CHANNEL = "temperature_alerts";
     private static final int NOTIFICATION_PERMISSION_REQUEST = 33;
     private WebView dashboard;
+    private boolean receiverRegistered;
+
+    private final BroadcastReceiver mqttEvents = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String type = intent.getStringExtra(MqttForegroundService.EXTRA_EVENT_TYPE);
+            String data = intent.getStringExtra(MqttForegroundService.EXTRA_EVENT_DATA);
+            sendEventToDashboard(type, data);
+        }
+    };
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        createNotificationChannel();
         requestNotificationPermission();
 
         dashboard = new WebView(this);
@@ -40,7 +48,13 @@ public final class MainActivity extends Activity {
         settings.setMediaPlaybackRequiresUserGesture(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
-        dashboard.setWebViewClient(new WebViewClient());
+        dashboard.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                dispatchCurrentState();
+            }
+        });
         dashboard.setWebChromeClient(new WebChromeClient());
         dashboard.addJavascriptInterface(new NativeBridge(), "ElMajdNative");
         setContentView(dashboard);
@@ -52,16 +66,26 @@ public final class MainActivity extends Activity {
         }
     }
 
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                ALERT_CHANNEL,
-                "Temperature alerts",
-                NotificationManager.IMPORTANCE_HIGH
-            );
-            channel.setDescription("Alerts when poultry-house temperature exceeds 33 °C");
-            getSystemService(NotificationManager.class).createNotificationChannel(channel);
+    @Override
+    protected void onStart() {
+        super.onStart();
+        IntentFilter filter = new IntentFilter(MqttForegroundService.ACTION_EVENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(mqttEvents, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(mqttEvents, filter);
         }
+        receiverRegistered = true;
+        dispatchCurrentState();
+    }
+
+    @Override
+    protected void onStop() {
+        if (receiverRegistered) {
+            unregisterReceiver(mqttEvents);
+            receiverRegistered = false;
+        }
+        super.onStop();
     }
 
     private void requestNotificationPermission() {
@@ -71,35 +95,89 @@ public final class MainActivity extends Activity {
         }
     }
 
-    private final class NativeBridge {
-        @JavascriptInterface
-        public void notifyHighTemperature(double temperature) {
-            runOnUiThread(() -> showTemperatureNotification(temperature));
-        }
+    private void startMonitoring(String username, String password, boolean remember) {
+        Intent service = new Intent(this, MqttForegroundService.class)
+            .setAction(MqttForegroundService.ACTION_START)
+            .putExtra(MqttForegroundService.EXTRA_USERNAME, username)
+            .putExtra(MqttForegroundService.EXTRA_PASSWORD, password)
+            .putExtra(MqttForegroundService.EXTRA_REMEMBER, remember);
+        startForegroundService(service);
     }
 
-    private void showTemperatureNotification(double temperature) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-            && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            return;
+    private void startSavedMonitoring() {
+        Intent service = new Intent(this, MqttForegroundService.class)
+            .setAction(MqttForegroundService.ACTION_START);
+        startForegroundService(service);
+    }
+
+    private void dispatchCurrentState() {
+        if (dashboard == null) return;
+        android.content.SharedPreferences state = getSharedPreferences("elmajd_runtime", MODE_PRIVATE);
+        String connection = state.getString("connection_state", null);
+        String deviceStatus = state.getString("device_status", null);
+        String latest = state.getString("latest_payload", null);
+        if (connection != null) sendEventToDashboard("connection", connection);
+        if (deviceStatus != null) sendEventToDashboard("device_status", deviceStatus);
+        if (latest != null) sendEventToDashboard("telemetry", latest);
+    }
+
+    private void sendEventToDashboard(String type, String data) {
+        if (dashboard == null || type == null) return;
+        String script = "window.elMajdNativeEvent&&window.elMajdNativeEvent("
+            + JSONObject.quote(type) + "," + JSONObject.quote(data == null ? "" : data) + ")";
+        dashboard.post(() -> dashboard.evaluateJavascript(script, null));
+    }
+
+    private final class NativeBridge {
+        @JavascriptInterface
+        public boolean hasSavedLogin() {
+            return new CredentialStore(MainActivity.this).hasSavedCredentials();
         }
-        Intent launchIntent = new Intent(this, MainActivity.class);
-        launchIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            launchIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-        android.app.Notification notification = new android.app.Notification.Builder(this, ALERT_CHANNEL)
-            .setSmallIcon(android.R.drawable.ic_dialog_alert)
-            .setContentTitle("High poultry-house temperature")
-            .setContentText(String.format(java.util.Locale.getDefault(), "Temperature is %.1f °C (limit: 33 °C)", temperature))
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .setCategory(android.app.Notification.CATEGORY_ALARM)
-            .build();
-        getSystemService(NotificationManager.class).notify(3301, notification);
+
+        @JavascriptInterface
+        public String getSavedUsername() {
+            return new CredentialStore(MainActivity.this).savedUsername();
+        }
+
+        @JavascriptInterface
+        public void connect(String username, String password, boolean remember) {
+            if (username == null || username.trim().isEmpty() || password == null || password.isEmpty()) {
+                sendEventToDashboard("error", "Username and password are required.");
+                return;
+            }
+            startMonitoring(username.trim(), password, remember);
+        }
+
+        @JavascriptInterface
+        public void resumeSavedMonitoring() {
+            if (new CredentialStore(MainActivity.this).hasSavedCredentials()) startSavedMonitoring();
+        }
+
+        @JavascriptInterface
+        public void publish(String payload) {
+            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
+                .setAction(MqttForegroundService.ACTION_PUBLISH)
+                .putExtra(MqttForegroundService.EXTRA_PAYLOAD, payload);
+            startService(service);
+        }
+
+        @JavascriptInterface
+        public String getHistory() {
+            HistoryDatabase database = new HistoryDatabase(MainActivity.this);
+            try {
+                return database.readLastTwelveHours(System.currentTimeMillis());
+            } finally {
+                database.close();
+            }
+        }
+
+        @JavascriptInterface
+        public void signOut() {
+            new CredentialStore(MainActivity.this).clear();
+            Intent stop = new Intent(MainActivity.this, MqttForegroundService.class)
+                .setAction(MqttForegroundService.ACTION_STOP);
+            startService(stop);
+        }
     }
 
     @Override
@@ -110,11 +188,8 @@ public final class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (dashboard.canGoBack()) {
-            dashboard.goBack();
-        } else {
-            super.onBackPressed();
-        }
+        if (dashboard.canGoBack()) dashboard.goBack();
+        else super.onBackPressed();
     }
 
     @Override
