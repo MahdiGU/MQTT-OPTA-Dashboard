@@ -72,8 +72,8 @@
     .status-dot.connecting { background: var(--amber); box-shadow: 0 0 0 4px rgba(247,191,85,.12); }
     .status-dot.online { background: var(--green); box-shadow: 0 0 0 4px rgba(69,229,125,.13), 0 0 16px rgba(69,229,125,.45); }
 
-    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 22px; margin-top: 22px; }
-    .main { min-width: 0; display: grid; gap: 22px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 350px; align-items: start; gap: 22px; margin-top: 22px; }
+    .main { min-width: 0; display: grid; align-content: start; gap: 22px; }
     .panel {
       background: rgba(255,255,255,.94);
       border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow);
