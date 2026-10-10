@@ -1,24 +1,48 @@
 # MQTT OPTA Dashboard
 
-A browser-based poultry dashboard for monitoring and controlling an Arduino Opta over MQTT.
+MQTT monitoring and control dashboards for an Arduino Opta, with both browser and Android versions. The project progressed from a general-purpose I/O dashboard into the **ElMajd Automation** poultry monitoring app.
 
-The `Poultry_Demo` view maps the telemetry inputs as follows:
+## Branch guide
 
-- `i1.temp_c`: poultry-house temperature.
-- `I2`, `I3`, `I4`: independent water cisterns 1, 2, and 3. Each cistern is visually empty for `0` and full for `1`.
-- `I5`, `I6`: alveole silo 1 and silo 2. Each silo is visually empty for `0` and full for `1`.
-- `I7`, `I8`: accepted in the payload and reserved for future poultry equipment.
+| Branch | Type | Purpose and features | Recommended use |
+| --- | --- | --- | --- |
+| `main` | Web dashboard | General MQTT I/O monitor. Displays relay outputs D0–D3, front-panel LEDs L0–L3, analog input I1, and digital inputs I2–I8. The broker WebSocket and MQTT topics can be configured in the page. Publishes plain-text commands with QoS 0 and retain disabled. | Use as the stable generic Opta web dashboard. |
+| `Dashboard_Dev` | Web development baseline | Development branch created from the generic dashboard. It currently points to the same revision as `main`, so there are no functional differences at present. | Use as the baseline for future generic dashboard experiments without changing `main`. |
+| `Poultry_Demo` | Poultry web dashboard | Light, responsive poultry-farm presentation. I1 displays voltage and temperature; I2–I4 are animated water cisterns; I5–I6 are animated alveole feed silos. A value of `0` displays an empty vessel and `1` displays a full vessel. | Use for a browser-based poultry demonstration or wall display. |
+| `Poultry_Demo_Arduino` | Basic Android app | First **ElMajd Automation** APK. Adds the app icon, username/password login, predefined broker/topics, compact mobile cards, 12-hour charts, controls, and temperature notifications. MQTT still runs in the WebView, so closing the app stops data reception. | Keep as the original Android prototype. For normal installation, use the background branch instead. |
+| `Poultry_Demo_Android_Background` | Android app with native background monitoring | Extends `Poultry_Demo_Arduino` with a native foreground MQTT service, automatic reconnection, restart after reboot, encrypted saved credentials, SQLite history, and native high-temperature notifications. Commands remain plain text with QoS 0 and retain disabled. | **Recommended Android branch.** Use when monitoring must continue with the screen locked or the app UI closed. |
+
+## Branch lineage
+
+```text
+main ─────────────── Generic browser dashboard
+  └─ Dashboard_Dev  Generic development baseline (currently same revision)
+       └─ Poultry_Demo
+            └─ Poultry_Demo_Arduino
+                 └─ Poultry_Demo_Android_Background
+```
+
+The branches are intentionally separate. No Android or poultry-demo work has been merged into `main`.
+
+## Which branch should I use?
+
+- For a configurable generic web dashboard, use `main`.
+- For the light poultry dashboard in a browser, use `Poultry_Demo`.
+- For an installable phone app, use `Poultry_Demo_Android_Background`.
+- Use `Poultry_Demo_Arduino` only when comparing with the original foreground-only prototype.
 
 ## MQTT protocol
 
-- Telemetry: `opta/outputs` — JSON containing sequence, uptime, RSSI, relay outputs, status LEDs, the IO1 lamp sensor, and digital inputs I2–I8.
-- Device status: `opta/status` — retained `online` or `offline` text.
-- Commands: `opta/cmd` — plain-text commands such as `D0 ON`, `LED2 OFF`, `D1 TOGGLE`, or `ALL OFF`.
-- Commands are published with QoS 0 and `retain: false`.
+All current dashboards use this protocol:
 
-The browser connects through MQTT over secure WebSockets (`wss://...:8084/mqtt`). Enter the broker username and password in the dashboard; passwords are not stored.
+- Telemetry topic: `opta/outputs`
+- Device-status topic: `opta/status`
+- Command topic: `opta/cmd`
+- Telemetry and subscriptions: QoS 0
+- Commands: plain-text strings such as `D0 ON`, `LED2 OFF`, `D1 TOGGLE`, or `ALL OFF`
+- Command publishing: QoS 0 with `retain: false`
 
-The telemetry payload is expected in this format:
+The expected telemetry payload is:
 
 ```json
 {
@@ -32,46 +56,49 @@ The telemetry payload is expected in this format:
 }
 ```
 
-`i1.fault` must be `0` for normal operation or `1` for a sensor fault. The dashboard highlights the lamp card in red when a fault is reported.
+`i1.fault` is `0` during normal operation and `1` when the analog temperature sensor reports a fault.
 
-## Run locally
+## Poultry input mapping
 
-Serve the `dist` directory with any static web server, then open the local URL in a browser.
+- `i1.temp_c`: poultry-house temperature
+- `i1.volts`: analog sensor voltage
+- `I2`, `I3`, `I4`: water cisterns 1–3
+- `I5`, `I6`: alveole feed silos 1–2
+- `I7`, `I8`: accepted and reserved for future equipment
 
-The production dashboard is a static site. Its source is contained in `dist/index.html`.
+## Running the web versions
 
-## ElMajd Automation Android app
+Switch to `main` or `Poultry_Demo`, serve the `dist` directory with any static web server, and open it in a browser. The web application is contained in `dist/index.html`.
 
-The `Poultry_Demo_Arduino` branch contains the **ElMajd Automation** Android app. It connects to the MQTT broker through secure WebSockets with the broker, client-ID policy, and topics predefined inside the app.
+The browser connects using secure MQTT WebSockets (`wss://...:8084/mqtt`). Broker credentials are entered on the connection screen.
 
-App features include:
+## Building the Android versions
 
-- Required username/password login with optional saved credentials and automatic reconnection.
-- Compact mobile overview for temperature, three water cisterns, and two alveole silos.
-- Android notification when poultry-house temperature exceeds 33 °C.
-- Tappable temperature, cistern, and silo cards with a rolling 12-hour chart sampled every five minutes.
-- Plain-text MQTT commands published with QoS 0 and retain disabled.
+Switch to `Poultry_Demo_Arduino` or `Poultry_Demo_Android_Background`, then build with Android Studio using JDK 17 and Android SDK 35. From a configured command line, run:
 
-Every push to this branch runs the **Build Android APK** GitHub Actions workflow. Download the `ElMajd-Automation-debug-apk` artifact from the completed workflow run and install `app-debug.apk` on Android 8.0 or newer.
+```text
+gradle --no-daemon :app:assembleDebug
+```
 
-To build locally, open the repository in Android Studio (JDK 17, Android SDK 35) or run `gradle :app:assembleDebug` with Gradle 8.9.
+Pushes to the Android branches run the **Build Android APK** GitHub Actions workflow. Open the successful workflow run, download the `ElMajd-Automation-debug-apk` artifact, extract it, and install `app-debug.apk` on Android 8.0 or newer.
 
-The branch uses a dedicated, public **debug-only** signing certificate so successive demo APKs can update each other. It must never be used to sign a production or Play Store release.
+The APK uses a repository-provided debug-only signing certificate so demo updates can be installed over earlier demo versions. This certificate must not be used for a production or Play Store release.
 
-### Background monitoring version
+## Background Android behavior
 
-The `Poultry_Demo_Android_Background` branch moves MQTT into an Android foreground service so monitoring continues while the app is minimized, the screen is locked, or the dashboard activity is closed. It includes:
+On `Poultry_Demo_Android_Background`, the native Android service owns the MQTT connection instead of the WebView. It provides:
 
-- A persistent **ElMajd monitoring is active** notification with a Stop action.
-- Automatic MQTT reconnection with exponential backoff and a stable phone-specific client ID.
-- Secure Android Keystore encryption for saved MQTT credentials.
-- Automatic restart after device reboot when **Save login and reconnect automatically** is enabled.
-- Native SQLite history sampled in five-minute buckets and retained for 12 hours.
-- Native temperature alerts above 33 °C with a 30-minute repeat cooldown.
-- Native plain-text command publishing on `opta/cmd` with QoS 0 and retain disabled.
+- A persistent **ElMajd monitoring is active** notification with a Stop action
+- Exponential MQTT reconnection delays from 3 to 60 seconds
+- A stable, phone-specific MQTT client ID
+- Android Keystore encryption for saved MQTT credentials
+- Optional automatic monitoring after a phone restart
+- SQLite samples in five-minute buckets, retained for the most recent 12 hours
+- Native alerts above 33 °C with a 30-minute repeat cooldown
+- Native publishing to `opta/cmd` with QoS 0 and retain disabled
 
-Force-stopping the app or using Android's Active apps **Stop** control still disables monitoring until the user opens the app again. Network outages create gaps in local history because no backend is used.
+Android force-stop and the system's **Active apps → Stop** action still terminate monitoring until the app is opened again. Network outages leave gaps in local history because this version deliberately uses no external backend.
 
 ## Security
 
-Do not commit Wi-Fi passwords, MQTT passwords, certificates, or other credentials. Use a unique MQTT client ID for the dashboard so it does not disconnect the Opta client.
+Do not commit Wi-Fi passwords, MQTT passwords, private certificates, or production signing keys. Give every Opta, browser, and phone a unique MQTT client ID so one connection does not disconnect another.
