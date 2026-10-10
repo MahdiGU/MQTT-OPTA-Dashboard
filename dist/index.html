@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#08110f" />
+  <meta name="theme-color" content="#eef6f0" />
   <meta name="description" content="A live MQTT poultry dashboard for temperature, cistern water level, and feed silos." />
   <title>Poultry Farm Monitor</title>
   <link rel="preconnect" href="https://unpkg.com" crossorigin />
@@ -11,19 +11,19 @@
   <script src="https://unpkg.com/mqtt@5.14.1/dist/mqtt.min.js"></script>
   <style>
     :root {
-      color-scheme: dark;
-      --bg: #06100e;
-      --surface: #0b1714;
-      --surface-2: #101f1b;
-      --line: #223832;
-      --line-bright: #345349;
-      --text: #eef8f4;
-      --muted: #91a9a1;
-      --mint: #9ee7d3;
-      --green: #45e57d;
-      --red: #ff5d66;
-      --amber: #f7bf55;
-      --shadow: 0 28px 70px rgba(0, 0, 0, .34);
+      color-scheme: light;
+      --bg: #eef6f0;
+      --surface: #ffffff;
+      --surface-2: #f6faf7;
+      --line: #d7e4da;
+      --line-bright: #b4cbbb;
+      --text: #17362b;
+      --muted: #6a7d74;
+      --mint: #167657;
+      --green: #24a967;
+      --red: #d84b58;
+      --amber: #d98b16;
+      --shadow: 0 18px 48px rgba(46, 81, 61, .11);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
@@ -33,11 +33,12 @@
       min-width: 320px;
       min-height: 100vh;
       background:
-        radial-gradient(circle at 86% 2%, rgba(46, 139, 112, .13), transparent 28rem),
-        linear-gradient(rgba(108, 177, 156, .035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(108, 177, 156, .035) 1px, transparent 1px),
+        radial-gradient(circle at 86% 2%, rgba(95, 196, 142, .19), transparent 30rem),
+        radial-gradient(circle at 5% 32%, rgba(255, 205, 103, .16), transparent 25rem),
+        linear-gradient(rgba(53, 118, 83, .045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(53, 118, 83, .045) 1px, transparent 1px),
         var(--bg);
-      background-size: auto, 32px 32px, 32px 32px, auto;
+      background-size: auto, auto, 32px 32px, 32px 32px, auto;
       color: var(--text);
     }
 
@@ -60,8 +61,8 @@
     .brand { display: flex; align-items: center; gap: 14px; }
     .mark {
       width: 42px; height: 42px; border: 1px solid var(--line-bright); border-radius: 12px;
-      display: grid; place-items: center; background: linear-gradient(145deg, #142822, #0a1512);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+      display: grid; place-items: center; background: linear-gradient(145deg, #ffffff, #e5f2e9);
+      box-shadow: 0 8px 20px rgba(39,101,68,.12);
     }
     .mark svg { width: 23px; height: 23px; }
     h1 { margin: 0; font-size: 1.06rem; letter-spacing: .08em; text-transform: uppercase; }
@@ -74,7 +75,7 @@
     .layout { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 22px; margin-top: 22px; }
     .main { min-width: 0; display: grid; gap: 22px; }
     .panel {
-      background: linear-gradient(155deg, rgba(17,33,29,.97), rgba(8,19,16,.98));
+      background: rgba(255,255,255,.94);
       border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow);
     }
     .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 20px 22px 0; }
@@ -108,19 +109,19 @@
     .digital-inputs .led-grid { padding: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .channel {
       min-height: 152px; padding: 16px; border: 1px solid var(--line); border-radius: 14px;
-      background: rgba(3, 12, 9, .52); display: flex; flex-direction: column; align-items: center;
+      background: #f7faf8; display: flex; flex-direction: column; align-items: center;
       justify-content: space-between; transition: border-color .2s ease, transform .2s ease, background .2s ease;
     }
     .channel:hover { transform: translateY(-2px); border-color: var(--line-bright); }
-    .channel.on { background: rgba(25, 73, 48, .22); border-color: rgba(69,229,125,.3); }
+    .channel.on { background: #e9f8ef; border-color: rgba(36,169,103,.38); }
     .led {
       width: 58px; height: 58px; border-radius: 50%; background: var(--red);
-      border: 7px solid #251315;
+      border: 7px solid #f3d8db;
       box-shadow: 0 0 0 1px rgba(255,93,102,.35), inset -8px -9px 13px rgba(89,0,5,.42), inset 5px 5px 10px rgba(255,255,255,.2), 0 0 22px rgba(255,93,102,.22);
       transition: background .18s ease, box-shadow .18s ease, border-color .18s ease;
     }
     .channel.on .led {
-      background: var(--green); border-color: #102b1a;
+      background: var(--green); border-color: #d5efdf;
       box-shadow: 0 0 0 1px rgba(69,229,125,.43), inset -8px -9px 13px rgba(0,79,27,.44), inset 5px 5px 10px rgba(255,255,255,.24), 0 0 26px rgba(69,229,125,.34);
     }
     .channel-name { font: 700 1rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; }
@@ -128,44 +129,53 @@
     .channel.on .channel-value { color: var(--green); }
 
     .poultry-grid { display: grid; grid-template-columns: minmax(270px, .8fr) minmax(340px, 1.2fr); gap: 18px; padding: 20px 22px 22px; }
-    .temperature-card { padding: 22px; border: 1px solid rgba(247,191,85,.32); border-radius: 16px; background: radial-gradient(circle at 50% 25%, rgba(247,191,85,.12), transparent 50%), rgba(3,12,9,.5); }
+    .temperature-card { padding: 22px; border: 1px solid #efdbad; border-radius: 16px; background: radial-gradient(circle at 50% 25%, rgba(255,199,74,.2), transparent 52%), #fffdf7; }
     .temperature-card.fault { border-color: rgba(255,93,102,.52); }
-    .temperature-ring { width: 196px; height: 196px; margin: 22px auto; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--amber) 0 68%, #1b2b26 68% 100%); box-shadow: 0 0 34px rgba(247,191,85,.12); }
-    .temperature-core { width: 154px; height: 154px; border-radius: 50%; display: grid; place-items: center; text-align: center; background: #08130f; border: 1px solid var(--line); }
+    .temperature-ring { width: 196px; height: 196px; margin: 22px auto; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--amber) 0 68%, #e4ece7 68% 100%); box-shadow: 0 14px 36px rgba(184,126,22,.16); }
+    .temperature-core { width: 154px; height: 154px; border-radius: 50%; display: grid; place-items: center; text-align: center; background: #ffffff; border: 1px solid #e6ded0; }
     .temperature-value { font: 800 2.25rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.07em; }
     .temperature-caption { margin-top: 5px; color: var(--muted); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
     .temperature-details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .mini-stat { padding: 12px 13px; border: 1px solid var(--line); border-radius: 11px; background: rgba(4,13,10,.58); }
+    .mini-stat { padding: 12px 13px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.78); }
     .mini-stat strong { display: block; margin-top: 6px; font: 750 .92rem ui-monospace, SFMono-Regular, Menlo, monospace; }
 
-    .water-card { padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: rgba(3,12,9,.5); }
+    .water-card { padding: 22px; border: 1px solid #cfe1e7; border-radius: 16px; background: #f7fcff; }
     .vessel-layout { display: grid; grid-template-columns: minmax(150px, .7fr) minmax(180px, 1fr); align-items: center; gap: 24px; margin-top: 20px; }
-    .tank { position: relative; width: 150px; height: 254px; margin: 0 auto; overflow: hidden; border: 4px solid #617871; border-top-width: 8px; border-radius: 25px 25px 35px 35px; background: rgba(2,10,13,.72); box-shadow: inset 0 0 30px rgba(0,0,0,.4), 0 20px 35px rgba(0,0,0,.2); }
-    .tank::before { content: ""; position: absolute; z-index: 3; inset: 12px 10px auto; height: 16px; border-radius: 50%; border: 2px solid rgba(214,240,235,.2); }
+    .tank { position: relative; width: 150px; height: 254px; margin: 0 auto; overflow: hidden; border: 4px solid #7c9c9b; border-top-width: 8px; border-radius: 25px 25px 35px 35px; background: #eef7f9; box-shadow: inset 0 0 25px rgba(70,119,127,.13), 0 16px 30px rgba(60,109,117,.12); }
+    .tank::before { content: ""; position: absolute; z-index: 3; inset: 12px 10px auto; height: 16px; border-radius: 50%; border: 2px solid rgba(47,88,92,.2); }
     .water-fill { position: absolute; inset: auto 0 0; height: 0%; background: linear-gradient(180deg, #39bff8, #0a75bd); transition: height .7s cubic-bezier(.22,.85,.3,1); }
     .water-fill::before { content: ""; position: absolute; left: -12%; top: -8px; width: 124%; height: 18px; border-radius: 50%; background: #68d4ff; box-shadow: 0 0 18px rgba(74,198,250,.58); animation: ripple 3s ease-in-out infinite; }
     @keyframes ripple { 50% { transform: translateX(6px) scaleY(.72); } }
     .level-marker { position: absolute; z-index: 4; right: 8px; display: flex; align-items: center; gap: 7px; color: #768a84; font: 700 .65rem ui-monospace, SFMono-Regular, Menlo, monospace; }
     .level-marker::before { content: ""; width: 18px; height: 2px; background: currentColor; }
-    .level-marker.on { color: #d9f7ff; text-shadow: 0 0 8px #3ac5ff; }
+    .level-marker.on { color: #106a95; text-shadow: 0 0 8px rgba(58,197,255,.35); }
     .level-high { top: 18%; } .level-mid { top: 48%; } .level-low { top: 77%; }
     .vessel-reading { text-align: center; margin-top: 14px; }
     .vessel-reading strong { display: block; font: 800 1.4rem ui-monospace, SFMono-Regular, Menlo, monospace; }
     .vessel-reading span { color: var(--muted); font-size: .76rem; }
     .sensor-list { display: grid; gap: 9px; }
-    .sensor-row { display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 10px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; color: var(--muted); background: rgba(4,13,10,.52); transition: .25s ease; }
-    .sensor-row.on { border-color: rgba(69,229,125,.38); color: var(--text); background: rgba(25,73,48,.22); }
+    .sensor-row { display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 10px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; color: var(--muted); background: #fff; transition: .25s ease; }
+    .sensor-row.on { border-color: rgba(36,169,103,.38); color: var(--text); background: #ebf8f0; }
+
+    .cistern-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+    .cistern-card { padding: 15px 10px; border: 1px solid #cfdee2; border-radius: 14px; text-align: center; background: #fff; transition: border-color .3s ease, background .3s ease, transform .3s ease; }
+    .cistern-card.full { border-color: #79c8e7; background: #eefaff; transform: translateY(-2px); }
+    .cistern-card .tank { width: 100px; height: 166px; border-width: 3px; border-top-width: 6px; border-radius: 18px 18px 25px 25px; }
+    .cistern-card .tank::before { inset: 8px 7px auto; height: 10px; }
+    .cistern-title { margin: 12px 0 4px; font-weight: 780; }
+    .cistern-state { color: var(--red); font: 800 .78rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .cistern-card.full .cistern-state { color: #137e9e; }
     .sensor-key { color: var(--mint); font: 800 .78rem ui-monospace, SFMono-Regular, Menlo, monospace; }
     .sensor-bit { color: var(--red); font: 750 .7rem ui-monospace, SFMono-Regular, Menlo, monospace; }
     .sensor-row.on .sensor-bit { color: var(--green); }
 
     .silo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 20px 22px 22px; }
-    .silo-card { display: grid; grid-template-columns: 145px 1fr; align-items: center; gap: 24px; min-height: 250px; padding: 20px; border: 1px solid var(--line); border-radius: 15px; background: rgba(3,12,9,.5); }
-    .silo { position: relative; width: 132px; height: 186px; margin: 0 auto; overflow: hidden; clip-path: polygon(9% 0,91% 0,91% 70%,67% 100%,33% 100%,9% 70%); background: #20302b; }
-    .silo::after { content: ""; position: absolute; inset: 5px; clip-path: inherit; border: 2px solid rgba(214,240,235,.25); pointer-events: none; }
+    .silo-card { display: grid; grid-template-columns: 145px 1fr; align-items: center; gap: 24px; min-height: 250px; padding: 20px; border: 1px solid #dfd6c6; border-radius: 15px; background: #fffdf8; }
+    .silo { position: relative; width: 132px; height: 186px; margin: 0 auto; overflow: hidden; clip-path: polygon(9% 0,91% 0,91% 70%,67% 100%,33% 100%,9% 70%); background: #e8eee9; }
+    .silo::after { content: ""; position: absolute; inset: 5px; clip-path: inherit; border: 2px solid rgba(72,91,79,.23); pointer-events: none; }
     .feed-fill { position: absolute; inset: auto 5px 5px; height: 0%; clip-path: polygon(0 0,100% 0,100% 69%,67% 100%,33% 100%,0 69%); background: linear-gradient(180deg,#f2c56f,#a86a27); transition: height .7s cubic-bezier(.22,.85,.3,1); }
     .feed-fill::before { content: ""; position: absolute; inset: 0 0 auto; height: 10px; border-radius: 50%; background: #ffe09a; }
-    .silo-card.full { border-color: rgba(247,191,85,.42); background: rgba(92,58,18,.12); }
+    .silo-card.full { border-color: #e0b867; background: #fff8e8; }
     .silo-copy h3 { margin: 5px 0 8px; font-size: 1.12rem; }
     .silo-state { color: var(--red); font: 800 1rem ui-monospace, SFMono-Regular, Menlo, monospace; }
     .silo-card.full .silo-state { color: var(--green); }
@@ -178,7 +188,7 @@
     .form { display: grid; gap: 15px; margin-top: 20px; }
     label { display: grid; gap: 7px; color: var(--muted); font-size: .82rem; font-weight: 650; }
     input, select {
-      width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #07110f; color: var(--text);
+      width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #ffffff; color: var(--text);
       padding: 11px 12px; font-size: .9rem; min-height: 44px;
     }
     input::placeholder { color: #60746d; }
@@ -193,22 +203,22 @@
       color: #052019; background: var(--mint); transition: transform .15s ease, filter .15s ease;
     }
     .button:hover { filter: brightness(1.08); transform: translateY(-1px); }
-    .button.secondary { color: var(--text); background: #152a24; border: 1px solid var(--line-bright); }
+    .button.secondary { color: var(--text); background: #eef5f0; border: 1px solid var(--line-bright); }
     .button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
     .note { margin: 12px 0 0; color: #718a82; font-size: .75rem; line-height: 1.5; }
 
     .telemetry { padding: 20px 22px; }
     .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 17px; }
-    .metric { padding: 13px; border: 1px solid var(--line); border-radius: 11px; background: rgba(4,13,10,.48); }
+    .metric { padding: 13px; border: 1px solid var(--line); border-radius: 11px; background: #f7faf8; }
     .metric-label { color: var(--muted); font-size: .73rem; text-transform: uppercase; letter-spacing: .08em; }
     .metric-value { margin-top: 7px; font: 700 1.13rem ui-monospace, SFMono-Regular, Menlo, monospace; }
     .timestamp { margin-top: 12px; color: var(--muted); font-size: .79rem; }
 
     .payload-panel, .publish-panel { padding: 20px 22px; }
-    .delivery-spec { display: inline-flex; margin-top: 10px; padding: 6px 9px; border: 1px solid var(--line-bright); border-radius: 999px; color: var(--mint); background: rgba(8, 25, 20, .72); font: 700 .72rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .05em; }
+    .delivery-spec { display: inline-flex; margin-top: 10px; padding: 6px 9px; border: 1px solid var(--line-bright); border-radius: 999px; color: var(--mint); background: #edf7f1; font: 700 .72rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .05em; }
     .command-builder { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
     .payload {
-      width: 100%; min-height: 132px; resize: vertical; margin-top: 16px; color: #c5e9df; background: #050d0b;
+      width: 100%; min-height: 132px; resize: vertical; margin-top: 16px; color: #24473b; background: #f7faf8;
       border: 1px solid var(--line); border-radius: 11px; padding: 13px; font: .78rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
     }
     .payload-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 10px; }
@@ -237,6 +247,7 @@
       .analog-metrics { grid-template-columns: 1fr; }
       .poultry-grid, .silo-grid { padding-left: 16px; padding-right: 16px; }
       .vessel-layout, .silo-card { grid-template-columns: 1fr; }
+      .cistern-grid { grid-template-columns: 1fr; }
       .silo-copy { text-align: center; }
       .channel { min-height: 132px; }
       .led { width: 50px; height: 50px; }
@@ -262,7 +273,7 @@
     <div class="layout">
       <main class="main">
         <section class="panel" aria-labelledby="overviewTitle">
-          <div class="panel-head"><div><div class="eyebrow">Live environment</div><h2 id="overviewTitle">Temperature &amp; water cistern</h2></div><div class="count">Inputs I2–I4</div></div>
+          <div class="panel-head"><div><div class="eyebrow">Live environment</div><h2 id="overviewTitle">Temperature &amp; water cisterns</h2></div><div class="count">Inputs I2–I4</div></div>
           <div class="poultry-grid">
             <article class="temperature-card" id="lampCard" aria-label="Poultry-house temperature sensor, normal">
               <div class="sensor-tag">IO1 · Temperature</div>
@@ -275,22 +286,20 @@
               </div>
             </article>
 
-            <article class="water-card" aria-label="Water cistern level">
-              <div class="sensor-tag">Water supply · I2–I4</div>
-              <div class="vessel-layout">
-                <div>
-                  <div class="tank" id="waterTank">
-                    <div class="water-fill" id="waterFill"></div>
-                    <div class="level-marker level-high" id="marker-I4">I4</div>
-                    <div class="level-marker level-mid" id="marker-I3">I3</div>
-                    <div class="level-marker level-low" id="marker-I2">I2</div>
-                  </div>
-                  <div class="vessel-reading"><strong id="waterPercent">0%</strong><span id="waterState">Empty</span></div>
+            <article class="water-card" aria-label="Three water cisterns">
+              <div class="sensor-tag">Water supply · One cistern per input</div>
+              <div class="cistern-grid">
+                <div class="cistern-card" id="cisternCard-I2" aria-label="Cistern 1 is empty">
+                  <div class="tank"><div class="water-fill" id="waterFill-I2"></div></div>
+                  <div class="cistern-title">Cistern 1</div><div class="sensor-tag">Input I2</div><div class="cistern-state" id="cisternState-I2">EMPTY · 0</div>
                 </div>
-                <div class="sensor-list">
-                  <div class="sensor-row" id="sensor-I4"><span class="sensor-key">I4</span><span>Full-level sensor</span><span class="sensor-bit">OFF · 0</span></div>
-                  <div class="sensor-row" id="sensor-I3"><span class="sensor-key">I3</span><span>Mid-level sensor</span><span class="sensor-bit">OFF · 0</span></div>
-                  <div class="sensor-row" id="sensor-I2"><span class="sensor-key">I2</span><span>Low-level sensor</span><span class="sensor-bit">OFF · 0</span></div>
+                <div class="cistern-card" id="cisternCard-I3" aria-label="Cistern 2 is empty">
+                  <div class="tank"><div class="water-fill" id="waterFill-I3"></div></div>
+                  <div class="cistern-title">Cistern 2</div><div class="sensor-tag">Input I3</div><div class="cistern-state" id="cisternState-I3">EMPTY · 0</div>
+                </div>
+                <div class="cistern-card" id="cisternCard-I4" aria-label="Cistern 3 is empty">
+                  <div class="tank"><div class="water-fill" id="waterFill-I4"></div></div>
+                  <div class="cistern-title">Cistern 3</div><div class="sensor-tag">Input I4</div><div class="cistern-state" id="cisternState-I4">EMPTY · 0</div>
                 </div>
               </div>
             </article>
@@ -370,7 +379,7 @@
 
         <section class="panel payload-panel" aria-labelledby="payloadTitle">
           <div class="eyebrow">Test bench</div><h2 id="payloadTitle">Payload simulator</h2>
-          <textarea class="payload" id="payload" spellcheck="false" aria-label="JSON payload">{"seq":12,"up_s":345,"rssi":-45,"outputs":{"D0":0,"D1":1,"D2":0,"D3":0},"leds":{"L0":1,"L1":0,"L2":0,"L3":0},"i1":{"volts":5.00,"temp_c":25.0,"fault":0},"inputs":{"I2":1,"I3":1,"I4":1,"I5":1,"I6":0,"I7":0,"I8":0}}</textarea>
+          <textarea class="payload" id="payload" spellcheck="false" aria-label="JSON payload">{"seq":12,"up_s":345,"rssi":-45,"outputs":{"D0":0,"D1":1,"D2":0,"D3":0},"leds":{"L0":1,"L1":0,"L2":0,"L3":0},"i1":{"volts":5.00,"temp_c":25.0,"fault":0},"inputs":{"I2":1,"I3":0,"I4":1,"I5":1,"I6":0,"I7":0,"I8":0}}</textarea>
           <div class="payload-actions"><span class="message" id="message" aria-live="polite"></span><button class="button secondary" id="applyPayload" type="button">Apply payload</button></div>
         </section>
       </aside>
@@ -381,14 +390,13 @@
     const OUTPUT_KEYS = ["D0", "D1", "D2", "D3"];
     const LED_KEYS = ["L0", "L1", "L2", "L3"];
     const INPUT_KEYS = ["I2", "I3", "I4", "I5", "I6", "I7", "I8"];
-    const sample = { seq: 12, up_s: 345, rssi: -45, outputs: { D0: 0, D1: 1, D2: 0, D3: 0 }, leds: { L0: 1, L1: 0, L2: 0, L3: 0 }, i1: { volts: 5.00, temp_c: 25.0, fault: 0 }, inputs: { I2: 1, I3: 1, I4: 1, I5: 1, I6: 0, I7: 0, I8: 0 } };
+    const sample = { seq: 12, up_s: 345, rssi: -45, outputs: { D0: 0, D1: 1, D2: 0, D3: 0 }, leds: { L0: 1, L1: 0, L2: 0, L3: 0 }, i1: { volts: 5.00, temp_c: 25.0, fault: 0 }, inputs: { I2: 1, I3: 0, I4: 1, I5: 1, I6: 0, I7: 0, I8: 0 } };
     const state = { payload: sample, messages: 1, published: 0, client: null };
 
     const $ = (id) => document.getElementById(id);
     const els = {
       outputs: $("outputs"), leds: $("leds"), outputCount: $("outputCount"), ledCount: $("ledCount"),
       seq: $("seq"), uptime: $("uptime"), rssi: $("rssi"), messages: $("messages"), deviceStatus: $("deviceStatus"), timestamp: $("timestamp"), lampCard: $("lampCard"), lampVoltage: $("lampVoltage"), lampTemperature: $("lampTemperature"), lampFault: $("lampFault"), temperatureRing: $("temperatureRing"),
-      waterFill: $("waterFill"), waterPercent: $("waterPercent"), waterState: $("waterState"),
       message: $("message"), payload: $("payload"), form: $("connectionForm"), broker: $("broker"), receiveTopic: $("receiveTopic"), statusTopic: $("statusTopic"), sendTopic: $("sendTopic"),
       username: $("username"), password: $("password"), clientId: $("clientId"), connect: $("connectButton"),
       disconnect: $("disconnectButton"), statusDot: $("statusDot"), connectionText: $("connectionText"),
@@ -458,23 +466,17 @@
       els.lampFault.textContent = hasFault ? "FAULT · 1" : "NORMAL · 0";
       els.lampCard.classList.toggle("fault", hasFault);
       els.lampCard.setAttribute("aria-label", `Poultry-house temperature ${lamp.temp_c.toFixed(1)} degrees Celsius, sensor ${hasFault ? "fault" : "normal"}`);
-      els.temperatureRing.style.background = `conic-gradient(${hasFault ? "var(--red)" : "var(--amber)"} 0 ${temperatureProgress}%, #1b2b26 ${temperatureProgress}% 100%)`;
+      els.temperatureRing.style.background = `conic-gradient(${hasFault ? "var(--red)" : "var(--amber)"} 0 ${temperatureProgress}%, #e4ece7 ${temperatureProgress}% 100%)`;
     }
 
     function renderPoultry(inputs) {
-      ["I2", "I3", "I4"].forEach((key) => {
-        const on = inputs[key] === 1;
-        const row = $(`sensor-${key}`);
-        row.classList.toggle("on", on);
-        row.querySelector(".sensor-bit").textContent = on ? "ON · 1" : "OFF · 0";
-        $(`marker-${key}`).classList.toggle("on", on);
+      ["I2", "I3", "I4"].forEach((key, index) => {
+        const full = inputs[key] === 1;
+        $(`cisternCard-${key}`).classList.toggle("full", full);
+        $(`waterFill-${key}`).style.height = full ? "100%" : "0%";
+        $(`cisternState-${key}`).textContent = full ? "FULL · 1" : "EMPTY · 0";
+        $(`cisternCard-${key}`).setAttribute("aria-label", `Cistern ${index + 1} is ${full ? "full" : "empty"}`);
       });
-      const waterLevel = inputs.I4 === 1 ? 100 : inputs.I3 === 1 ? 67 : inputs.I2 === 1 ? 33 : 0;
-      const waterLabel = waterLevel === 100 ? "Full" : waterLevel === 67 ? "Medium" : waterLevel === 33 ? "Low" : "Empty";
-      els.waterFill.style.height = `${waterLevel}%`;
-      els.waterPercent.textContent = `${waterLevel}%`;
-      els.waterState.textContent = waterLabel;
-      $("waterTank").setAttribute("aria-label", `Water cistern ${waterLabel.toLowerCase()}, ${waterLevel} percent`);
 
       ["I5", "I6"].forEach((key, index) => {
         const full = inputs[key] === 1;
