@@ -1,6 +1,13 @@
 # MQTT OPTA Dashboard
 
-A browser-based dashboard for monitoring and controlling an Arduino Opta over MQTT.
+A browser-based poultry dashboard for monitoring and controlling an Arduino Opta over MQTT.
+
+The `Poultry_Demo` view maps the telemetry inputs as follows:
+
+- `i1.temp_c`: poultry-house temperature.
+- `I2`, `I3`, `I4`: low, middle, and full water-cistern level sensors. The animated cistern shows 0%, 33%, 67%, or 100% according to the highest active sensor.
+- `I5`, `I6`: alveole silo 1 and silo 2. Each silo is visually empty for `0` and full for `1`.
+- `I7`, `I8`: accepted in the payload and reserved for future poultry equipment.
 
 ## MQTT protocol
 

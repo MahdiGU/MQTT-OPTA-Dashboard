@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#08110f" />
-  <meta name="description" content="A live MQTT dashboard for monitoring an analog lamp sensor, digital inputs, and outputs." />
-  <title>MQTT I/O Monitor</title>
+  <meta name="description" content="A live MQTT poultry dashboard for temperature, cistern water level, and feed silos." />
+  <title>Poultry Farm Monitor</title>
   <link rel="preconnect" href="https://unpkg.com" crossorigin />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2308110f'/%3E%3Ccircle cx='10' cy='16' r='5' fill='%234ade80'/%3E%3Cpath d='M19 9h3v14h-3zm6 4h3v10h-3z' fill='%239ee7d3'/%3E%3C/svg%3E" />
   <script src="https://unpkg.com/mqtt@5.14.1/dist/mqtt.min.js"></script>
@@ -127,6 +127,52 @@
     .channel-value { color: var(--red); font: 600 .72rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
     .channel.on .channel-value { color: var(--green); }
 
+    .poultry-grid { display: grid; grid-template-columns: minmax(270px, .8fr) minmax(340px, 1.2fr); gap: 18px; padding: 20px 22px 22px; }
+    .temperature-card { padding: 22px; border: 1px solid rgba(247,191,85,.32); border-radius: 16px; background: radial-gradient(circle at 50% 25%, rgba(247,191,85,.12), transparent 50%), rgba(3,12,9,.5); }
+    .temperature-card.fault { border-color: rgba(255,93,102,.52); }
+    .temperature-ring { width: 196px; height: 196px; margin: 22px auto; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--amber) 0 68%, #1b2b26 68% 100%); box-shadow: 0 0 34px rgba(247,191,85,.12); }
+    .temperature-core { width: 154px; height: 154px; border-radius: 50%; display: grid; place-items: center; text-align: center; background: #08130f; border: 1px solid var(--line); }
+    .temperature-value { font: 800 2.25rem ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.07em; }
+    .temperature-caption { margin-top: 5px; color: var(--muted); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+    .temperature-details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .mini-stat { padding: 12px 13px; border: 1px solid var(--line); border-radius: 11px; background: rgba(4,13,10,.58); }
+    .mini-stat strong { display: block; margin-top: 6px; font: 750 .92rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    .water-card { padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: rgba(3,12,9,.5); }
+    .vessel-layout { display: grid; grid-template-columns: minmax(150px, .7fr) minmax(180px, 1fr); align-items: center; gap: 24px; margin-top: 20px; }
+    .tank { position: relative; width: 150px; height: 254px; margin: 0 auto; overflow: hidden; border: 4px solid #617871; border-top-width: 8px; border-radius: 25px 25px 35px 35px; background: rgba(2,10,13,.72); box-shadow: inset 0 0 30px rgba(0,0,0,.4), 0 20px 35px rgba(0,0,0,.2); }
+    .tank::before { content: ""; position: absolute; z-index: 3; inset: 12px 10px auto; height: 16px; border-radius: 50%; border: 2px solid rgba(214,240,235,.2); }
+    .water-fill { position: absolute; inset: auto 0 0; height: 0%; background: linear-gradient(180deg, #39bff8, #0a75bd); transition: height .7s cubic-bezier(.22,.85,.3,1); }
+    .water-fill::before { content: ""; position: absolute; left: -12%; top: -8px; width: 124%; height: 18px; border-radius: 50%; background: #68d4ff; box-shadow: 0 0 18px rgba(74,198,250,.58); animation: ripple 3s ease-in-out infinite; }
+    @keyframes ripple { 50% { transform: translateX(6px) scaleY(.72); } }
+    .level-marker { position: absolute; z-index: 4; right: 8px; display: flex; align-items: center; gap: 7px; color: #768a84; font: 700 .65rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .level-marker::before { content: ""; width: 18px; height: 2px; background: currentColor; }
+    .level-marker.on { color: #d9f7ff; text-shadow: 0 0 8px #3ac5ff; }
+    .level-high { top: 18%; } .level-mid { top: 48%; } .level-low { top: 77%; }
+    .vessel-reading { text-align: center; margin-top: 14px; }
+    .vessel-reading strong { display: block; font: 800 1.4rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .vessel-reading span { color: var(--muted); font-size: .76rem; }
+    .sensor-list { display: grid; gap: 9px; }
+    .sensor-row { display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 10px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; color: var(--muted); background: rgba(4,13,10,.52); transition: .25s ease; }
+    .sensor-row.on { border-color: rgba(69,229,125,.38); color: var(--text); background: rgba(25,73,48,.22); }
+    .sensor-key { color: var(--mint); font: 800 .78rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .sensor-bit { color: var(--red); font: 750 .7rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .sensor-row.on .sensor-bit { color: var(--green); }
+
+    .silo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 20px 22px 22px; }
+    .silo-card { display: grid; grid-template-columns: 145px 1fr; align-items: center; gap: 24px; min-height: 250px; padding: 20px; border: 1px solid var(--line); border-radius: 15px; background: rgba(3,12,9,.5); }
+    .silo { position: relative; width: 132px; height: 186px; margin: 0 auto; overflow: hidden; clip-path: polygon(9% 0,91% 0,91% 70%,67% 100%,33% 100%,9% 70%); background: #20302b; }
+    .silo::after { content: ""; position: absolute; inset: 5px; clip-path: inherit; border: 2px solid rgba(214,240,235,.25); pointer-events: none; }
+    .feed-fill { position: absolute; inset: auto 5px 5px; height: 0%; clip-path: polygon(0 0,100% 0,100% 69%,67% 100%,33% 100%,0 69%); background: linear-gradient(180deg,#f2c56f,#a86a27); transition: height .7s cubic-bezier(.22,.85,.3,1); }
+    .feed-fill::before { content: ""; position: absolute; inset: 0 0 auto; height: 10px; border-radius: 50%; background: #ffe09a; }
+    .silo-card.full { border-color: rgba(247,191,85,.42); background: rgba(92,58,18,.12); }
+    .silo-copy h3 { margin: 5px 0 8px; font-size: 1.12rem; }
+    .silo-state { color: var(--red); font: 800 1rem ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .silo-card.full .silo-state { color: var(--green); }
+    .silo-copy p { margin: 10px 0 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+    .diagnostics { margin: 0 22px 22px; padding: 16px 0 0; }
+    .diagnostics .led-grid { padding-left: 0; padding-right: 0; }
+
     .rail { display: flex; flex-direction: column; gap: 18px; }
     .connect-panel { padding: 22px; }
     .form { display: grid; gap: 15px; margin-top: 20px; }
@@ -176,6 +222,8 @@
       .payload-panel, .publish-panel { grid-column: 1 / -1; }
       .sensor-layout { grid-template-columns: 1fr; }
       .lamp-card { min-height: 245px; }
+      .poultry-grid { grid-template-columns: 1fr; }
+      .silo-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 680px) {
       .shell { padding: 16px; }
@@ -187,6 +235,9 @@
       .led-grid.outputs, .led-grid.leds, .led-grid.inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .digital-inputs .led-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .analog-metrics { grid-template-columns: 1fr; }
+      .poultry-grid, .silo-grid { padding-left: 16px; padding-right: 16px; }
+      .vessel-layout, .silo-card { grid-template-columns: 1fr; }
+      .silo-copy { text-align: center; }
       .channel { min-height: 132px; }
       .led { width: 50px; height: 50px; }
       .rail { display: flex; }
@@ -203,42 +254,72 @@
         <div class="mark" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none"><circle cx="7" cy="12" r="3.5" fill="#45e57d"/><path d="M14 6v12M19 9v9" stroke="#9ee7d3" stroke-width="2.2" stroke-linecap="round"/></svg>
         </div>
-        <div><div class="eyebrow">Device console</div><h1>MQTT I/O Monitor</h1></div>
+        <div><div class="eyebrow">Poultry automation</div><h1>Farm Environment Monitor</h1></div>
       </div>
       <div class="live-state" role="status" aria-live="polite"><span class="status-dot" id="statusDot"></span><span id="connectionText">Demo data</span></div>
     </header>
 
     <div class="layout">
       <main class="main">
-        <section class="panel" aria-labelledby="outputsTitle">
-          <div class="panel-head"><div><div class="eyebrow">Actuators</div><h2 id="outputsTitle">Digital outputs</h2></div><div class="count" id="outputCount">0 / 4 ON</div></div>
-          <div class="led-grid outputs" id="outputs"></div>
-        </section>
-
-        <section class="panel" aria-labelledby="ledsTitle">
-          <div class="panel-head"><div><div class="eyebrow">Front panel</div><h2 id="ledsTitle">Status LEDs</h2></div><div class="count" id="ledCount">0 / 4 ON</div></div>
-          <div class="led-grid leds" id="leds"></div>
-        </section>
-
-        <section class="panel" aria-labelledby="inputsTitle">
-          <div class="panel-head"><div><div class="eyebrow">Sensors</div><h2 id="inputsTitle">Lamp &amp; digital inputs</h2></div></div>
-          <div class="sensor-layout">
-            <article class="lamp-card" id="lampCard" aria-label="IO1 lamp analog sensor, normal">
-              <div class="lamp-heading">
-                <div><div class="sensor-tag">IO1 · Analog</div><div class="lamp-title">Lamp monitor</div><div class="lamp-subtitle">Live electrical and thermal measurements</div></div>
-                <svg class="lamp-icon" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M20 28c0-8 5.4-14 12-14s12 6 12 14c0 5.2-2.2 8.2-5.8 12-1.4 1.5-2.2 3.1-2.2 5H28c0-1.9-.8-3.5-2.2-5-3.6-3.8-5.8-6.8-5.8-12Z" stroke="currentColor" stroke-width="3"/><path d="M28 50h8M29.5 55h5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M32 4v4M9 28H5M59 28h-4M15 11l3 3M49 11l-3 3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <section class="panel" aria-labelledby="overviewTitle">
+          <div class="panel-head"><div><div class="eyebrow">Live environment</div><h2 id="overviewTitle">Temperature &amp; water cistern</h2></div><div class="count">Inputs I2–I4</div></div>
+          <div class="poultry-grid">
+            <article class="temperature-card" id="lampCard" aria-label="Poultry-house temperature sensor, normal">
+              <div class="sensor-tag">IO1 · Temperature</div>
+              <div class="temperature-ring" id="temperatureRing">
+                <div class="temperature-core"><div><div class="temperature-value" id="lampTemperature">25.0 °C</div><div class="temperature-caption">House temperature</div></div></div>
               </div>
-              <div class="analog-metrics">
-                <div class="analog-metric"><div class="analog-label">Measured voltage</div><div class="analog-value" id="lampVoltage">0.00 V</div></div>
-                <div class="analog-metric"><div class="analog-label">Temperature</div><div class="analog-value" id="lampTemperature">0.0 °C</div></div>
-                <div class="fault-state"><div class="analog-label">Sensor fault</div><div class="fault-value" id="lampFault">NORMAL · 0</div></div>
+              <div class="temperature-details">
+                <div class="mini-stat"><div class="analog-label">Sensor voltage</div><strong id="lampVoltage">5.00 V</strong></div>
+                <div class="mini-stat"><div class="analog-label">Sensor health</div><strong class="fault-value" id="lampFault">NORMAL · 0</strong></div>
               </div>
             </article>
-            <div class="digital-inputs">
-              <div class="digital-inputs-head"><div class="sensor-tag">Digital · I2–I8</div><div class="count" id="inputCount">0 / 7 ON</div></div>
-              <div class="led-grid inputs" id="inputs"></div>
-            </div>
+
+            <article class="water-card" aria-label="Water cistern level">
+              <div class="sensor-tag">Water supply · I2–I4</div>
+              <div class="vessel-layout">
+                <div>
+                  <div class="tank" id="waterTank">
+                    <div class="water-fill" id="waterFill"></div>
+                    <div class="level-marker level-high" id="marker-I4">I4</div>
+                    <div class="level-marker level-mid" id="marker-I3">I3</div>
+                    <div class="level-marker level-low" id="marker-I2">I2</div>
+                  </div>
+                  <div class="vessel-reading"><strong id="waterPercent">0%</strong><span id="waterState">Empty</span></div>
+                </div>
+                <div class="sensor-list">
+                  <div class="sensor-row" id="sensor-I4"><span class="sensor-key">I4</span><span>Full-level sensor</span><span class="sensor-bit">OFF · 0</span></div>
+                  <div class="sensor-row" id="sensor-I3"><span class="sensor-key">I3</span><span>Mid-level sensor</span><span class="sensor-bit">OFF · 0</span></div>
+                  <div class="sensor-row" id="sensor-I2"><span class="sensor-key">I2</span><span>Low-level sensor</span><span class="sensor-bit">OFF · 0</span></div>
+                </div>
+              </div>
+            </article>
           </div>
+        </section>
+
+        <section class="panel" aria-labelledby="silosTitle">
+          <div class="panel-head"><div><div class="eyebrow">Feed storage</div><h2 id="silosTitle">Alveole silos</h2></div><div class="count">Inputs I5–I6</div></div>
+          <div class="silo-grid">
+            <article class="silo-card" id="siloCard-I5" aria-label="Alveole silo 1 is empty">
+              <div class="silo"><div class="feed-fill" id="siloFill-I5"></div></div>
+              <div class="silo-copy"><div class="sensor-tag">I5 · Digital</div><h3>Alveole silo 1</h3><div class="silo-state" id="siloState-I5">EMPTY · 0</div><p>The silo fills visually when input I5 is true.</p></div>
+            </article>
+            <article class="silo-card" id="siloCard-I6" aria-label="Alveole silo 2 is empty">
+              <div class="silo"><div class="feed-fill" id="siloFill-I6"></div></div>
+              <div class="silo-copy"><div class="sensor-tag">I6 · Digital</div><h3>Alveole silo 2</h3><div class="silo-state" id="siloState-I6">EMPTY · 0</div><p>The silo fills visually when input I6 is true.</p></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="diagnosticsTitle">
+          <div class="panel-head"><div><div class="eyebrow">Technical view</div><h2 id="diagnosticsTitle">Opta outputs &amp; status LEDs</h2></div></div>
+          <details class="diagnostics">
+            <summary>Show raw output indicators</summary>
+            <div class="digital-inputs-head"><div class="sensor-tag">Relay outputs</div><div class="count" id="outputCount">0 / 4 ON</div></div>
+            <div class="led-grid outputs" id="outputs"></div>
+            <div class="digital-inputs-head"><div class="sensor-tag">Front-panel LEDs</div><div class="count" id="ledCount">0 / 4 ON</div></div>
+            <div class="led-grid leds" id="leds"></div>
+          </details>
         </section>
       </main>
 
@@ -289,7 +370,7 @@
 
         <section class="panel payload-panel" aria-labelledby="payloadTitle">
           <div class="eyebrow">Test bench</div><h2 id="payloadTitle">Payload simulator</h2>
-          <textarea class="payload" id="payload" spellcheck="false" aria-label="JSON payload">{"seq":12,"up_s":345,"rssi":-45,"outputs":{"D0":0,"D1":1,"D2":0,"D3":0},"leds":{"L0":1,"L1":0,"L2":0,"L3":0},"i1":{"volts":5.00,"temp_c":25.0,"fault":0},"inputs":{"I2":0,"I3":1,"I4":0,"I5":0,"I6":0,"I7":0,"I8":0}}</textarea>
+          <textarea class="payload" id="payload" spellcheck="false" aria-label="JSON payload">{"seq":12,"up_s":345,"rssi":-45,"outputs":{"D0":0,"D1":1,"D2":0,"D3":0},"leds":{"L0":1,"L1":0,"L2":0,"L3":0},"i1":{"volts":5.00,"temp_c":25.0,"fault":0},"inputs":{"I2":1,"I3":1,"I4":1,"I5":1,"I6":0,"I7":0,"I8":0}}</textarea>
           <div class="payload-actions"><span class="message" id="message" aria-live="polite"></span><button class="button secondary" id="applyPayload" type="button">Apply payload</button></div>
         </section>
       </aside>
@@ -300,13 +381,14 @@
     const OUTPUT_KEYS = ["D0", "D1", "D2", "D3"];
     const LED_KEYS = ["L0", "L1", "L2", "L3"];
     const INPUT_KEYS = ["I2", "I3", "I4", "I5", "I6", "I7", "I8"];
-    const sample = { seq: 12, up_s: 345, rssi: -45, outputs: { D0: 0, D1: 1, D2: 0, D3: 0 }, leds: { L0: 1, L1: 0, L2: 0, L3: 0 }, i1: { volts: 5.00, temp_c: 25.0, fault: 0 }, inputs: { I2: 0, I3: 1, I4: 0, I5: 0, I6: 0, I7: 0, I8: 0 } };
+    const sample = { seq: 12, up_s: 345, rssi: -45, outputs: { D0: 0, D1: 1, D2: 0, D3: 0 }, leds: { L0: 1, L1: 0, L2: 0, L3: 0 }, i1: { volts: 5.00, temp_c: 25.0, fault: 0 }, inputs: { I2: 1, I3: 1, I4: 1, I5: 1, I6: 0, I7: 0, I8: 0 } };
     const state = { payload: sample, messages: 1, published: 0, client: null };
 
     const $ = (id) => document.getElementById(id);
     const els = {
-      outputs: $("outputs"), leds: $("leds"), inputs: $("inputs"), outputCount: $("outputCount"), ledCount: $("ledCount"), inputCount: $("inputCount"),
-      seq: $("seq"), uptime: $("uptime"), rssi: $("rssi"), messages: $("messages"), deviceStatus: $("deviceStatus"), timestamp: $("timestamp"), lampCard: $("lampCard"), lampVoltage: $("lampVoltage"), lampTemperature: $("lampTemperature"), lampFault: $("lampFault"),
+      outputs: $("outputs"), leds: $("leds"), outputCount: $("outputCount"), ledCount: $("ledCount"),
+      seq: $("seq"), uptime: $("uptime"), rssi: $("rssi"), messages: $("messages"), deviceStatus: $("deviceStatus"), timestamp: $("timestamp"), lampCard: $("lampCard"), lampVoltage: $("lampVoltage"), lampTemperature: $("lampTemperature"), lampFault: $("lampFault"), temperatureRing: $("temperatureRing"),
+      waterFill: $("waterFill"), waterPercent: $("waterPercent"), waterState: $("waterState"),
       message: $("message"), payload: $("payload"), form: $("connectionForm"), broker: $("broker"), receiveTopic: $("receiveTopic"), statusTopic: $("statusTopic"), sendTopic: $("sendTopic"),
       username: $("username"), password: $("password"), clientId: $("clientId"), connect: $("connectButton"),
       disconnect: $("disconnectButton"), statusDot: $("statusDot"), connectionText: $("connectionText"),
@@ -318,7 +400,6 @@
     }
     els.outputs.innerHTML = OUTPUT_KEYS.map(channelMarkup).join("");
     els.leds.innerHTML = LED_KEYS.map(channelMarkup).join("");
-    els.inputs.innerHTML = INPUT_KEYS.map(channelMarkup).join("");
 
     function normalizeBit(value, key) {
       if (value === 0 || value === 1) return value;
@@ -371,11 +452,37 @@
 
     function renderLamp(lamp) {
       const hasFault = lamp.fault === 1;
+      const temperatureProgress = Math.max(0, Math.min(100, (lamp.temp_c / 50) * 100));
       els.lampVoltage.textContent = `${lamp.volts.toFixed(2)} V`;
       els.lampTemperature.textContent = `${lamp.temp_c.toFixed(1)} °C`;
       els.lampFault.textContent = hasFault ? "FAULT · 1" : "NORMAL · 0";
       els.lampCard.classList.toggle("fault", hasFault);
-      els.lampCard.setAttribute("aria-label", `IO1 lamp analog sensor, ${hasFault ? "fault" : "normal"}`);
+      els.lampCard.setAttribute("aria-label", `Poultry-house temperature ${lamp.temp_c.toFixed(1)} degrees Celsius, sensor ${hasFault ? "fault" : "normal"}`);
+      els.temperatureRing.style.background = `conic-gradient(${hasFault ? "var(--red)" : "var(--amber)"} 0 ${temperatureProgress}%, #1b2b26 ${temperatureProgress}% 100%)`;
+    }
+
+    function renderPoultry(inputs) {
+      ["I2", "I3", "I4"].forEach((key) => {
+        const on = inputs[key] === 1;
+        const row = $(`sensor-${key}`);
+        row.classList.toggle("on", on);
+        row.querySelector(".sensor-bit").textContent = on ? "ON · 1" : "OFF · 0";
+        $(`marker-${key}`).classList.toggle("on", on);
+      });
+      const waterLevel = inputs.I4 === 1 ? 100 : inputs.I3 === 1 ? 67 : inputs.I2 === 1 ? 33 : 0;
+      const waterLabel = waterLevel === 100 ? "Full" : waterLevel === 67 ? "Medium" : waterLevel === 33 ? "Low" : "Empty";
+      els.waterFill.style.height = `${waterLevel}%`;
+      els.waterPercent.textContent = `${waterLevel}%`;
+      els.waterState.textContent = waterLabel;
+      $("waterTank").setAttribute("aria-label", `Water cistern ${waterLabel.toLowerCase()}, ${waterLevel} percent`);
+
+      ["I5", "I6"].forEach((key, index) => {
+        const full = inputs[key] === 1;
+        $(`siloCard-${key}`).classList.toggle("full", full);
+        $(`siloFill-${key}`).style.height = full ? "100%" : "0%";
+        $(`siloState-${key}`).textContent = full ? "FULL · 1" : "EMPTY · 0";
+        $(`siloCard-${key}`).setAttribute("aria-label", `Alveole silo ${index + 1} is ${full ? "full" : "empty"}`);
+      });
     }
 
     function applyPayload(payload, source = "Payload applied") {
@@ -384,8 +491,8 @@
       state.messages += 1;
       renderBank(OUTPUT_KEYS, next.outputs, els.outputCount);
       renderBank(LED_KEYS, next.leds, els.ledCount);
-      renderBank(INPUT_KEYS, next.inputs, els.inputCount);
       renderLamp(next.i1);
+      renderPoultry(next.inputs);
       els.seq.textContent = next.seq;
       els.uptime.textContent = formatUptime(next.up_s);
       els.rssi.textContent = `${String(next.rssi).replace("-", "−")} dBm`;
@@ -519,8 +626,8 @@
 
     renderBank(OUTPUT_KEYS, sample.outputs, els.outputCount);
     renderBank(LED_KEYS, sample.leds, els.ledCount);
-    renderBank(INPUT_KEYS, sample.inputs, els.inputCount);
     renderLamp(sample.i1);
+    renderPoultry(sample.inputs);
 
     const modelContext = document.modelContext;
     if (modelContext?.registerTool) {
@@ -528,7 +635,7 @@
       Promise.resolve(modelContext.registerTool({
         name: "read_io_state",
         title: "Read I/O state",
-        description: "Read the latest device telemetry and digital input/output states shown on the dashboard.",
+        description: "Read the latest poultry-house temperature, water-cistern sensors, feed-silo states, and Opta telemetry shown on the dashboard.",
         inputSchema: { type: "object", properties: {}, additionalProperties: false },
         annotations: { readOnlyHint: true, untrustedContentHint: false },
         execute() { return { ...state.payload, messages: state.messages, connection: els.connectionText.textContent }; }
