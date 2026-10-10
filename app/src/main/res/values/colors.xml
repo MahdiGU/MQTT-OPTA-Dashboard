@@ -2,4 +2,5 @@
 <resources>
     <color name="dashboard_background">#EEF6F0</color>
     <color name="dashboard_primary">#167657</color>
+    <color name="launcher_background">#EAF6EE</color>
 </resources>

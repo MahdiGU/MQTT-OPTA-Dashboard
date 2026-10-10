@@ -1,5 +1,14 @@
+import java.security.KeyStore
+
 plugins {
     id("com.android.application")
+}
+
+val debugStorePassword = "ElMajdDemo2026!"
+val debugStoreFile = file("elmajd-debug.p12")
+val debugKeyAlias = KeyStore.getInstance("PKCS12").run {
+    debugStoreFile.inputStream().use { load(it, debugStorePassword.toCharArray()) }
+    aliases().nextElement()
 }
 
 android {
@@ -10,11 +19,24 @@ android {
         applicationId = "com.mahdi.poultrydashboard"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
+    }
+
+    signingConfigs {
+        create("stableDebug") {
+            storeFile = debugStoreFile
+            storePassword = debugStorePassword
+            keyAlias = debugKeyAlias
+            keyPassword = debugStorePassword
+            storeType = "PKCS12"
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("stableDebug")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(

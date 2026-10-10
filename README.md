@@ -40,13 +40,23 @@ Serve the `dist` directory with any static web server, then open the local URL i
 
 The production dashboard is a static site. Its source is contained in `dist/index.html`.
 
-## Android APK
+## ElMajd Automation Android app
 
-The `Poultry_Demo_Arduino` branch also contains a native Android wrapper for the dashboard. It loads the same interface from the packaged `app/src/main/assets/index.html` file and connects to the MQTT broker through secure WebSockets.
+The `Poultry_Demo_Arduino` branch contains the **ElMajd Automation** Android app. It connects to the MQTT broker through secure WebSockets with the broker, client-ID policy, and topics predefined inside the app.
 
-Every push to this branch runs the **Build Android APK** GitHub Actions workflow. Download the `Poultry-Demo-Arduino-debug-apk` artifact from the completed workflow run and install `app-debug.apk` on Android 8.0 or newer.
+App features include:
+
+- Required username/password login with optional saved credentials and automatic reconnection.
+- Compact mobile overview for temperature, three water cisterns, and two alveole silos.
+- Android notification when poultry-house temperature exceeds 33 °C.
+- Tappable temperature, cistern, and silo cards with a rolling 12-hour chart sampled every five minutes.
+- Plain-text MQTT commands published with QoS 0 and retain disabled.
+
+Every push to this branch runs the **Build Android APK** GitHub Actions workflow. Download the `ElMajd-Automation-debug-apk` artifact from the completed workflow run and install `app-debug.apk` on Android 8.0 or newer.
 
 To build locally, open the repository in Android Studio (JDK 17, Android SDK 35) or run `gradle :app:assembleDebug` with Gradle 8.9.
+
+The branch uses a dedicated, public **debug-only** signing certificate so successive demo APKs can update each other. It must never be used to sign a production or Play Store release.
 
 ## Security
 
