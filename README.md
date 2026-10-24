@@ -122,6 +122,9 @@ Android force-stop and the system's **Active apps → Stop** action still termin
 
 After login, Row Level Security limits access to farms assigned to that Supabase user. Version 1.5 adds transactional flock and production management. The app:
 
+- uses a five-tab mobile layout: Overview, Status, Production, Configuration, and Connection;
+- shows live temperature plus the latest production value, rate, and date on Overview;
+- groups the temperature, redesigned cisterns and silos, eight available ventilator indicators, and seven-day production chart on Status;
 - saves one telemetry snapshot per five-minute bucket in `telemetry`;
 - reads the shared last 12 hours for the temperature, cistern, and silo plots;
 - stores the shared actual chicken count in `flock_settings`;
