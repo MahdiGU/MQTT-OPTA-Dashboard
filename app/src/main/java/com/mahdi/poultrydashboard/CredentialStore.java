@@ -18,12 +18,16 @@ import javax.crypto.spec.GCMParameterSpec;
 
 final class CredentialStore {
     static final class Credentials {
-        final String username;
-        final String password;
+        final String supabaseEmail;
+        final String supabasePassword;
+        final String mqttUsername;
+        final String mqttPassword;
 
-        Credentials(String username, String password) {
-            this.username = username;
-            this.password = password;
+        Credentials(String supabaseEmail, String supabasePassword, String mqttUsername, String mqttPassword) {
+            this.supabaseEmail = supabaseEmail;
+            this.supabasePassword = supabasePassword;
+            this.mqttUsername = mqttUsername;
+            this.mqttPassword = mqttPassword;
         }
     }
 
@@ -37,8 +41,12 @@ final class CredentialStore {
         preferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
-    void save(String username, String password) throws Exception {
-        JSONObject json = new JSONObject().put("username", username).put("password", password);
+    void save(Credentials credentials) throws Exception {
+        JSONObject json = new JSONObject()
+            .put("supabase_email", credentials.supabaseEmail)
+            .put("supabase_password", credentials.supabasePassword)
+            .put("mqtt_username", credentials.mqttUsername)
+            .put("mqtt_password", credentials.mqttPassword);
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey());
         byte[] encrypted = cipher.doFinal(json.toString().getBytes(StandardCharsets.UTF_8));
@@ -60,16 +68,26 @@ final class CredentialStore {
                 StandardCharsets.UTF_8
             );
             JSONObject json = new JSONObject(plain);
-            return new Credentials(json.getString("username"), json.getString("password"));
+            return new Credentials(
+                json.getString("supabase_email"),
+                json.getString("supabase_password"),
+                json.getString("mqtt_username"),
+                json.getString("mqtt_password")
+            );
         } catch (Exception error) {
             clear();
             return null;
         }
     }
 
-    String savedUsername() {
+    String savedSupabaseEmail() {
         Credentials credentials = load();
-        return credentials == null ? "" : credentials.username;
+        return credentials == null ? "" : credentials.supabaseEmail;
+    }
+
+    String savedMqttUsername() {
+        Credentials credentials = load();
+        return credentials == null ? "OPTAMG888" : credentials.mqttUsername;
     }
 
     boolean hasSavedCredentials() {

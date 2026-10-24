@@ -95,11 +95,19 @@ public final class MainActivity extends Activity {
         }
     }
 
-    private void startMonitoring(String username, String password, boolean remember) {
+    private void startMonitoring(
+        String supabaseEmail,
+        String supabasePassword,
+        String mqttUsername,
+        String mqttPassword,
+        boolean remember
+    ) {
         Intent service = new Intent(this, MqttForegroundService.class)
             .setAction(MqttForegroundService.ACTION_START)
-            .putExtra(MqttForegroundService.EXTRA_USERNAME, username)
-            .putExtra(MqttForegroundService.EXTRA_PASSWORD, password)
+            .putExtra(MqttForegroundService.EXTRA_USERNAME, supabaseEmail)
+            .putExtra(MqttForegroundService.EXTRA_PASSWORD, supabasePassword)
+            .putExtra(MqttForegroundService.EXTRA_MQTT_USERNAME, mqttUsername)
+            .putExtra(MqttForegroundService.EXTRA_MQTT_PASSWORD, mqttPassword)
             .putExtra(MqttForegroundService.EXTRA_REMEMBER, remember);
         startForegroundService(service);
     }
@@ -135,17 +143,37 @@ public final class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public String getSavedUsername() {
-            return new CredentialStore(MainActivity.this).savedUsername();
+        public String getSavedSupabaseEmail() {
+            return new CredentialStore(MainActivity.this).savedSupabaseEmail();
         }
 
         @JavascriptInterface
-        public void connect(String username, String password, boolean remember) {
-            if (username == null || username.trim().isEmpty() || password == null || password.isEmpty()) {
-                sendEventToDashboard("error", "Username and password are required.");
+        public String getSavedMqttUsername() {
+            return new CredentialStore(MainActivity.this).savedMqttUsername();
+        }
+
+        @JavascriptInterface
+        public void connect(
+            String supabaseEmail,
+            String supabasePassword,
+            String mqttUsername,
+            String mqttPassword,
+            boolean remember
+        ) {
+            if (supabaseEmail == null || supabaseEmail.trim().isEmpty()
+                || supabasePassword == null || supabasePassword.isEmpty()
+                || mqttUsername == null || mqttUsername.trim().isEmpty()
+                || mqttPassword == null || mqttPassword.isEmpty()) {
+                sendEventToDashboard("error", "Supabase and MQTT credentials are required.");
                 return;
             }
-            startMonitoring(username.trim(), password, remember);
+            startMonitoring(
+                supabaseEmail.trim(),
+                supabasePassword,
+                mqttUsername.trim(),
+                mqttPassword,
+                remember
+            );
         }
 
         @JavascriptInterface

@@ -42,13 +42,14 @@ public final class MqttForegroundService extends Service implements MqttCallback
     static final String ACTION_EVENT = "com.mahdi.poultrydashboard.MQTT_EVENT";
     static final String EXTRA_USERNAME = "username";
     static final String EXTRA_PASSWORD = "password";
+    static final String EXTRA_MQTT_USERNAME = "mqtt_username";
+    static final String EXTRA_MQTT_PASSWORD = "mqtt_password";
     static final String EXTRA_REMEMBER = "remember";
     static final String EXTRA_PAYLOAD = "payload";
     static final String EXTRA_EVENT_TYPE = "event_type";
     static final String EXTRA_EVENT_DATA = "event_data";
 
     private static final String BROKER = "wss://s4aa124d.ala.us-east-1.emqxsl.com:8084/mqtt";
-    private static final String MQTT_USERNAME = "ElMajdApp";
     private static final String TELEMETRY_TOPIC = "opta/outputs";
     private static final String STATUS_TOPIC = "opta/status";
     private static final String COMMAND_TOPIC = "opta/cmd";
@@ -112,13 +113,20 @@ public final class MqttForegroundService extends Service implements MqttCallback
         stopping = false;
         String username = intent == null ? null : intent.getStringExtra(EXTRA_USERNAME);
         String password = intent == null ? null : intent.getStringExtra(EXTRA_PASSWORD);
+        String mqttUsername = intent == null ? null : intent.getStringExtra(EXTRA_MQTT_USERNAME);
+        String mqttPassword = intent == null ? null : intent.getStringExtra(EXTRA_MQTT_PASSWORD);
         boolean remember = intent != null && intent.getBooleanExtra(EXTRA_REMEMBER, false);
-        boolean explicitLogin = username != null && password != null;
+        boolean explicitLogin = username != null && password != null && mqttUsername != null && mqttPassword != null;
         if (explicitLogin) {
-            activeCredentials = new CredentialStore.Credentials(username.trim(), password);
+            activeCredentials = new CredentialStore.Credentials(
+                username.trim(),
+                password,
+                mqttUsername.trim(),
+                mqttPassword
+            );
             if (remember) {
                 try {
-                    credentialStore.save(activeCredentials.username, activeCredentials.password);
+                    credentialStore.save(activeCredentials);
                     credentialStore.setMonitoringEnabled(true);
                 } catch (Exception error) {
                     broadcast("error", "Could not securely save login: " + error.getMessage());
@@ -130,8 +138,12 @@ public final class MqttForegroundService extends Service implements MqttCallback
             activeCredentials = credentialStore.load();
         }
 
-        if (activeCredentials == null || activeCredentials.username.isEmpty() || activeCredentials.password.isEmpty()) {
-            broadcast("error", "Username and password are required.");
+        if (activeCredentials == null
+            || activeCredentials.supabaseEmail.isEmpty()
+            || activeCredentials.supabasePassword.isEmpty()
+            || activeCredentials.mqttUsername.isEmpty()
+            || activeCredentials.mqttPassword.isEmpty()) {
+            broadcast("error", "Supabase and MQTT credentials are required.");
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -166,8 +178,8 @@ public final class MqttForegroundService extends Service implements MqttCallback
             options.setCleanSession(true);
             options.setConnectionTimeout(12);
             options.setKeepAliveInterval(30);
-            options.setUserName(MQTT_USERNAME);
-            options.setPassword(activeCredentials.password.toCharArray());
+            options.setUserName(activeCredentials.mqttUsername);
+            options.setPassword(activeCredentials.mqttPassword.toCharArray());
             options.setAutomaticReconnect(false);
         } catch (MqttException error) {
             broadcast("error", friendlyError(error));
@@ -337,7 +349,7 @@ public final class MqttForegroundService extends Service implements MqttCallback
         broadcast("cloud_connection", "connecting");
         cloudExecutor.execute(() -> {
             try {
-                supabaseClient.signIn(credentials.username, credentials.password);
+                supabaseClient.signIn(credentials.supabaseEmail, credentials.supabasePassword);
                 broadcast("cloud_connection", "online");
                 requestProductionHistory();
             } catch (Exception error) {
