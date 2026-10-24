@@ -99,7 +99,7 @@ On `Poultry_Demo_Android_Background`, the native Android service owns the MQTT c
 - SQLite samples in five-minute buckets, retained for the most recent 12 hours
 - Native alerts above 33 °C with a 30-minute repeat cooldown
 - Native publishing to `opta/cmd` with QoS 0 and retain disabled
-- A daily production form for egg count, mortality, and production rate
+- A daily form for Stock, Sortie, and mortality, with production and production rate calculated automatically
 
 ## Daily production records on the background-only branch
 
@@ -125,6 +125,8 @@ After login, Row Level Security limits access to farms assigned to that Supabase
 - saves one telemetry snapshot per five-minute bucket in `telemetry`;
 - reads the shared last 12 hours for the temperature, cistern, and silo plots;
 - stores the shared actual chicken count in `flock_settings`;
+- accepts daily Stock, Sortie, and mortality values instead of a manual production value;
+- calculates production as `current Stock + Sortie - previous Stock`;
 - deducts mortality from the flock and calculates production percentage automatically when a daily record is saved;
 - deletes production records through a protected database function and restores their deducted mortality;
 - charts production percentage and mortality for the latest seven days;

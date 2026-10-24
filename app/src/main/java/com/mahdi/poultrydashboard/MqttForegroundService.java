@@ -340,10 +340,11 @@ public final class MqttForegroundService extends Service implements MqttCallback
             JSONObject input = new JSONObject(payload);
             String date = input.getString("date");
             LocalDate.parse(date);
-            int eggs = input.getInt("eggs");
+            int stock = input.getInt("stock");
+            int sortie = input.getInt("sortie");
             int mortality = input.getInt("mortality");
-            if (eggs < 0 || mortality < 0) {
-                throw new IllegalArgumentException("Eggs and mortality cannot be negative.");
+            if (stock < 0 || sortie < 0 || mortality < 0) {
+                throw new IllegalArgumentException("Stock, sortie, and mortality cannot be negative.");
             }
 
             cloudExecutor.execute(() -> {

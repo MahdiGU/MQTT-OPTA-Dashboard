@@ -52,7 +52,8 @@ final class SupabaseClient {
             new JSONObject()
                 .put("target_farm", farmId)
                 .put("target_date", input.getString("date"))
-                .put("egg_count", input.getInt("eggs"))
+                .put("stock_count", input.getInt("stock"))
+                .put("sortie_count", input.getInt("sortie"))
                 .put("mortality_count", input.getInt("mortality"))
                 .toString(),
             null,
@@ -155,7 +156,7 @@ final class SupabaseClient {
 
     String readProduction(int limit) throws Exception {
         ensureSession();
-        String path = "/rest/v1/daily_production?select=id,production_date,eggs,mortality,production_rate,updated_at"
+        String path = "/rest/v1/daily_production?select=id,production_date,stock,sortie,eggs,mortality,production_rate,chicken_count,updated_at"
             + "&farm_id=eq." + farmId + "&order=production_date.desc&limit=" + limit;
         return request("GET", path, null, null, accessToken);
     }
