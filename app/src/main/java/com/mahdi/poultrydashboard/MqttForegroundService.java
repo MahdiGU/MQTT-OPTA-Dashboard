@@ -440,7 +440,7 @@ public final class MqttForegroundService extends Service implements MqttCallback
     private void requestProductionHistory() {
         cloudExecutor.execute(() -> {
             try {
-                broadcast("production_history", supabaseClient.readProduction(30));
+                broadcast("production_history", supabaseClient.readProduction(90));
             } catch (Exception error) {
                 broadcast("production_history_error", friendlyError(error));
             }

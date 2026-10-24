@@ -124,7 +124,9 @@ After login, Row Level Security limits access to farms assigned to that Supabase
 
 - uses a five-tab mobile layout: Overview, Status, Production, Configuration, and Connection;
 - shows live temperature plus the latest production value, rate, and date on Overview;
-- groups the temperature, redesigned cisterns and silos, eight available ventilator indicators, and seven-day production chart on Status;
+- groups the temperature, redesigned cisterns and silos, eight available ventilator indicators, and production performance chart on Status;
+- automatically scales every 12-hour sensor chart to its observed minimum and maximum;
+- switches production performance between a 14-day view and an eight-week aggregated view;
 - saves one telemetry snapshot per five-minute bucket in `telemetry`;
 - reads the shared last 12 hours for the temperature, cistern, and silo plots;
 - stores the shared actual chicken count in `flock_settings`;
