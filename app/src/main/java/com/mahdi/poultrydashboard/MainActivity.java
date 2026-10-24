@@ -100,6 +100,7 @@ public final class MainActivity extends Activity {
         String supabasePassword,
         String mqttUsername,
         String mqttPassword,
+        String mqttClientId,
         boolean remember
     ) {
         Intent service = new Intent(this, MqttForegroundService.class)
@@ -108,6 +109,7 @@ public final class MainActivity extends Activity {
             .putExtra(MqttForegroundService.EXTRA_PASSWORD, supabasePassword)
             .putExtra(MqttForegroundService.EXTRA_MQTT_USERNAME, mqttUsername)
             .putExtra(MqttForegroundService.EXTRA_MQTT_PASSWORD, mqttPassword)
+            .putExtra(MqttForegroundService.EXTRA_MQTT_CLIENT_ID, mqttClientId)
             .putExtra(MqttForegroundService.EXTRA_REMEMBER, remember);
         startForegroundService(service);
     }
@@ -153,18 +155,25 @@ public final class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public String getSavedMqttClientId() {
+            return new CredentialStore(MainActivity.this).savedMqttClientId();
+        }
+
+        @JavascriptInterface
         public void connect(
             String supabaseEmail,
             String supabasePassword,
             String mqttUsername,
             String mqttPassword,
+            String mqttClientId,
             boolean remember
         ) {
             if (supabaseEmail == null || supabaseEmail.trim().isEmpty()
                 || supabasePassword == null || supabasePassword.isEmpty()
                 || mqttUsername == null || mqttUsername.trim().isEmpty()
-                || mqttPassword == null || mqttPassword.isEmpty()) {
-                sendEventToDashboard("error", "Supabase and MQTT credentials are required.");
+                || mqttPassword == null || mqttPassword.isEmpty()
+                || mqttClientId == null || mqttClientId.trim().isEmpty()) {
+                sendEventToDashboard("error", "Supabase credentials and all three MQTT fields are required.");
                 return;
             }
             startMonitoring(
@@ -172,6 +181,7 @@ public final class MainActivity extends Activity {
                 supabasePassword,
                 mqttUsername.trim(),
                 mqttPassword,
+                mqttClientId.trim(),
                 remember
             );
         }

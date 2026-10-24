@@ -22,12 +22,20 @@ final class CredentialStore {
         final String supabasePassword;
         final String mqttUsername;
         final String mqttPassword;
+        final String mqttClientId;
 
-        Credentials(String supabaseEmail, String supabasePassword, String mqttUsername, String mqttPassword) {
+        Credentials(
+            String supabaseEmail,
+            String supabasePassword,
+            String mqttUsername,
+            String mqttPassword,
+            String mqttClientId
+        ) {
             this.supabaseEmail = supabaseEmail;
             this.supabasePassword = supabasePassword;
             this.mqttUsername = mqttUsername;
             this.mqttPassword = mqttPassword;
+            this.mqttClientId = mqttClientId;
         }
     }
 
@@ -46,7 +54,8 @@ final class CredentialStore {
             .put("supabase_email", credentials.supabaseEmail)
             .put("supabase_password", credentials.supabasePassword)
             .put("mqtt_username", credentials.mqttUsername)
-            .put("mqtt_password", credentials.mqttPassword);
+            .put("mqtt_password", credentials.mqttPassword)
+            .put("mqtt_client_id", credentials.mqttClientId);
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey());
         byte[] encrypted = cipher.doFinal(json.toString().getBytes(StandardCharsets.UTF_8));
@@ -72,7 +81,8 @@ final class CredentialStore {
                 json.getString("supabase_email"),
                 json.getString("supabase_password"),
                 json.getString("mqtt_username"),
-                json.getString("mqtt_password")
+                json.getString("mqtt_password"),
+                json.getString("mqtt_client_id")
             );
         } catch (Exception error) {
             clear();
@@ -88,6 +98,11 @@ final class CredentialStore {
     String savedMqttUsername() {
         Credentials credentials = load();
         return credentials == null ? "OPTAMG888" : credentials.mqttUsername;
+    }
+
+    String savedMqttClientId() {
+        Credentials credentials = load();
+        return credentials == null ? "" : credentials.mqttClientId;
     }
 
     boolean hasSavedCredentials() {

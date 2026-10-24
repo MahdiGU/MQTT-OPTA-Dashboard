@@ -118,7 +118,7 @@ Android force-stop and the system's **Active apps → Stop** action still termin
 
 ## Shared Supabase storage
 
-`Poultry_Demo_Supabase` connects the app to the ElMajd Supabase project. The login form keeps cloud and broker authentication separate: enter the Supabase email/password, the EMQX authentication username (default `OPTAMG888`), and its MQTT password. The broker address, topics, and phone-specific MQTT protocol client ID remain predefined.
+`Poultry_Demo_Supabase` connects the app to the ElMajd Supabase project. The login form keeps cloud and broker authentication separate: enter the Supabase email/password plus three MQTT values—the EMQX authentication username (default `OPTAMG888`), its MQTT password, and an editable MQTT protocol client ID. A unique client ID is generated as the initial value so two phones do not disconnect one another. The broker address and topics remain predefined.
 
 After login, Row Level Security limits access to farms assigned to that Supabase user. The app:
 

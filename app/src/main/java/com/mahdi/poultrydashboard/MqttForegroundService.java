@@ -13,7 +13,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.provider.Settings;
 
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -44,6 +43,7 @@ public final class MqttForegroundService extends Service implements MqttCallback
     static final String EXTRA_PASSWORD = "password";
     static final String EXTRA_MQTT_USERNAME = "mqtt_username";
     static final String EXTRA_MQTT_PASSWORD = "mqtt_password";
+    static final String EXTRA_MQTT_CLIENT_ID = "mqtt_client_id";
     static final String EXTRA_REMEMBER = "remember";
     static final String EXTRA_PAYLOAD = "payload";
     static final String EXTRA_EVENT_TYPE = "event_type";
@@ -115,14 +115,17 @@ public final class MqttForegroundService extends Service implements MqttCallback
         String password = intent == null ? null : intent.getStringExtra(EXTRA_PASSWORD);
         String mqttUsername = intent == null ? null : intent.getStringExtra(EXTRA_MQTT_USERNAME);
         String mqttPassword = intent == null ? null : intent.getStringExtra(EXTRA_MQTT_PASSWORD);
+        String mqttClientId = intent == null ? null : intent.getStringExtra(EXTRA_MQTT_CLIENT_ID);
         boolean remember = intent != null && intent.getBooleanExtra(EXTRA_REMEMBER, false);
-        boolean explicitLogin = username != null && password != null && mqttUsername != null && mqttPassword != null;
+        boolean explicitLogin = username != null && password != null
+            && mqttUsername != null && mqttPassword != null && mqttClientId != null;
         if (explicitLogin) {
             activeCredentials = new CredentialStore.Credentials(
                 username.trim(),
                 password,
                 mqttUsername.trim(),
-                mqttPassword
+                mqttPassword,
+                mqttClientId.trim()
             );
             if (remember) {
                 try {
@@ -142,8 +145,9 @@ public final class MqttForegroundService extends Service implements MqttCallback
             || activeCredentials.supabaseEmail.isEmpty()
             || activeCredentials.supabasePassword.isEmpty()
             || activeCredentials.mqttUsername.isEmpty()
-            || activeCredentials.mqttPassword.isEmpty()) {
-            broadcast("error", "Supabase and MQTT credentials are required.");
+            || activeCredentials.mqttPassword.isEmpty()
+            || activeCredentials.mqttClientId.isEmpty()) {
+            broadcast("error", "Supabase credentials and all three MQTT fields are required.");
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -172,7 +176,7 @@ public final class MqttForegroundService extends Service implements MqttCallback
     private void prepareClient() {
         try {
             if (client != null && !client.isConnected()) client.close();
-            client = new MqttAsyncClient(BROKER, clientId(), new MemoryPersistence());
+            client = new MqttAsyncClient(BROKER, activeCredentials.mqttClientId, new MemoryPersistence());
             client.setCallback(this);
             options = new MqttConnectOptions();
             options.setCleanSession(true);
@@ -365,7 +369,7 @@ public final class MqttForegroundService extends Service implements MqttCallback
         String body = payload.toString();
         cloudExecutor.execute(() -> {
             try {
-                supabaseClient.uploadTelemetry(new JSONObject(body), clientId(), now);
+                supabaseClient.uploadTelemetry(new JSONObject(body), activeCredentials.mqttClientId, now);
             } catch (Exception error) {
                 lastCloudTelemetryBucket = -1L;
                 broadcast("cloud_error", "Telemetry was not backed up: " + friendlyError(error));
@@ -427,14 +431,6 @@ public final class MqttForegroundService extends Service implements MqttCallback
             .putExtra(EXTRA_EVENT_TYPE, type)
             .putExtra(EXTRA_EVENT_DATA, data == null ? "" : data);
         sendBroadcast(event);
-    }
-
-    private String clientId() {
-        String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-        if (androidId == null) androidId = Long.toHexString(System.nanoTime());
-        String suffix = androidId.replaceAll("[^A-Za-z0-9]", "");
-        if (suffix.length() > 12) suffix = suffix.substring(suffix.length() - 12);
-        return "elmajd-android-" + suffix;
     }
 
     private void createNotificationChannels() {
