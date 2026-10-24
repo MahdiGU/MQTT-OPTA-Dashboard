@@ -5,6 +5,7 @@ on:
     branches:
       - Poultry_Demo_Arduino
       - Poultry_Demo_Android_Background
+      - Poultry_Demo_Supabase
   workflow_dispatch:
 
 permissions:

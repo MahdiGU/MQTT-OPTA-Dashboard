@@ -11,6 +11,7 @@ MQTT monitoring and control dashboards for an Arduino Opta, with both browser an
 | `Poultry_Demo` | Poultry web dashboard | Light, responsive poultry-farm presentation. I1 displays voltage and temperature; I2–I4 are animated water cisterns; I5–I6 are animated alveole feed silos. A value of `0` displays an empty vessel and `1` displays a full vessel. | Use for a browser-based poultry demonstration or wall display. |
 | `Poultry_Demo_Arduino` | Basic Android app | First **ElMajd Automation** APK. Adds the app icon, username/password login, predefined broker/topics, compact mobile cards, 12-hour charts, controls, and temperature notifications. MQTT still runs in the WebView, so closing the app stops data reception. | Keep as the original Android prototype. For normal installation, use the background branch instead. |
 | `Poultry_Demo_Android_Background` | Android app with native background monitoring | Extends `Poultry_Demo_Arduino` with a native foreground MQTT service, automatic reconnection, restart after reboot, encrypted saved credentials, SQLite history, and native high-temperature notifications. Commands remain plain text with QoS 0 and retain disabled. | **Recommended Android branch.** Use when monitoring must continue with the screen locked or the app UI closed. |
+| `Poultry_Demo_Supabase` | Android app with shared cloud storage | Extends the background-monitoring app with Supabase authentication, permanent shared production records, five-minute telemetry snapshots, and shared 12-hour charts. MQTT continues to handle live monitoring and commands. | **Recommended multi-phone branch.** Use when several phones must see the same farm history and production data. |
 
 ## Branch lineage
 
@@ -20,6 +21,7 @@ main ─────────────── Generic browser dashboard
        └─ Poultry_Demo
             └─ Poultry_Demo_Arduino
                  └─ Poultry_Demo_Android_Background
+                      └─ Poultry_Demo_Supabase
 ```
 
 The branches are intentionally separate. No Android or poultry-demo work has been merged into `main`.
@@ -28,7 +30,8 @@ The branches are intentionally separate. No Android or poultry-demo work has bee
 
 - For a configurable generic web dashboard, use `main`.
 - For the light poultry dashboard in a browser, use `Poultry_Demo`.
-- For an installable phone app, use `Poultry_Demo_Android_Background`.
+- For an installable phone app with local-only history, use `Poultry_Demo_Android_Background`.
+- For permanent shared data across phones, use `Poultry_Demo_Supabase`.
 - Use `Poultry_Demo_Arduino` only when comparing with the original foreground-only prototype.
 
 ## MQTT protocol
@@ -74,7 +77,7 @@ The browser connects using secure MQTT WebSockets (`wss://...:8084/mqtt`). Broke
 
 ## Building the Android versions
 
-Switch to `Poultry_Demo_Arduino` or `Poultry_Demo_Android_Background`, then build with Android Studio using JDK 17 and Android SDK 35. From a configured command line, run:
+Switch to an Android branch (`Poultry_Demo_Arduino`, `Poultry_Demo_Android_Background`, or `Poultry_Demo_Supabase`), then build with Android Studio using JDK 17 and Android SDK 35. From a configured command line, run:
 
 ```text
 gradle --no-daemon :app:assembleDebug
@@ -112,6 +115,22 @@ The app publishes the record as JSON to `opta/production` with QoS 0 and retain 
 Publishing to MQTT does not by itself create permanent history. Configure the EMQX rule and PostgreSQL table described in [`docs/emqx-production-storage.md`](docs/emqx-production-storage.md) before treating the confirmation in the app as a saved cloud record.
 
 Android force-stop and the system's **Active apps → Stop** action still terminate monitoring until the app is opened again. Network outages leave gaps in local history because this version deliberately uses no external backend.
+
+## Shared Supabase storage
+
+`Poultry_Demo_Supabase` connects the app to the ElMajd Supabase project. The login form accepts the user's Supabase email and password. The MQTT broker address, topics, client ID strategy, and broker username (`ElMajdApp`) stay predefined; the entered password is also used for that broker account.
+
+After login, Row Level Security limits access to farms assigned to that Supabase user. The app:
+
+- saves one telemetry snapshot per five-minute bucket in `telemetry_samples`;
+- reads the shared last 12 hours for the temperature, cistern, and silo plots;
+- writes daily egg production, mortality, and production rate directly to `daily_production`;
+- loads the latest shared production records on every authorized phone;
+- keeps MQTT command publishing at QoS 0 with retain disabled.
+
+The database schema and security policies are versioned in [`supabase/migrations/20261024000000_elmajd_shared_storage.sql`](supabase/migrations/20261024000000_elmajd_shared_storage.sql). Apply that migration to a new Supabase project before changing the app's project URL or publishable key.
+
+Unlike the preceding background branch, a successful production submission in this branch means Supabase committed the record. MQTT remains responsible for live device data and control, while Supabase provides durable cross-phone history. If the phone is offline, live MQTT and cloud uploads resume only after connectivity returns; this version does not yet queue missed Supabase writes for later replay.
 
 ## Security
 

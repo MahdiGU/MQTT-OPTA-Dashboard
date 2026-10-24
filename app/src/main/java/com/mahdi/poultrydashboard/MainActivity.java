@@ -171,12 +171,21 @@ public final class MainActivity extends Activity {
 
         @JavascriptInterface
         public String getHistory() {
-            HistoryDatabase database = new HistoryDatabase(MainActivity.this);
-            try {
-                return database.readLastTwelveHours(System.currentTimeMillis());
-            } finally {
-                database.close();
-            }
+            return "[]";
+        }
+
+        @JavascriptInterface
+        public void requestCloudHistory() {
+            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
+                .setAction(MqttForegroundService.ACTION_REQUEST_HISTORY);
+            startService(service);
+        }
+
+        @JavascriptInterface
+        public void requestProductionHistory() {
+            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
+                .setAction(MqttForegroundService.ACTION_REQUEST_PRODUCTION);
+            startService(service);
         }
 
         @JavascriptInterface

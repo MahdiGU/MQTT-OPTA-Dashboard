@@ -29,12 +29,16 @@ import org.json.JSONObject;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class MqttForegroundService extends Service implements MqttCallbackExtended {
     static final String ACTION_START = "com.mahdi.poultrydashboard.START_MONITORING";
     static final String ACTION_STOP = "com.mahdi.poultrydashboard.STOP_MONITORING";
     static final String ACTION_PUBLISH = "com.mahdi.poultrydashboard.PUBLISH";
     static final String ACTION_PUBLISH_PRODUCTION = "com.mahdi.poultrydashboard.PUBLISH_PRODUCTION";
+    static final String ACTION_REQUEST_HISTORY = "com.mahdi.poultrydashboard.REQUEST_HISTORY";
+    static final String ACTION_REQUEST_PRODUCTION = "com.mahdi.poultrydashboard.REQUEST_PRODUCTION";
     static final String ACTION_EVENT = "com.mahdi.poultrydashboard.MQTT_EVENT";
     static final String EXTRA_USERNAME = "username";
     static final String EXTRA_PASSWORD = "password";
@@ -44,10 +48,10 @@ public final class MqttForegroundService extends Service implements MqttCallback
     static final String EXTRA_EVENT_DATA = "event_data";
 
     private static final String BROKER = "wss://s4aa124d.ala.us-east-1.emqxsl.com:8084/mqtt";
+    private static final String MQTT_USERNAME = "ElMajdApp";
     private static final String TELEMETRY_TOPIC = "opta/outputs";
     private static final String STATUS_TOPIC = "opta/status";
     private static final String COMMAND_TOPIC = "opta/cmd";
-    private static final String PRODUCTION_TOPIC = "opta/production";
     private static final String MONITOR_CHANNEL = "mqtt_monitoring";
     private static final String ALERT_CHANNEL = "temperature_alerts";
     private static final int MONITOR_NOTIFICATION_ID = 1201;
@@ -60,17 +64,22 @@ public final class MqttForegroundService extends Service implements MqttCallback
     private CredentialStore credentialStore;
     private HistoryDatabase historyDatabase;
     private SharedPreferences statePreferences;
+    private SupabaseClient supabaseClient;
+    private ExecutorService cloudExecutor;
     private CredentialStore.Credentials activeCredentials;
     private boolean connectInProgress;
     private boolean stopping;
     private boolean hot;
     private long retryDelayMs = 3_000L;
+    private long lastCloudTelemetryBucket = -1L;
 
     @Override
     public void onCreate() {
         super.onCreate();
         credentialStore = new CredentialStore(this);
         historyDatabase = new HistoryDatabase(this);
+        supabaseClient = new SupabaseClient();
+        cloudExecutor = Executors.newSingleThreadExecutor();
         statePreferences = getSharedPreferences("elmajd_runtime", MODE_PRIVATE);
         createNotificationChannels();
     }
@@ -88,6 +97,14 @@ public final class MqttForegroundService extends Service implements MqttCallback
         }
         if (ACTION_PUBLISH_PRODUCTION.equals(action)) {
             publishProduction(intent.getStringExtra(EXTRA_PAYLOAD));
+            return START_STICKY;
+        }
+        if (ACTION_REQUEST_HISTORY.equals(action)) {
+            requestCloudHistory();
+            return START_STICKY;
+        }
+        if (ACTION_REQUEST_PRODUCTION.equals(action)) {
+            requestProductionHistory();
             return START_STICKY;
         }
 
@@ -118,6 +135,7 @@ public final class MqttForegroundService extends Service implements MqttCallback
             stopSelf();
             return START_NOT_STICKY;
         }
+        connectCloud();
         handler.removeCallbacks(reconnectRunnable);
         if (!explicitLogin && client != null && client.isConnected()) {
             broadcast("connection", "online");
@@ -148,7 +166,7 @@ public final class MqttForegroundService extends Service implements MqttCallback
             options.setCleanSession(true);
             options.setConnectionTimeout(12);
             options.setKeepAliveInterval(30);
-            options.setUserName(activeCredentials.username);
+            options.setUserName(MQTT_USERNAME);
             options.setPassword(activeCredentials.password.toCharArray());
             options.setAutomaticReconnect(false);
         } catch (MqttException error) {
@@ -232,6 +250,7 @@ public final class MqttForegroundService extends Service implements MqttCallback
             payload.getJSONObject("inputs");
             long now = System.currentTimeMillis();
             historyDatabase.record(payload, now);
+            uploadTelemetryToCloud(payload, now);
             statePreferences.edit().putString("latest_payload", body).apply();
             broadcast("telemetry", body);
             handleTemperatureAlert(temperature, now);
@@ -284,10 +303,6 @@ public final class MqttForegroundService extends Service implements MqttCallback
             broadcast("production_error", "Production data is empty.");
             return;
         }
-        if (client == null || !client.isConnected()) {
-            broadcast("production_error", "MQTT is not connected.");
-            return;
-        }
         try {
             JSONObject input = new JSONObject(payload);
             String date = input.getString("date");
@@ -302,30 +317,69 @@ public final class MqttForegroundService extends Service implements MqttCallback
                 throw new IllegalArgumentException("Production rate must be between 0 and 100%.");
             }
 
-            JSONObject record = new JSONObject()
-                .put("device_id", clientId())
-                .put("date", date)
-                .put("eggs", eggs)
-                .put("mortality", mortality)
-                .put("production_rate", productionRate)
-                .put("submitted_at", System.currentTimeMillis());
-            MqttMessage message = new MqttMessage(record.toString().getBytes(StandardCharsets.UTF_8));
-            message.setQos(0);
-            message.setRetained(false);
-            client.publish(PRODUCTION_TOPIC, message, date, new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    broadcast("production_published", String.valueOf(asyncActionToken.getUserContext()));
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    broadcast("production_error", friendlyError(exception));
+            cloudExecutor.execute(() -> {
+                try {
+                    supabaseClient.saveProduction(input);
+                    broadcast("production_saved", date);
+                    requestProductionHistory();
+                } catch (Exception error) {
+                    broadcast("production_error", friendlyError(error));
                 }
             });
         } catch (Exception error) {
             broadcast("production_error", friendlyError(error));
         }
+    }
+
+    private void connectCloud() {
+        CredentialStore.Credentials credentials = activeCredentials;
+        if (credentials == null) return;
+        broadcast("cloud_connection", "connecting");
+        cloudExecutor.execute(() -> {
+            try {
+                supabaseClient.signIn(credentials.username, credentials.password);
+                broadcast("cloud_connection", "online");
+                requestProductionHistory();
+            } catch (Exception error) {
+                broadcast("cloud_error", friendlyError(error));
+            }
+        });
+    }
+
+    private void uploadTelemetryToCloud(JSONObject payload, long now) {
+        long bucket = now / 300_000L;
+        if (bucket == lastCloudTelemetryBucket || !supabaseClient.isReady()) return;
+        lastCloudTelemetryBucket = bucket;
+        String body = payload.toString();
+        cloudExecutor.execute(() -> {
+            try {
+                supabaseClient.uploadTelemetry(new JSONObject(body), clientId(), now);
+            } catch (Exception error) {
+                lastCloudTelemetryBucket = -1L;
+                broadcast("cloud_error", "Telemetry was not backed up: " + friendlyError(error));
+            }
+        });
+    }
+
+    private void requestCloudHistory() {
+        cloudExecutor.execute(() -> {
+            try {
+                String history = supabaseClient.readHistory(System.currentTimeMillis() - 43_200_000L);
+                broadcast("history", history);
+            } catch (Exception error) {
+                broadcast("history_error", friendlyError(error));
+            }
+        });
+    }
+
+    private void requestProductionHistory() {
+        cloudExecutor.execute(() -> {
+            try {
+                broadcast("production_history", supabaseClient.readProduction(30));
+            } catch (Exception error) {
+                broadcast("production_history_error", friendlyError(error));
+            }
+        });
     }
 
     @Override
@@ -452,6 +506,7 @@ public final class MqttForegroundService extends Service implements MqttCallback
     public void onDestroy() {
         handler.removeCallbacksAndMessages(null);
         historyDatabase.close();
+        cloudExecutor.shutdownNow();
         if (client != null) {
             try {
                 if (client.isConnected()) client.disconnectForcibly(500L, 500L);
