@@ -208,6 +208,22 @@ public final class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void deleteProduction(long productionId) {
+            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
+                .setAction(MqttForegroundService.ACTION_DELETE_PRODUCTION)
+                .putExtra(MqttForegroundService.EXTRA_PRODUCTION_ID, productionId);
+            startService(service);
+        }
+
+        @JavascriptInterface
+        public void saveConfiguration(int chickenCount) {
+            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
+                .setAction(MqttForegroundService.ACTION_SAVE_CONFIGURATION)
+                .putExtra(MqttForegroundService.EXTRA_CHICKEN_COUNT, chickenCount);
+            startService(service);
+        }
+
+        @JavascriptInterface
         public String getHistory() {
             return "[]";
         }
@@ -223,6 +239,13 @@ public final class MainActivity extends Activity {
         public void requestProductionHistory() {
             Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
                 .setAction(MqttForegroundService.ACTION_REQUEST_PRODUCTION);
+            startService(service);
+        }
+
+        @JavascriptInterface
+        public void requestConfiguration() {
+            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
+                .setAction(MqttForegroundService.ACTION_REQUEST_CONFIGURATION);
             startService(service);
         }
 

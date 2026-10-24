@@ -46,20 +46,60 @@ final class SupabaseClient {
 
     void saveProduction(JSONObject input) throws Exception {
         ensureSession();
-        JSONObject record = new JSONObject()
-            .put("farm_id", farmId)
-            .put("production_date", input.getString("date"))
-            .put("eggs", input.getInt("eggs"))
-            .put("mortality", input.getInt("mortality"))
-            .put("production_rate", input.getDouble("production_rate"))
-            .put("submitted_by", userId);
         request(
             "POST",
-            "/rest/v1/daily_production?on_conflict=farm_id,production_date",
-            record.toString(),
+            "/rest/v1/rpc/record_daily_production",
+            new JSONObject()
+                .put("target_farm", farmId)
+                .put("target_date", input.getString("date"))
+                .put("egg_count", input.getInt("eggs"))
+                .put("mortality_count", input.getInt("mortality"))
+                .toString(),
+            null,
+            accessToken
+        );
+    }
+
+    void deleteProduction(long productionId) throws Exception {
+        ensureSession();
+        request(
+            "POST",
+            "/rest/v1/rpc/delete_daily_production",
+            new JSONObject()
+                .put("target_farm", farmId)
+                .put("production_id", productionId)
+                .toString(),
+            null,
+            accessToken
+        );
+    }
+
+    void saveConfiguration(int chickenCount) throws Exception {
+        ensureSession();
+        JSONObject configuration = new JSONObject()
+            .put("farm_id", farmId)
+            .put("chicken_count", chickenCount)
+            .put("updated_by", userId);
+        request(
+            "POST",
+            "/rest/v1/flock_settings?on_conflict=farm_id",
+            configuration.toString(),
             "resolution=merge-duplicates,return=minimal",
             accessToken
         );
+    }
+
+    String readConfiguration() throws Exception {
+        ensureSession();
+        String response = request(
+            "GET",
+            "/rest/v1/flock_settings?select=chicken_count,updated_at&farm_id=eq." + farmId + "&limit=1",
+            null,
+            null,
+            accessToken
+        );
+        JSONArray rows = new JSONArray(response);
+        return rows.length() == 0 ? "{}" : rows.getJSONObject(0).toString();
     }
 
     void uploadTelemetry(JSONObject payload, String deviceId, long recordedAtMs) throws Exception {
@@ -115,7 +155,7 @@ final class SupabaseClient {
 
     String readProduction(int limit) throws Exception {
         ensureSession();
-        String path = "/rest/v1/daily_production?select=production_date,eggs,mortality,production_rate,updated_at"
+        String path = "/rest/v1/daily_production?select=id,production_date,eggs,mortality,production_rate,updated_at"
             + "&farm_id=eq." + farmId + "&order=production_date.desc&limit=" + limit;
         return request("GET", path, null, null, accessToken);
     }

@@ -36,8 +36,11 @@ public final class MqttForegroundService extends Service implements MqttCallback
     static final String ACTION_STOP = "com.mahdi.poultrydashboard.STOP_MONITORING";
     static final String ACTION_PUBLISH = "com.mahdi.poultrydashboard.PUBLISH";
     static final String ACTION_PUBLISH_PRODUCTION = "com.mahdi.poultrydashboard.PUBLISH_PRODUCTION";
+    static final String ACTION_DELETE_PRODUCTION = "com.mahdi.poultrydashboard.DELETE_PRODUCTION";
+    static final String ACTION_SAVE_CONFIGURATION = "com.mahdi.poultrydashboard.SAVE_CONFIGURATION";
     static final String ACTION_REQUEST_HISTORY = "com.mahdi.poultrydashboard.REQUEST_HISTORY";
     static final String ACTION_REQUEST_PRODUCTION = "com.mahdi.poultrydashboard.REQUEST_PRODUCTION";
+    static final String ACTION_REQUEST_CONFIGURATION = "com.mahdi.poultrydashboard.REQUEST_CONFIGURATION";
     static final String ACTION_EVENT = "com.mahdi.poultrydashboard.MQTT_EVENT";
     static final String EXTRA_USERNAME = "username";
     static final String EXTRA_PASSWORD = "password";
@@ -46,6 +49,8 @@ public final class MqttForegroundService extends Service implements MqttCallback
     static final String EXTRA_MQTT_CLIENT_ID = "mqtt_client_id";
     static final String EXTRA_REMEMBER = "remember";
     static final String EXTRA_PAYLOAD = "payload";
+    static final String EXTRA_PRODUCTION_ID = "production_id";
+    static final String EXTRA_CHICKEN_COUNT = "chicken_count";
     static final String EXTRA_EVENT_TYPE = "event_type";
     static final String EXTRA_EVENT_DATA = "event_data";
 
@@ -100,12 +105,24 @@ public final class MqttForegroundService extends Service implements MqttCallback
             publishProduction(intent.getStringExtra(EXTRA_PAYLOAD));
             return START_STICKY;
         }
+        if (ACTION_DELETE_PRODUCTION.equals(action)) {
+            deleteProduction(intent.getLongExtra(EXTRA_PRODUCTION_ID, -1L));
+            return START_STICKY;
+        }
+        if (ACTION_SAVE_CONFIGURATION.equals(action)) {
+            saveConfiguration(intent.getIntExtra(EXTRA_CHICKEN_COUNT, -1));
+            return START_STICKY;
+        }
         if (ACTION_REQUEST_HISTORY.equals(action)) {
             requestCloudHistory();
             return START_STICKY;
         }
         if (ACTION_REQUEST_PRODUCTION.equals(action)) {
             requestProductionHistory();
+            return START_STICKY;
+        }
+        if (ACTION_REQUEST_CONFIGURATION.equals(action)) {
+            requestConfiguration();
             return START_STICKY;
         }
 
@@ -325,12 +342,8 @@ public final class MqttForegroundService extends Service implements MqttCallback
             LocalDate.parse(date);
             int eggs = input.getInt("eggs");
             int mortality = input.getInt("mortality");
-            double productionRate = input.getDouble("production_rate");
             if (eggs < 0 || mortality < 0) {
                 throw new IllegalArgumentException("Eggs and mortality cannot be negative.");
-            }
-            if (!Double.isFinite(productionRate) || productionRate < 0.0 || productionRate > 100.0) {
-                throw new IllegalArgumentException("Production rate must be between 0 and 100%.");
             }
 
             cloudExecutor.execute(() -> {
@@ -338,6 +351,7 @@ public final class MqttForegroundService extends Service implements MqttCallback
                     supabaseClient.saveProduction(input);
                     broadcast("production_saved", date);
                     requestProductionHistory();
+                    requestConfiguration();
                 } catch (Exception error) {
                     broadcast("production_error", friendlyError(error));
                 }
@@ -345,6 +359,39 @@ public final class MqttForegroundService extends Service implements MqttCallback
         } catch (Exception error) {
             broadcast("production_error", friendlyError(error));
         }
+    }
+
+    private void deleteProduction(long productionId) {
+        if (productionId < 1L) {
+            broadcast("production_delete_error", "Invalid production record.");
+            return;
+        }
+        cloudExecutor.execute(() -> {
+            try {
+                supabaseClient.deleteProduction(productionId);
+                broadcast("production_deleted", String.valueOf(productionId));
+                requestProductionHistory();
+                requestConfiguration();
+            } catch (Exception error) {
+                broadcast("production_delete_error", friendlyError(error));
+            }
+        });
+    }
+
+    private void saveConfiguration(int chickenCount) {
+        if (chickenCount < 0) {
+            broadcast("configuration_error", "The actual chicken count cannot be negative.");
+            return;
+        }
+        cloudExecutor.execute(() -> {
+            try {
+                supabaseClient.saveConfiguration(chickenCount);
+                broadcast("configuration_saved", String.valueOf(chickenCount));
+                requestConfiguration();
+            } catch (Exception error) {
+                broadcast("configuration_error", friendlyError(error));
+            }
+        });
     }
 
     private void connectCloud() {
@@ -356,6 +403,7 @@ public final class MqttForegroundService extends Service implements MqttCallback
                 supabaseClient.signIn(credentials.supabaseEmail, credentials.supabasePassword);
                 broadcast("cloud_connection", "online");
                 requestProductionHistory();
+                requestConfiguration();
             } catch (Exception error) {
                 broadcast("cloud_error", friendlyError(error));
             }
@@ -394,6 +442,16 @@ public final class MqttForegroundService extends Service implements MqttCallback
                 broadcast("production_history", supabaseClient.readProduction(30));
             } catch (Exception error) {
                 broadcast("production_history_error", friendlyError(error));
+            }
+        });
+    }
+
+    private void requestConfiguration() {
+        cloudExecutor.execute(() -> {
+            try {
+                broadcast("configuration", supabaseClient.readConfiguration());
+            } catch (Exception error) {
+                broadcast("configuration_error", friendlyError(error));
             }
         });
     }

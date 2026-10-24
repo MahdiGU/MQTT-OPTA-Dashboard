@@ -101,7 +101,7 @@ On `Poultry_Demo_Android_Background`, the native Android service owns the MQTT c
 - Native publishing to `opta/cmd` with QoS 0 and retain disabled
 - A daily production form for egg count, mortality, and production rate
 
-## Daily production records
+## Daily production records on the background-only branch
 
 Version 1.3 adds a **Production** tab to the Android app. A valid record contains:
 
@@ -120,15 +120,18 @@ Android force-stop and the system's **Active apps → Stop** action still termin
 
 `Poultry_Demo_Supabase` connects the app to the ElMajd Supabase project. The login form keeps cloud and broker authentication separate: enter the Supabase email/password plus three MQTT values—the EMQX authentication username (default `OPTAMG888`), its MQTT password, and an editable MQTT protocol client ID. A unique client ID is generated as the initial value so two phones do not disconnect one another. The broker address and topics remain predefined.
 
-After login, Row Level Security limits access to farms assigned to that Supabase user. The app:
+After login, Row Level Security limits access to farms assigned to that Supabase user. Version 1.5 adds transactional flock and production management. The app:
 
-- saves one telemetry snapshot per five-minute bucket in `telemetry_samples`;
+- saves one telemetry snapshot per five-minute bucket in `telemetry`;
 - reads the shared last 12 hours for the temperature, cistern, and silo plots;
-- writes daily egg production, mortality, and production rate directly to `daily_production`;
+- stores the shared actual chicken count in `flock_settings`;
+- deducts mortality from the flock and calculates production percentage automatically when a daily record is saved;
+- deletes production records through a protected database function and restores their deducted mortality;
+- charts production percentage and mortality for the latest seven days;
 - loads the latest shared production records on every authorized phone;
 - keeps MQTT command publishing at QoS 0 with retain disabled.
 
-The database schema and security policies are versioned in [`supabase/migrations/20261024000000_elmajd_shared_storage.sql`](supabase/migrations/20261024000000_elmajd_shared_storage.sql). Apply that migration to a new Supabase project before changing the app's project URL or publishable key.
+The database schema and security policies are versioned in [`supabase/migrations/20261024000000_elmajd_shared_storage.sql`](supabase/migrations/20261024000000_elmajd_shared_storage.sql) and [`supabase/migrations/20261024010000_flock_production_dashboard.sql`](supabase/migrations/20261024010000_flock_production_dashboard.sql). Apply both migrations in order to a new Supabase project before changing the app's project URL or publishable key.
 
 Unlike the preceding background branch, a successful production submission in this branch means Supabase committed the record. MQTT remains responsible for live device data and control, while Supabase provides durable cross-phone history. If the phone is offline, live MQTT and cloud uploads resume only after connectivity returns; this version does not yet queue missed Supabase writes for later replay.
 
