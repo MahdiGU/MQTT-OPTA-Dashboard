@@ -162,6 +162,14 @@ public final class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public void publishProduction(String payload) {
+            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
+                .setAction(MqttForegroundService.ACTION_PUBLISH_PRODUCTION)
+                .putExtra(MqttForegroundService.EXTRA_PAYLOAD, payload);
+            startService(service);
+        }
+
+        @JavascriptInterface
         public String getHistory() {
             HistoryDatabase database = new HistoryDatabase(MainActivity.this);
             try {

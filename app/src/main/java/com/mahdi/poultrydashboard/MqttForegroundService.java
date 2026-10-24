@@ -27,12 +27,14 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Locale;
 
 public final class MqttForegroundService extends Service implements MqttCallbackExtended {
     static final String ACTION_START = "com.mahdi.poultrydashboard.START_MONITORING";
     static final String ACTION_STOP = "com.mahdi.poultrydashboard.STOP_MONITORING";
     static final String ACTION_PUBLISH = "com.mahdi.poultrydashboard.PUBLISH";
+    static final String ACTION_PUBLISH_PRODUCTION = "com.mahdi.poultrydashboard.PUBLISH_PRODUCTION";
     static final String ACTION_EVENT = "com.mahdi.poultrydashboard.MQTT_EVENT";
     static final String EXTRA_USERNAME = "username";
     static final String EXTRA_PASSWORD = "password";
@@ -45,6 +47,7 @@ public final class MqttForegroundService extends Service implements MqttCallback
     private static final String TELEMETRY_TOPIC = "opta/outputs";
     private static final String STATUS_TOPIC = "opta/status";
     private static final String COMMAND_TOPIC = "opta/cmd";
+    private static final String PRODUCTION_TOPIC = "opta/production";
     private static final String MONITOR_CHANNEL = "mqtt_monitoring";
     private static final String ALERT_CHANNEL = "temperature_alerts";
     private static final int MONITOR_NOTIFICATION_ID = 1201;
@@ -81,6 +84,10 @@ public final class MqttForegroundService extends Service implements MqttCallback
         }
         if (ACTION_PUBLISH.equals(action)) {
             publish(intent.getStringExtra(EXTRA_PAYLOAD));
+            return START_STICKY;
+        }
+        if (ACTION_PUBLISH_PRODUCTION.equals(action)) {
+            publishProduction(intent.getStringExtra(EXTRA_PAYLOAD));
             return START_STICKY;
         }
 
@@ -269,6 +276,55 @@ public final class MqttForegroundService extends Service implements MqttCallback
             });
         } catch (MqttException error) {
             broadcast("publish_error", friendlyError(error));
+        }
+    }
+
+    private void publishProduction(String payload) {
+        if (payload == null || payload.trim().isEmpty()) {
+            broadcast("production_error", "Production data is empty.");
+            return;
+        }
+        if (client == null || !client.isConnected()) {
+            broadcast("production_error", "MQTT is not connected.");
+            return;
+        }
+        try {
+            JSONObject input = new JSONObject(payload);
+            String date = input.getString("date");
+            LocalDate.parse(date);
+            int eggs = input.getInt("eggs");
+            int mortality = input.getInt("mortality");
+            double productionRate = input.getDouble("production_rate");
+            if (eggs < 0 || mortality < 0) {
+                throw new IllegalArgumentException("Eggs and mortality cannot be negative.");
+            }
+            if (!Double.isFinite(productionRate) || productionRate < 0.0 || productionRate > 100.0) {
+                throw new IllegalArgumentException("Production rate must be between 0 and 100%.");
+            }
+
+            JSONObject record = new JSONObject()
+                .put("device_id", clientId())
+                .put("date", date)
+                .put("eggs", eggs)
+                .put("mortality", mortality)
+                .put("production_rate", productionRate)
+                .put("submitted_at", System.currentTimeMillis());
+            MqttMessage message = new MqttMessage(record.toString().getBytes(StandardCharsets.UTF_8));
+            message.setQos(0);
+            message.setRetained(false);
+            client.publish(PRODUCTION_TOPIC, message, date, new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    broadcast("production_published", String.valueOf(asyncActionToken.getUserContext()));
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    broadcast("production_error", friendlyError(exception));
+                }
+            });
+        } catch (Exception error) {
+            broadcast("production_error", friendlyError(error));
         }
     }
 

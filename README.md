@@ -96,6 +96,20 @@ On `Poultry_Demo_Android_Background`, the native Android service owns the MQTT c
 - SQLite samples in five-minute buckets, retained for the most recent 12 hours
 - Native alerts above 33 °C with a 30-minute repeat cooldown
 - Native publishing to `opta/cmd` with QoS 0 and retain disabled
+- A daily production form for egg count, mortality, and production rate
+
+## Daily production records
+
+Version 1.3 adds a **Production** tab to the Android app. A valid record contains:
+
+- Production date
+- Number of produced eggs
+- Mortality count
+- Production rate from 0 to 100 percent
+
+The app publishes the record as JSON to `opta/production` with QoS 0 and retain disabled. The payload also contains a phone-specific `device_id` and submission timestamp. Production entries are not written to the phone's SQLite history.
+
+Publishing to MQTT does not by itself create permanent history. Configure the EMQX rule and PostgreSQL table described in [`docs/emqx-production-storage.md`](docs/emqx-production-storage.md) before treating the confirmation in the app as a saved cloud record.
 
 Android force-stop and the system's **Active apps → Stop** action still terminate monitoring until the app is opened again. Network outages leave gaps in local history because this version deliberately uses no external backend.
 
