@@ -126,7 +126,7 @@ After login, Row Level Security limits access to farms assigned to that Supabase
 - reads the shared last 12 hours for the temperature, cistern, and silo plots;
 - stores the shared actual chicken count in `flock_settings`;
 - accepts daily Stock, Sortie, and mortality values instead of a manual production value;
-- calculates production as `current Stock + Sortie - previous Stock`;
+- calculates production as `current Stock + Sortie - previous Stock`, or `0` when no earlier Stock record exists;
 - deducts mortality from the flock and calculates production percentage automatically when a daily record is saved;
 - deletes production records through a protected database function and restores their deducted mortality;
 - charts production percentage and mortality for the latest seven days;

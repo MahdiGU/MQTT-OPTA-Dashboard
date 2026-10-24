@@ -108,8 +108,11 @@ begin
   where farm_id = target_farm and production_date < target_date
   order by production_date desc
   limit 1;
-  previous_stock := coalesce(previous_stock, 0);
-  calculated_production := stock_count + sortie_count - previous_stock;
+  if not found then
+    calculated_production := 0;
+  else
+    calculated_production := stock_count + sortie_count - previous_stock;
+  end if;
 
   if calculated_production < 0 then
     raise exception 'Calculated production is negative. Check stock and sortie values.';
@@ -159,6 +162,7 @@ declare
   restored_count integer;
   previous_stock integer;
   next_record_id bigint;
+  next_record_date date;
   next_production integer;
 begin
   if not private.has_farm_role(target_farm, array['owner','manager']) then
@@ -196,23 +200,25 @@ begin
     and production_date > deleted_record.production_date
     and chicken_count is not null;
 
-  select id into next_record_id
+  select id, production_date into next_record_id, next_record_date
   from public.daily_production
   where farm_id = target_farm and production_date > deleted_record.production_date
   order by production_date asc
   limit 1;
 
   if next_record_id is not null then
-    select coalesce((
-      select stock from public.daily_production
-      where farm_id = target_farm
-        and production_date < (select production_date from public.daily_production where id = next_record_id)
-      order by production_date desc
-      limit 1
-    ), 0) into previous_stock;
+    select stock into previous_stock
+    from public.daily_production
+    where farm_id = target_farm and production_date < next_record_date
+    order by production_date desc
+    limit 1;
 
-    select stock + sortie - previous_stock into next_production
-    from public.daily_production where id = next_record_id;
+    if not found then
+      next_production := 0;
+    else
+      select stock + sortie - previous_stock into next_production
+      from public.daily_production where id = next_record_id;
+    end if;
 
     if next_production < 0 then
       raise exception 'Deleting this record would make the following production negative.';
