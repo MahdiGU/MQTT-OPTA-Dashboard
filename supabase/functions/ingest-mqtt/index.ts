@@ -2,6 +2,7 @@ import {
   jsonResponse,
   readJson,
   requireEnvironment,
+  requireSupabaseSecretKey,
 } from "../_shared/http.ts";
 
 const FARM_SLUG = Deno.env.get("FARM_SLUG")?.trim() || "elmajd-poultry";
@@ -67,7 +68,7 @@ Deno.serve(async (request) => {
     }
 
     const supabaseUrl = requireEnvironment("SUPABASE_URL");
-    const serviceRoleKey = requireEnvironment("SUPABASE_SERVICE_ROLE_KEY");
+    const serviceRoleKey = requireSupabaseSecretKey();
     const envelope = await parseBody(request);
     const topic = String(envelope.topic || "opta/outputs");
     const deviceId = String(

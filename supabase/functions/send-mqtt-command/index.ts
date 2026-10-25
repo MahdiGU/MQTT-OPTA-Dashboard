@@ -2,6 +2,7 @@ import {
   jsonResponse,
   readJson,
   requireEnvironment,
+  requireSupabaseSecretKey,
 } from "../_shared/http.ts";
 
 const FARM_SLUG = Deno.env.get("FARM_SLUG")?.trim() || "elmajd-poultry";
@@ -26,7 +27,7 @@ Deno.serve(async (request) => {
   let commandId: string | null = null;
   try {
     const supabaseUrl = requireEnvironment("SUPABASE_URL");
-    const serviceRoleKey = requireEnvironment("SUPABASE_SERVICE_ROLE_KEY");
+    const serviceRoleKey = requireSupabaseSecretKey();
     const authorization = request.headers.get("authorization") || "";
     if (!authorization.toLowerCase().startsWith("bearer ")) {
       return jsonResponse({ error: "Authentication required" }, 401);

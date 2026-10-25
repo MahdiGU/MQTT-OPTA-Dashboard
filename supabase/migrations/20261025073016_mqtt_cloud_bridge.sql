@@ -2,6 +2,14 @@
 -- EMQX writes through the ingest-mqtt Edge Function. Authenticated clients
 -- can read the latest state and command audit log, but cannot forge either.
 
+-- Older production deployments granted these SECURITY DEFINER RPCs directly
+-- to anon. Both functions perform auth.uid() role checks, but anonymous callers
+-- have no reason to reach them at all.
+revoke execute on function public.record_daily_production(uuid, date, integer, integer, integer)
+  from anon;
+revoke execute on function public.delete_daily_production(uuid, bigint)
+  from anon;
+
 alter table public.telemetry
   add column if not exists ingest_bucket timestamptz;
 

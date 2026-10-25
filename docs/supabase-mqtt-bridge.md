@@ -45,8 +45,10 @@ or commit them to Git:
 | `EMQX_COMMAND_TOPIC` | Optional; defaults to `opta/cmd` |
 | `FARM_SLUG` | Optional; defaults to `elmajd-poultry` |
 
-`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are supplied to deployed Edge
-Functions by Supabase. The service-role key stays server-side.
+`SUPABASE_URL` and `SUPABASE_SECRET_KEYS` are supplied to deployed Edge
+Functions by Supabase. The code also supports the deprecated
+`SUPABASE_SERVICE_ROLE_KEY` during the platform transition. Secret keys stay
+server-side.
 
 Example setup (replace placeholders locally; do not commit the resulting
 values):
