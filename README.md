@@ -14,6 +14,7 @@ MQTT monitoring and control dashboards for an Arduino Opta, with both browser an
 | `Poultry_Demo_Supabase` | Android app with shared cloud storage | Extends the background-monitoring app with Supabase authentication, permanent shared production records, five-minute telemetry snapshots, and shared 12-hour charts. MQTT continues to handle live monitoring and commands. | **Recommended multi-phone branch.** Use when several phones must see the same farm history and production data. |
 | `Supabase_MQTT_Bridge` | Cloud-bridge development branch | Starts the migration to a Supabase-only Android connection. Adds secure EMQX webhook ingestion, live device state, five-minute server-side telemetry sampling, an audited command function, and EMQX HTTP publishing with fixed QoS 0/retain off. The Android cutover is intentionally deferred until the live bridge is configured and tested. | Use to configure and validate the new backend architecture without interrupting the current app. |
 | `Android_Supabase_Cutover` | Supabase-only Android milestone | Removes phone-side MQTT credentials and the Paho MQTT client. Version 1.7 signs in only with Supabase, polls `device_latest` every five seconds, reads cloud history and production data, and sends plain commands through the authenticated `send-mqtt-command` Edge Function. | Use to test the new phone architecture. Firebase server push and Supabase Realtime are the next migration stages. |
+| `Android_Supabase_Realtime` | Realtime Android milestone | Version 1.8 replaces five-second polling with a farm-scoped authenticated Supabase Realtime subscription. It receives `device_latest` changes immediately, renews the channel token, reconnects with backoff, and performs a five-minute REST reconciliation for recovery. | **Recommended Supabase-only test branch.** Use it to validate near-instant telemetry while preserving the tested 1.7 polling branch. |
 
 ## Branch lineage
 
@@ -26,6 +27,7 @@ main ─────────────── Generic browser dashboard
                       └─ Poultry_Demo_Supabase
                            └─ Supabase_MQTT_Bridge
                                 └─ Android_Supabase_Cutover
+                                     └─ Android_Supabase_Realtime
 ```
 
 The branches are intentionally separate. No Android or poultry-demo work has been merged into `main`.
@@ -38,6 +40,7 @@ The branches are intentionally separate. No Android or poultry-demo work has bee
 - For permanent shared data across phones, use `Poultry_Demo_Supabase`.
 - For the staged EMQX-to-Supabase architecture migration, use `Supabase_MQTT_Bridge`.
 - For the first Android cutover test, use `Android_Supabase_Cutover`.
+- For live Supabase telemetry without phone-side MQTT, use `Android_Supabase_Realtime`.
 - Use `Poultry_Demo_Arduino` only when comparing with the original foreground-only prototype.
 
 ## MQTT protocol
@@ -83,7 +86,7 @@ The browser connects using secure MQTT WebSockets (`wss://...:8084/mqtt`). Broke
 
 ## Building the Android versions
 
-Switch to an Android branch (`Poultry_Demo_Arduino`, `Poultry_Demo_Android_Background`, `Poultry_Demo_Supabase`, or `Android_Supabase_Cutover`), then build with Android Studio using JDK 17 and Android SDK 35. From a configured command line, run:
+Switch to an Android branch (`Poultry_Demo_Arduino`, `Poultry_Demo_Android_Background`, `Poultry_Demo_Supabase`, `Android_Supabase_Cutover`, or `Android_Supabase_Realtime`), then build with Android Studio using JDK 17 and Android SDK 35. From a configured command line, run:
 
 ```text
 gradle --no-daemon :app:assembleDebug
@@ -104,6 +107,21 @@ Version 1.7 on `Android_Supabase_Cutover` changes the phone boundary:
 - the Connection tab reports Supabase session, cloud-feed freshness, Opta status, sequence, uptime, and RSSI.
 
 This milestone deliberately keeps a foreground cloud synchronization service and the existing local temperature alert while the app is being validated. The final phase will replace polling with Supabase Realtime and replace the local alert with Firebase Cloud Messaging so alerts can arrive after Android fully stops the app.
+
+## Supabase Realtime Android milestone
+
+Version 1.8 on `Android_Supabase_Realtime` keeps the same authenticated cloud architecture and changes how live state reaches the phone:
+
+- the foreground service opens an authenticated Supabase Realtime WebSocket after login;
+- the channel subscribes only to `public.device_latest` rows matching the signed-in user's farm;
+- telemetry changes are delivered immediately instead of waiting for a five-second polling cycle;
+- a protocol heartbeat keeps the channel alive and reconnect delays increase from one to 30 seconds during an outage;
+- refreshed Supabase access tokens are applied to the active channel;
+- a REST read runs at startup and every five minutes to reconcile state if a Realtime event was missed;
+- production, configuration, 12-hour history, and command requests continue to use authenticated HTTPS;
+- the local foreground-service temperature alert remains unchanged.
+
+Realtime improves foreground/background synchronization while Android permits the foreground service to run. It is not a replacement for server-generated push notifications: a user force-stop still prevents the app from receiving Realtime events until it is opened again.
 
 The APK uses a repository-provided debug-only signing certificate so demo updates can be installed over earlier demo versions. This certificate must not be used for a production or Play Store release.
 

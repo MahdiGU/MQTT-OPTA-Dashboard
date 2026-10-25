@@ -14,8 +14,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
 final class SupabaseClient {
-    private static final String BASE_URL = "https://zlmaombpfdznambrgqiv.supabase.co";
-    private static final String PUBLISHABLE_KEY = "sb_publishable_qiP1Lnh1iQ32EUEFKxRCiA_F8XiQ1uj";
+    static final String BASE_URL = "https://zlmaombpfdznambrgqiv.supabase.co";
+    static final String PUBLISHABLE_KEY = "sb_publishable_qiP1Lnh1iQ32EUEFKxRCiA_F8XiQ1uj";
     private static final String FARM_SLUG = "elmajd-poultry";
 
     private String email;
@@ -46,8 +46,16 @@ final class SupabaseClient {
             + "&farm_id=eq." + farmId + "&order=received_at.desc&limit=1";
         JSONArray rows = new JSONArray(request("GET", path, null, null, accessToken));
         if (rows.length() == 0) return "{}";
-        JSONObject row = rows.getJSONObject(0);
-        JSONObject payload = new JSONObject()
+        return payloadFromLatestRow(rows.getJSONObject(0));
+    }
+
+    static String realtimeUrl() {
+        return BASE_URL.replaceFirst("^https", "wss")
+            + "/realtime/v1/websocket?apikey=" + PUBLISHABLE_KEY + "&vsn=1.0.0";
+    }
+
+    static String payloadFromLatestRow(JSONObject row) throws Exception {
+        return new JSONObject()
             .put("device_id", row.optString("device_id", "arduino-opta"))
             .put("mqtt_status", row.optString("mqtt_status", "unknown"))
             .put("received_at", row.optString("received_at", ""))
@@ -75,8 +83,13 @@ final class SupabaseClient {
                 .put("I5", bit(row, "i5"))
                 .put("I6", bit(row, "i6"))
                 .put("I7", bit(row, "i7"))
-                .put("I8", bit(row, "i8")));
-        return payload.toString();
+                .put("I8", bit(row, "i8")))
+            .toString();
+    }
+
+    RealtimeSession realtimeSession() throws Exception {
+        ensureSession();
+        return new RealtimeSession(accessToken, farmId, expiresAtMs);
     }
 
     String sendCommand(String payload) throws Exception {
@@ -181,13 +194,25 @@ final class SupabaseClient {
         return row.optBoolean(key, false) ? 1 : 0;
     }
 
+    static final class RealtimeSession {
+        final String accessToken;
+        final String farmId;
+        final long expiresAtMs;
+
+        private RealtimeSession(String accessToken, String farmId, long expiresAtMs) {
+            this.accessToken = accessToken;
+            this.farmId = farmId;
+            this.expiresAtMs = expiresAtMs;
+        }
+    }
+
     private void ensureSession() throws Exception {
         if (email == null || password == null) throw new IllegalStateException("Cloud login is not available.");
         if (accessToken == null) {
             signIn(email, password);
             return;
         }
-        if (System.currentTimeMillis() < expiresAtMs - 60_000L) return;
+        if (System.currentTimeMillis() < expiresAtMs - 5L * 60L * 1000L) return;
         if (refreshToken == null) {
             signIn(email, password);
             return;

@@ -7,6 +7,7 @@ on:
       - Poultry_Demo_Android_Background
       - Poultry_Demo_Supabase
       - Android_Supabase_Cutover
+      - Android_Supabase_Realtime
   workflow_dispatch:
 
 permissions:
@@ -34,7 +35,7 @@ jobs:
         run: gradle --no-daemon :app:assembleDebug
 
       - name: Create named install package
-        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ElMajd-Automation-1.7.0.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ElMajd-Automation-1.8.0.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -42,6 +43,6 @@ jobs:
           name: ElMajd-Automation-debug-apk
           path: |
             app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/apk/debug/ElMajd-Automation-1.7.0.apk
+            app/build/outputs/apk/debug/ElMajd-Automation-1.8.0.apk
           if-no-files-found: error
           retention-days: 30

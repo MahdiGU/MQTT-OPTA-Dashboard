@@ -46,7 +46,8 @@ public final class CloudForegroundService extends Service {
     private static final String ALERT_CHANNEL = "temperature_alerts";
     private static final int MONITOR_NOTIFICATION_ID = 1201;
     private static final int TEMPERATURE_NOTIFICATION_ID = 3301;
-    private static final long POLL_INTERVAL_MS = 5_000L;
+    private static final long RECONCILE_INTERVAL_MS = 5L * 60L * 1000L;
+    private static final long MAX_RECONNECT_DELAY_MS = 30_000L;
     private static final long STALE_AFTER_MS = 20_000L;
     private static final long ALERT_COOLDOWN_MS = 30L * 60L * 1000L;
 
@@ -55,12 +56,16 @@ public final class CloudForegroundService extends Service {
     private CredentialStore credentialStore;
     private SharedPreferences statePreferences;
     private SupabaseClient supabaseClient;
+    private SupabaseRealtimeClient realtimeClient;
     private CredentialStore.Credentials activeCredentials;
-    private boolean stopping;
-    private boolean signedIn;
-    private boolean pollInProgress;
+    private volatile boolean stopping;
+    private volatile boolean signedIn;
+    private volatile boolean realtimeConnected;
+    private volatile boolean realtimeConnecting;
+    private boolean reconcileInProgress;
     private boolean hot;
     private String latestSignature = "";
+    private long reconnectDelayMs = 1_000L;
 
     @Override
     public void onCreate() {
@@ -68,6 +73,44 @@ public final class CloudForegroundService extends Service {
         credentialStore = new CredentialStore(this);
         statePreferences = getSharedPreferences("elmajd_runtime", MODE_PRIVATE);
         supabaseClient = new SupabaseClient();
+        realtimeClient = new SupabaseRealtimeClient(new SupabaseRealtimeClient.Listener() {
+            @Override
+            public void onSubscribed() {
+                realtimeConnected = true;
+                realtimeConnecting = false;
+                reconnectDelayMs = 1_000L;
+                handler.removeCallbacks(reconnectRunnable);
+                broadcast("connection", "online");
+                broadcast("cloud_connection", "online");
+                updateMonitorNotification("Live Supabase updates active");
+                scheduleReconcile(0L);
+            }
+
+            @Override
+            public void onRecord(JSONObject record) {
+                try {
+                    handleLatest(SupabaseClient.payloadFromLatestRow(record));
+                } catch (Exception error) {
+                    broadcast("realtime_error", friendlyError(error));
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                broadcast("realtime_error", message);
+            }
+
+            @Override
+            public void onDisconnected() {
+                realtimeConnected = false;
+                realtimeConnecting = false;
+                if (!stopping && signedIn) {
+                    broadcast("connection", "reconnecting");
+                    updateMonitorNotification("Restoring live Supabase updates...");
+                    scheduleReconnect();
+                }
+            }
+        });
         createNotificationChannels();
     }
 
@@ -139,7 +182,10 @@ public final class CloudForegroundService extends Service {
         }
 
         if (!signedIn || explicitLogin) connectCloud();
-        else schedulePoll(0L);
+        else {
+            ensureRealtimeConnection();
+            scheduleReconcile(0L);
+        }
         return stickyMode();
     }
 
@@ -148,7 +194,11 @@ public final class CloudForegroundService extends Service {
     }
 
     private void connectCloud() {
-        handler.removeCallbacks(pollRunnable);
+        handler.removeCallbacks(reconcileRunnable);
+        handler.removeCallbacks(reconnectRunnable);
+        realtimeClient.disconnect();
+        realtimeConnected = false;
+        realtimeConnecting = false;
         signedIn = false;
         broadcast("connection", "connecting");
         broadcast("cloud_connection", "connecting");
@@ -160,10 +210,10 @@ public final class CloudForegroundService extends Service {
                 signedIn = true;
                 broadcast("cloud_connection", "online");
                 broadcast("connection", "online");
-                updateMonitorNotification("Monitoring through Supabase");
+                updateMonitorNotification("Starting live Supabase updates...");
                 requestProductionHistory();
                 requestConfiguration();
-                schedulePoll(0L);
+                openRealtimeConnection();
             } catch (Exception error) {
                 signedIn = false;
                 broadcast("cloud_error", friendlyError(error));
@@ -173,48 +223,86 @@ public final class CloudForegroundService extends Service {
         });
     }
 
-    private void schedulePoll(long delayMs) {
+    private void scheduleReconcile(long delayMs) {
         if (stopping || !signedIn) return;
-        handler.removeCallbacks(pollRunnable);
-        handler.postDelayed(pollRunnable, delayMs);
+        handler.removeCallbacks(reconcileRunnable);
+        handler.postDelayed(reconcileRunnable, delayMs);
     }
 
-    private final Runnable pollRunnable = () -> {
-        if (stopping || !signedIn || pollInProgress) return;
-        pollInProgress = true;
+    private final Runnable reconcileRunnable = () -> {
+        if (stopping || !signedIn || reconcileInProgress) return;
+        reconcileInProgress = true;
         cloudExecutor.execute(() -> {
             try {
-                String latest = supabaseClient.readLatest();
-                JSONObject payload = new JSONObject(latest);
-                if (payload.length() == 0) {
-                    broadcast("device_status", "No telemetry");
-                } else {
-                    String receivedAt = payload.optString("received_at", "");
-                    long ageMs = receivedAt.isEmpty()
-                        ? Long.MAX_VALUE
-                        : Math.max(0L, System.currentTimeMillis() - Instant.parse(receivedAt).toEpochMilli());
-                    String brokerStatus = payload.optString("mqtt_status", "unknown");
-                    String deviceStatus = ageMs > STALE_AFTER_MS ? "Delayed" : brokerStatus;
-                    broadcast("device_status", deviceStatus);
-                    broadcast("connection", ageMs > STALE_AFTER_MS ? "delayed" : "online");
-                    String signature = payload.optString("device_id") + ":" + payload.optLong("seq")
-                        + ":" + receivedAt;
-                    if (!signature.equals(latestSignature)) {
-                        latestSignature = signature;
-                        statePreferences.edit().putString("latest_payload", latest).apply();
-                        broadcast("telemetry", latest);
-                        handleTemperatureAlert(payload.getJSONObject("i1").optDouble("temp_c"));
-                    }
-                }
+                handleLatest(supabaseClient.readLatest());
+                SupabaseClient.RealtimeSession session = supabaseClient.realtimeSession();
+                realtimeClient.updateAccessToken(session.accessToken);
             } catch (Exception error) {
-                broadcast("cloud_error", friendlyError(error));
-                broadcast("connection", "reconnecting");
+                broadcast("realtime_error", "Cloud reconciliation failed: " + friendlyError(error));
+                if (!realtimeConnected) {
+                    broadcast("connection", "reconnecting");
+                    scheduleReconnect();
+                }
             } finally {
-                pollInProgress = false;
-                schedulePoll(POLL_INTERVAL_MS);
+                reconcileInProgress = false;
+                scheduleReconcile(RECONCILE_INTERVAL_MS);
             }
         });
     };
+
+    private void ensureRealtimeConnection() {
+        if (stopping || !signedIn || realtimeConnected || realtimeConnecting) return;
+        realtimeConnecting = true;
+        cloudExecutor.execute(() -> {
+            try {
+                openRealtimeConnection();
+            } catch (Exception error) {
+                realtimeConnecting = false;
+                broadcast("realtime_error", friendlyError(error));
+                scheduleReconnect();
+            }
+        });
+    }
+
+    private void openRealtimeConnection() throws Exception {
+        if (stopping || !signedIn) return;
+        realtimeConnecting = true;
+        SupabaseClient.RealtimeSession session = supabaseClient.realtimeSession();
+        realtimeClient.connect(session.accessToken, session.farmId);
+    }
+
+    private void scheduleReconnect() {
+        if (stopping || !signedIn) return;
+        handler.removeCallbacks(reconnectRunnable);
+        handler.postDelayed(reconnectRunnable, reconnectDelayMs);
+        reconnectDelayMs = Math.min(MAX_RECONNECT_DELAY_MS, reconnectDelayMs * 2L);
+    }
+
+    private final Runnable reconnectRunnable = this::ensureRealtimeConnection;
+
+    private synchronized void handleLatest(String latest) throws Exception {
+        JSONObject payload = new JSONObject(latest);
+        if (payload.length() == 0) {
+            broadcast("device_status", "No telemetry");
+            return;
+        }
+        String receivedAt = payload.optString("received_at", "");
+        long ageMs = receivedAt.isEmpty()
+            ? Long.MAX_VALUE
+            : Math.max(0L, System.currentTimeMillis() - Instant.parse(receivedAt).toEpochMilli());
+        String brokerStatus = payload.optString("mqtt_status", "unknown");
+        String deviceStatus = ageMs > STALE_AFTER_MS ? "Delayed" : brokerStatus;
+        broadcast("device_status", deviceStatus);
+        broadcast("connection", ageMs > STALE_AFTER_MS ? "delayed" : "online");
+        String signature = payload.optString("device_id") + ":" + payload.optLong("seq")
+            + ":" + receivedAt;
+        if (!signature.equals(latestSignature)) {
+            latestSignature = signature;
+            statePreferences.edit().putString("latest_payload", latest).apply();
+            broadcast("telemetry", latest);
+            handleTemperatureAlert(payload.getJSONObject("i1").optDouble("temp_c"));
+        }
+    }
 
     private void publish(String payload) {
         if (payload == null || payload.trim().isEmpty()) {
@@ -346,7 +434,10 @@ public final class CloudForegroundService extends Service {
     private void stopMonitoring() {
         stopping = true;
         signedIn = false;
+        realtimeConnected = false;
+        realtimeConnecting = false;
         handler.removeCallbacksAndMessages(null);
+        realtimeClient.disconnect();
         credentialStore.setMonitoringEnabled(false);
         broadcast("connection", "stopped");
         stopForeground(STOP_FOREGROUND_REMOVE);
@@ -447,7 +538,10 @@ public final class CloudForegroundService extends Service {
     public void onDestroy() {
         stopping = true;
         signedIn = false;
+        realtimeConnected = false;
+        realtimeConnecting = false;
         handler.removeCallbacksAndMessages(null);
+        realtimeClient.shutdown();
         cloudExecutor.shutdownNow();
         super.onDestroy();
     }
