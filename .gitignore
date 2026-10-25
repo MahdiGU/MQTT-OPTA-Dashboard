@@ -10,3 +10,4 @@ captures/
 .sites-stage*/
 node_modules/
 *.tar.gz
+supabase/.temp/

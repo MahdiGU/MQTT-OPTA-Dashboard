@@ -12,6 +12,7 @@ MQTT monitoring and control dashboards for an Arduino Opta, with both browser an
 | `Poultry_Demo_Arduino` | Basic Android app | First **ElMajd Automation** APK. Adds the app icon, username/password login, predefined broker/topics, compact mobile cards, 12-hour charts, controls, and temperature notifications. MQTT still runs in the WebView, so closing the app stops data reception. | Keep as the original Android prototype. For normal installation, use the background branch instead. |
 | `Poultry_Demo_Android_Background` | Android app with native background monitoring | Extends `Poultry_Demo_Arduino` with a native foreground MQTT service, automatic reconnection, restart after reboot, encrypted saved credentials, SQLite history, and native high-temperature notifications. Commands remain plain text with QoS 0 and retain disabled. | **Recommended Android branch.** Use when monitoring must continue with the screen locked or the app UI closed. |
 | `Poultry_Demo_Supabase` | Android app with shared cloud storage | Extends the background-monitoring app with Supabase authentication, permanent shared production records, five-minute telemetry snapshots, and shared 12-hour charts. MQTT continues to handle live monitoring and commands. | **Recommended multi-phone branch.** Use when several phones must see the same farm history and production data. |
+| `Supabase_MQTT_Bridge` | Cloud-bridge development branch | Starts the migration to a Supabase-only Android connection. Adds secure EMQX webhook ingestion, live device state, five-minute server-side telemetry sampling, an audited command function, and EMQX HTTP publishing with fixed QoS 0/retain off. The Android cutover is intentionally deferred until the live bridge is configured and tested. | Use to configure and validate the new backend architecture without interrupting the current app. |
 
 ## Branch lineage
 
@@ -22,6 +23,7 @@ main ─────────────── Generic browser dashboard
             └─ Poultry_Demo_Arduino
                  └─ Poultry_Demo_Android_Background
                       └─ Poultry_Demo_Supabase
+                           └─ Supabase_MQTT_Bridge
 ```
 
 The branches are intentionally separate. No Android or poultry-demo work has been merged into `main`.
@@ -32,6 +34,7 @@ The branches are intentionally separate. No Android or poultry-demo work has bee
 - For the light poultry dashboard in a browser, use `Poultry_Demo`.
 - For an installable phone app with local-only history, use `Poultry_Demo_Android_Background`.
 - For permanent shared data across phones, use `Poultry_Demo_Supabase`.
+- For the staged EMQX-to-Supabase architecture migration, use `Supabase_MQTT_Bridge`.
 - Use `Poultry_Demo_Arduino` only when comparing with the original foreground-only prototype.
 
 ## MQTT protocol
@@ -141,6 +144,20 @@ After login, Row Level Security limits access to farms assigned to that Supabase
 The database schema and security policies are versioned in [`supabase/migrations/20261024000000_elmajd_shared_storage.sql`](supabase/migrations/20261024000000_elmajd_shared_storage.sql) and [`supabase/migrations/20261024010000_flock_production_dashboard.sql`](supabase/migrations/20261024010000_flock_production_dashboard.sql). Apply both migrations in order to a new Supabase project before changing the app's project URL or publishable key.
 
 Unlike the preceding background branch, a successful production submission in this branch means Supabase committed the record. MQTT remains responsible for live device data and control, while Supabase provides durable cross-phone history. If the phone is offline, live MQTT and cloud uploads resume only after connectivity returns; this version does not yet queue missed Supabase writes for later replay.
+
+## Supabase–EMQX bridge development
+
+`Supabase_MQTT_Bridge` adds the server-side foundation for removing the direct
+MQTT connection from Android. EMQX sends telemetry and device status to a
+protected Supabase Edge Function; authenticated Android users will read the
+result through Supabase. Commands pass through another Edge Function, which
+publishes the validated plain string through the EMQX API with QoS 0 and retain
+disabled.
+
+The initial branch commit does not cut the Android app over yet. Deployment
+requires an EMQX API application and a webhook secret, so direct MQTT remains
+active until the bridge passes a live end-to-end test. Setup and rollout are
+documented in [`docs/supabase-mqtt-bridge.md`](docs/supabase-mqtt-bridge.md).
 
 ## Security
 

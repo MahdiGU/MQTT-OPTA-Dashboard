@@ -1,0 +1,7 @@
+project_id = "zlmaombpfdznambrgqiv"
+
+[functions.ingest-mqtt]
+verify_jwt = false
+
+[functions.send-mqtt-command]
+verify_jwt = true
