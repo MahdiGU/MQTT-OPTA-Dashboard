@@ -11,3 +11,6 @@ captures/
 node_modules/
 *.tar.gz
 supabase/.temp/
+artifacts/*.apk
+artifacts/*.zip
+artifacts/*-build/
