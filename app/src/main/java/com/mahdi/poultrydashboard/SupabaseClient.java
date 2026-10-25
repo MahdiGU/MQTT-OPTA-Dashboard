@@ -40,8 +40,54 @@ final class SupabaseClient {
         loadFarm();
     }
 
-    boolean isReady() {
-        return accessToken != null && farmId != null;
+    String readLatest() throws Exception {
+        ensureSession();
+        String path = "/rest/v1/device_latest?select=device_id,mqtt_status,received_at,seq,up_s,rssi,volts,temp_c,sensor_fault,d0,d1,d2,d3,l0,l1,l2,l3,i2,i3,i4,i5,i6,i7,i8"
+            + "&farm_id=eq." + farmId + "&order=received_at.desc&limit=1";
+        JSONArray rows = new JSONArray(request("GET", path, null, null, accessToken));
+        if (rows.length() == 0) return "{}";
+        JSONObject row = rows.getJSONObject(0);
+        JSONObject payload = new JSONObject()
+            .put("device_id", row.optString("device_id", "arduino-opta"))
+            .put("mqtt_status", row.optString("mqtt_status", "unknown"))
+            .put("received_at", row.optString("received_at", ""))
+            .put("seq", row.optLong("seq"))
+            .put("up_s", row.optLong("up_s"))
+            .put("rssi", row.optInt("rssi"))
+            .put("outputs", new JSONObject()
+                .put("D0", bit(row, "d0"))
+                .put("D1", bit(row, "d1"))
+                .put("D2", bit(row, "d2"))
+                .put("D3", bit(row, "d3")))
+            .put("leds", new JSONObject()
+                .put("L0", bit(row, "l0"))
+                .put("L1", bit(row, "l1"))
+                .put("L2", bit(row, "l2"))
+                .put("L3", bit(row, "l3")))
+            .put("i1", new JSONObject()
+                .put("volts", row.optDouble("volts"))
+                .put("temp_c", row.optDouble("temp_c"))
+                .put("fault", bit(row, "sensor_fault")))
+            .put("inputs", new JSONObject()
+                .put("I2", bit(row, "i2"))
+                .put("I3", bit(row, "i3"))
+                .put("I4", bit(row, "i4"))
+                .put("I5", bit(row, "i5"))
+                .put("I6", bit(row, "i6"))
+                .put("I7", bit(row, "i7"))
+                .put("I8", bit(row, "i8")));
+        return payload.toString();
+    }
+
+    String sendCommand(String payload) throws Exception {
+        ensureSession();
+        return request(
+            "POST",
+            "/functions/v1/send-mqtt-command",
+            new JSONObject().put("payload", payload).toString(),
+            null,
+            accessToken
+        );
     }
 
     void saveProduction(JSONObject input) throws Exception {
@@ -103,36 +149,6 @@ final class SupabaseClient {
         return rows.length() == 0 ? "{}" : rows.getJSONObject(0).toString();
     }
 
-    void uploadTelemetry(JSONObject payload, String deviceId, long recordedAtMs) throws Exception {
-        ensureSession();
-        JSONObject i1 = payload.getJSONObject("i1");
-        JSONObject outputs = payload.getJSONObject("outputs");
-        JSONObject inputs = payload.getJSONObject("inputs");
-        JSONObject row = new JSONObject()
-            .put("farm_id", farmId)
-            .put("device_id", deviceId)
-            .put("recorded_at", Instant.ofEpochMilli(recordedAtMs).toString())
-            .put("seq", payload.optLong("seq"))
-            .put("up_s", payload.optLong("up_s"))
-            .put("rssi", payload.optInt("rssi"))
-            .put("volts", i1.optDouble("volts"))
-            .put("temp_c", i1.getDouble("temp_c"))
-            .put("sensor_fault", i1.optInt("fault") == 1)
-            .put("d0", outputs.optInt("D0") == 1)
-            .put("d1", outputs.optInt("D1") == 1)
-            .put("d2", outputs.optInt("D2") == 1)
-            .put("d3", outputs.optInt("D3") == 1)
-            .put("i2", inputs.optInt("I2") == 1)
-            .put("i3", inputs.optInt("I3") == 1)
-            .put("i4", inputs.optInt("I4") == 1)
-            .put("i5", inputs.optInt("I5") == 1)
-            .put("i6", inputs.optInt("I6") == 1)
-            .put("i7", inputs.optInt("I7") == 1)
-            .put("i8", inputs.optInt("I8") == 1)
-            .put("raw_payload", payload);
-        request("POST", "/rest/v1/telemetry", row.toString(), "return=minimal", accessToken);
-    }
-
     String readHistory(long sinceMs) throws Exception {
         ensureSession();
         String since = URLEncoder.encode(Instant.ofEpochMilli(sinceMs).toString(), StandardCharsets.UTF_8);
@@ -159,6 +175,10 @@ final class SupabaseClient {
         String path = "/rest/v1/daily_production?select=id,production_date,stock,sortie,eggs,mortality,production_rate,chicken_count,updated_at"
             + "&farm_id=eq." + farmId + "&order=production_date.desc&limit=" + limit;
         return request("GET", path, null, null, accessToken);
+    }
+
+    private static int bit(JSONObject row, String key) {
+        return row.optBoolean(key, false) ? 1 : 0;
     }
 
     private void ensureSession() throws Exception {

@@ -25,13 +25,13 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".MqttForegroundService"
+            android:name=".CloudForegroundService"
             android:exported="false"
             android:foregroundServiceType="specialUse"
             android:stopWithTask="false">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Continuous secure MQTT telemetry monitoring and high-temperature alerts for poultry equipment" />
+                android:value="Continuous Supabase telemetry synchronization and high-temperature alerts for poultry equipment" />
         </service>
         <receiver
             android:name=".BootReceiver"

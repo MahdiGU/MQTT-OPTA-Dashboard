@@ -23,11 +23,11 @@ public final class MainActivity extends Activity {
     private WebView dashboard;
     private boolean receiverRegistered;
 
-    private final BroadcastReceiver mqttEvents = new BroadcastReceiver() {
+    private final BroadcastReceiver cloudEvents = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String type = intent.getStringExtra(MqttForegroundService.EXTRA_EVENT_TYPE);
-            String data = intent.getStringExtra(MqttForegroundService.EXTRA_EVENT_DATA);
+            String type = intent.getStringExtra(CloudForegroundService.EXTRA_EVENT_TYPE);
+            String data = intent.getStringExtra(CloudForegroundService.EXTRA_EVENT_DATA);
             sendEventToDashboard(type, data);
         }
     };
@@ -69,11 +69,11 @@ public final class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        IntentFilter filter = new IntentFilter(MqttForegroundService.ACTION_EVENT);
+        IntentFilter filter = new IntentFilter(CloudForegroundService.ACTION_EVENT);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(mqttEvents, filter, Context.RECEIVER_NOT_EXPORTED);
+            registerReceiver(cloudEvents, filter, Context.RECEIVER_NOT_EXPORTED);
         } else {
-            registerReceiver(mqttEvents, filter);
+            registerReceiver(cloudEvents, filter);
         }
         receiverRegistered = true;
         dispatchCurrentState();
@@ -82,7 +82,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onStop() {
         if (receiverRegistered) {
-            unregisterReceiver(mqttEvents);
+            unregisterReceiver(cloudEvents);
             receiverRegistered = false;
         }
         super.onStop();
@@ -98,25 +98,19 @@ public final class MainActivity extends Activity {
     private void startMonitoring(
         String supabaseEmail,
         String supabasePassword,
-        String mqttUsername,
-        String mqttPassword,
-        String mqttClientId,
         boolean remember
     ) {
-        Intent service = new Intent(this, MqttForegroundService.class)
-            .setAction(MqttForegroundService.ACTION_START)
-            .putExtra(MqttForegroundService.EXTRA_USERNAME, supabaseEmail)
-            .putExtra(MqttForegroundService.EXTRA_PASSWORD, supabasePassword)
-            .putExtra(MqttForegroundService.EXTRA_MQTT_USERNAME, mqttUsername)
-            .putExtra(MqttForegroundService.EXTRA_MQTT_PASSWORD, mqttPassword)
-            .putExtra(MqttForegroundService.EXTRA_MQTT_CLIENT_ID, mqttClientId)
-            .putExtra(MqttForegroundService.EXTRA_REMEMBER, remember);
+        Intent service = new Intent(this, CloudForegroundService.class)
+            .setAction(CloudForegroundService.ACTION_START)
+            .putExtra(CloudForegroundService.EXTRA_USERNAME, supabaseEmail)
+            .putExtra(CloudForegroundService.EXTRA_PASSWORD, supabasePassword)
+            .putExtra(CloudForegroundService.EXTRA_REMEMBER, remember);
         startForegroundService(service);
     }
 
     private void startSavedMonitoring() {
-        Intent service = new Intent(this, MqttForegroundService.class)
-            .setAction(MqttForegroundService.ACTION_START);
+        Intent service = new Intent(this, CloudForegroundService.class)
+            .setAction(CloudForegroundService.ACTION_START);
         startForegroundService(service);
     }
 
@@ -150,38 +144,19 @@ public final class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public String getSavedMqttUsername() {
-            return new CredentialStore(MainActivity.this).savedMqttUsername();
-        }
-
-        @JavascriptInterface
-        public String getSavedMqttClientId() {
-            return new CredentialStore(MainActivity.this).savedMqttClientId();
-        }
-
-        @JavascriptInterface
         public void connect(
             String supabaseEmail,
             String supabasePassword,
-            String mqttUsername,
-            String mqttPassword,
-            String mqttClientId,
             boolean remember
         ) {
             if (supabaseEmail == null || supabaseEmail.trim().isEmpty()
-                || supabasePassword == null || supabasePassword.isEmpty()
-                || mqttUsername == null || mqttUsername.trim().isEmpty()
-                || mqttPassword == null || mqttPassword.isEmpty()
-                || mqttClientId == null || mqttClientId.trim().isEmpty()) {
-                sendEventToDashboard("error", "Supabase credentials and all three MQTT fields are required.");
+                || supabasePassword == null || supabasePassword.isEmpty()) {
+                sendEventToDashboard("error", "Supabase email and password are required.");
                 return;
             }
             startMonitoring(
                 supabaseEmail.trim(),
                 supabasePassword,
-                mqttUsername.trim(),
-                mqttPassword,
-                mqttClientId.trim(),
                 remember
             );
         }
@@ -193,33 +168,33 @@ public final class MainActivity extends Activity {
 
         @JavascriptInterface
         public void publish(String payload) {
-            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
-                .setAction(MqttForegroundService.ACTION_PUBLISH)
-                .putExtra(MqttForegroundService.EXTRA_PAYLOAD, payload);
+            Intent service = new Intent(MainActivity.this, CloudForegroundService.class)
+                .setAction(CloudForegroundService.ACTION_PUBLISH)
+                .putExtra(CloudForegroundService.EXTRA_PAYLOAD, payload);
             startService(service);
         }
 
         @JavascriptInterface
         public void publishProduction(String payload) {
-            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
-                .setAction(MqttForegroundService.ACTION_PUBLISH_PRODUCTION)
-                .putExtra(MqttForegroundService.EXTRA_PAYLOAD, payload);
+            Intent service = new Intent(MainActivity.this, CloudForegroundService.class)
+                .setAction(CloudForegroundService.ACTION_PUBLISH_PRODUCTION)
+                .putExtra(CloudForegroundService.EXTRA_PAYLOAD, payload);
             startService(service);
         }
 
         @JavascriptInterface
         public void deleteProduction(long productionId) {
-            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
-                .setAction(MqttForegroundService.ACTION_DELETE_PRODUCTION)
-                .putExtra(MqttForegroundService.EXTRA_PRODUCTION_ID, productionId);
+            Intent service = new Intent(MainActivity.this, CloudForegroundService.class)
+                .setAction(CloudForegroundService.ACTION_DELETE_PRODUCTION)
+                .putExtra(CloudForegroundService.EXTRA_PRODUCTION_ID, productionId);
             startService(service);
         }
 
         @JavascriptInterface
         public void saveConfiguration(int chickenCount) {
-            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
-                .setAction(MqttForegroundService.ACTION_SAVE_CONFIGURATION)
-                .putExtra(MqttForegroundService.EXTRA_CHICKEN_COUNT, chickenCount);
+            Intent service = new Intent(MainActivity.this, CloudForegroundService.class)
+                .setAction(CloudForegroundService.ACTION_SAVE_CONFIGURATION)
+                .putExtra(CloudForegroundService.EXTRA_CHICKEN_COUNT, chickenCount);
             startService(service);
         }
 
@@ -230,30 +205,30 @@ public final class MainActivity extends Activity {
 
         @JavascriptInterface
         public void requestCloudHistory() {
-            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
-                .setAction(MqttForegroundService.ACTION_REQUEST_HISTORY);
+            Intent service = new Intent(MainActivity.this, CloudForegroundService.class)
+                .setAction(CloudForegroundService.ACTION_REQUEST_HISTORY);
             startService(service);
         }
 
         @JavascriptInterface
         public void requestProductionHistory() {
-            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
-                .setAction(MqttForegroundService.ACTION_REQUEST_PRODUCTION);
+            Intent service = new Intent(MainActivity.this, CloudForegroundService.class)
+                .setAction(CloudForegroundService.ACTION_REQUEST_PRODUCTION);
             startService(service);
         }
 
         @JavascriptInterface
         public void requestConfiguration() {
-            Intent service = new Intent(MainActivity.this, MqttForegroundService.class)
-                .setAction(MqttForegroundService.ACTION_REQUEST_CONFIGURATION);
+            Intent service = new Intent(MainActivity.this, CloudForegroundService.class)
+                .setAction(CloudForegroundService.ACTION_REQUEST_CONFIGURATION);
             startService(service);
         }
 
         @JavascriptInterface
         public void signOut() {
             new CredentialStore(MainActivity.this).clear();
-            Intent stop = new Intent(MainActivity.this, MqttForegroundService.class)
-                .setAction(MqttForegroundService.ACTION_STOP);
+            Intent stop = new Intent(MainActivity.this, CloudForegroundService.class)
+                .setAction(CloudForegroundService.ACTION_STOP);
             startService(stop);
         }
     }

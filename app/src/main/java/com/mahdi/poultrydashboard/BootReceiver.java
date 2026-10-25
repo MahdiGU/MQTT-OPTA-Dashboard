@@ -10,8 +10,8 @@ public final class BootReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         CredentialStore store = new CredentialStore(context);
         if (!store.isMonitoringEnabled() || !store.hasSavedCredentials()) return;
-        Intent service = new Intent(context, MqttForegroundService.class)
-            .setAction(MqttForegroundService.ACTION_START);
+        Intent service = new Intent(context, CloudForegroundService.class)
+            .setAction(CloudForegroundService.ACTION_START);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(service);
         } else {

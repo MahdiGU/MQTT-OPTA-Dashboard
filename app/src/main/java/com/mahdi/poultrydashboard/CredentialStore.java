@@ -20,22 +20,10 @@ final class CredentialStore {
     static final class Credentials {
         final String supabaseEmail;
         final String supabasePassword;
-        final String mqttUsername;
-        final String mqttPassword;
-        final String mqttClientId;
 
-        Credentials(
-            String supabaseEmail,
-            String supabasePassword,
-            String mqttUsername,
-            String mqttPassword,
-            String mqttClientId
-        ) {
+        Credentials(String supabaseEmail, String supabasePassword) {
             this.supabaseEmail = supabaseEmail;
             this.supabasePassword = supabasePassword;
-            this.mqttUsername = mqttUsername;
-            this.mqttPassword = mqttPassword;
-            this.mqttClientId = mqttClientId;
         }
     }
 
@@ -52,10 +40,7 @@ final class CredentialStore {
     void save(Credentials credentials) throws Exception {
         JSONObject json = new JSONObject()
             .put("supabase_email", credentials.supabaseEmail)
-            .put("supabase_password", credentials.supabasePassword)
-            .put("mqtt_username", credentials.mqttUsername)
-            .put("mqtt_password", credentials.mqttPassword)
-            .put("mqtt_client_id", credentials.mqttClientId);
+            .put("supabase_password", credentials.supabasePassword);
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey());
         byte[] encrypted = cipher.doFinal(json.toString().getBytes(StandardCharsets.UTF_8));
@@ -79,10 +64,7 @@ final class CredentialStore {
             JSONObject json = new JSONObject(plain);
             return new Credentials(
                 json.getString("supabase_email"),
-                json.getString("supabase_password"),
-                json.getString("mqtt_username"),
-                json.getString("mqtt_password"),
-                json.getString("mqtt_client_id")
+                json.getString("supabase_password")
             );
         } catch (Exception error) {
             clear();
@@ -93,16 +75,6 @@ final class CredentialStore {
     String savedSupabaseEmail() {
         Credentials credentials = load();
         return credentials == null ? "" : credentials.supabaseEmail;
-    }
-
-    String savedMqttUsername() {
-        Credentials credentials = load();
-        return credentials == null ? "OPTAMG888" : credentials.mqttUsername;
-    }
-
-    String savedMqttClientId() {
-        Credentials credentials = load();
-        return credentials == null ? "" : credentials.mqttClientId;
     }
 
     boolean hasSavedCredentials() {
