@@ -165,7 +165,7 @@ final class SupabaseClient {
     String readHistory(long sinceMs) throws Exception {
         ensureSession();
         String since = URLEncoder.encode(Instant.ofEpochMilli(sinceMs).toString(), StandardCharsets.UTF_8);
-        String path = "/rest/v1/telemetry?select=recorded_at,temp_c,i2,i3,i4,i5,i6"
+        String path = "/rest/v1/telemetry?select=recorded_at,temp_c,i2,i3,i4,i5,i6,i7"
             + "&farm_id=eq." + farmId + "&recorded_at=gte." + since + "&order=recorded_at.asc";
         JSONArray rows = new JSONArray(request("GET", path, null, null, accessToken));
         JSONArray result = new JSONArray();
@@ -178,7 +178,8 @@ final class SupabaseClient {
                 .put("I3", row.optBoolean("i3") ? 1 : 0)
                 .put("I4", row.optBoolean("i4") ? 1 : 0)
                 .put("I5", row.optBoolean("i5") ? 1 : 0)
-                .put("I6", row.optBoolean("i6") ? 1 : 0));
+                .put("I6", row.optBoolean("i6") ? 1 : 0)
+                .put("I7", row.optBoolean("i7") ? 1 : 0));
         }
         return result.toString();
     }
