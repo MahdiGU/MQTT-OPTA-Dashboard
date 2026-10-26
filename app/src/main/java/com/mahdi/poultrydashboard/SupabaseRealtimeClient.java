@@ -55,7 +55,6 @@ final class SupabaseRealtimeClient {
         Request request = new Request.Builder()
             .url(SupabaseClient.realtimeUrl())
             .header("apikey", SupabaseClient.PUBLISHABLE_KEY)
-            .header("Authorization", "Bearer " + token)
             .build();
         WebSocket newSocket = httpClient.newWebSocket(request, new SocketListener(farmId, joinReference));
         socket = newSocket;
