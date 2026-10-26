@@ -190,6 +190,7 @@ public final class CloudForegroundService extends Service {
 
         if (!signedIn || explicitLogin) connectCloud();
         else {
+            broadcast("cloud_connection", "online");
             ensureRealtimeConnection();
             requestProductionHistory();
             requestConfiguration();
@@ -225,6 +226,7 @@ public final class CloudForegroundService extends Service {
                 openRealtimeConnection();
             } catch (Exception error) {
                 signedIn = false;
+                broadcast("cloud_connection", "offline");
                 broadcast("cloud_error", friendlyError(error));
                 broadcast("connection", "offline");
                 updateMonitorNotification("Supabase connection failed");
@@ -457,6 +459,7 @@ public final class CloudForegroundService extends Service {
         handler.removeCallbacksAndMessages(null);
         realtimeClient.disconnect();
         credentialStore.setMonitoringEnabled(false);
+        broadcast("cloud_connection", "offline");
         broadcast("connection", "stopped");
         stopForeground(STOP_FOREGROUND_REMOVE);
         stopSelf();
@@ -465,6 +468,8 @@ public final class CloudForegroundService extends Service {
     private void broadcast(String type, String data) {
         if ("connection".equals(type)) {
             statePreferences.edit().putString("connection_state", data).apply();
+        } else if ("cloud_connection".equals(type)) {
+            statePreferences.edit().putString("cloud_connection_state", data).apply();
         } else if ("device_status".equals(type)) {
             statePreferences.edit().putString("device_status", data).apply();
         } else if ("production_history".equals(type)) {
