@@ -50,6 +50,7 @@ public final class CloudForegroundService extends Service {
     private static final long MAX_RECONNECT_DELAY_MS = 30_000L;
     private static final long STALE_AFTER_MS = 20_000L;
     private static final long ALERT_COOLDOWN_MS = 30L * 60L * 1000L;
+    private static final long PRODUCTION_REFRESH_DEBOUNCE_MS = 350L;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final ExecutorService cloudExecutor = Executors.newSingleThreadExecutor();
@@ -93,6 +94,12 @@ public final class CloudForegroundService extends Service {
                 } catch (Exception error) {
                     broadcast("realtime_error", friendlyError(error));
                 }
+            }
+
+            @Override
+            public void onProductionChanged() {
+                handler.removeCallbacks(productionRefreshRunnable);
+                handler.postDelayed(productionRefreshRunnable, PRODUCTION_REFRESH_DEBOUNCE_MS);
             }
 
             @Override
@@ -184,6 +191,8 @@ public final class CloudForegroundService extends Service {
         if (!signedIn || explicitLogin) connectCloud();
         else {
             ensureRealtimeConnection();
+            requestProductionHistory();
+            requestConfiguration();
             scheduleReconcile(0L);
         }
         return stickyMode();
@@ -235,6 +244,8 @@ public final class CloudForegroundService extends Service {
         cloudExecutor.execute(() -> {
             try {
                 handleLatest(supabaseClient.readLatest());
+                broadcast("production_history", supabaseClient.readProduction(90));
+                broadcast("configuration", supabaseClient.readConfiguration());
                 SupabaseClient.RealtimeSession session = supabaseClient.realtimeSession();
                 realtimeClient.updateAccessToken(session.accessToken);
             } catch (Exception error) {
@@ -279,6 +290,13 @@ public final class CloudForegroundService extends Service {
     }
 
     private final Runnable reconnectRunnable = this::ensureRealtimeConnection;
+
+    private final Runnable productionRefreshRunnable = () -> {
+        if (!stopping && signedIn) {
+            requestProductionHistory();
+            requestConfiguration();
+        }
+    };
 
     private synchronized void handleLatest(String latest) throws Exception {
         JSONObject payload = new JSONObject(latest);
@@ -449,6 +467,10 @@ public final class CloudForegroundService extends Service {
             statePreferences.edit().putString("connection_state", data).apply();
         } else if ("device_status".equals(type)) {
             statePreferences.edit().putString("device_status", data).apply();
+        } else if ("production_history".equals(type)) {
+            statePreferences.edit().putString("production_history", data).apply();
+        } else if ("configuration".equals(type)) {
+            statePreferences.edit().putString("configuration", data).apply();
         }
         Intent event = new Intent(ACTION_EVENT)
             .setPackage(getPackageName())

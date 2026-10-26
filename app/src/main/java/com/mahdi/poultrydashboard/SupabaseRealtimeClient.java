@@ -19,11 +19,12 @@ final class SupabaseRealtimeClient {
     interface Listener {
         void onSubscribed();
         void onRecord(JSONObject record);
+        void onProductionChanged();
         void onError(String message);
         void onDisconnected();
     }
 
-    private static final String TOPIC = "realtime:device-latest";
+    private static final String TOPIC = "realtime:elmajd-dashboard";
     private static final long HEARTBEAT_SECONDS = 20L;
 
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
@@ -159,10 +160,15 @@ final class SupabaseRealtimeClient {
                     .put("schema", "public")
                     .put("table", "device_latest")
                     .put("filter", "farm_id=eq." + farmId);
+                JSONObject productionChange = new JSONObject()
+                    .put("event", "*")
+                    .put("schema", "public")
+                    .put("table", "daily_production")
+                    .put("filter", "farm_id=eq." + farmId);
                 JSONObject config = new JSONObject()
                     .put("broadcast", new JSONObject().put("ack", false).put("self", false))
                     .put("presence", new JSONObject().put("enabled", false).put("key", ""))
-                    .put("postgres_changes", new JSONArray().put(change))
+                    .put("postgres_changes", new JSONArray().put(change).put(productionChange))
                     .put("private", false);
                 JSONObject payload = new JSONObject()
                     .put("config", config)
@@ -202,8 +208,13 @@ final class SupabaseRealtimeClient {
                 }
                 if ("postgres_changes".equals(event) && payload != null) {
                     JSONObject data = payload.optJSONObject("data");
+                    String table = data == null ? "" : data.optString("table");
                     JSONObject record = data == null ? null : data.optJSONObject("record");
-                    if (record != null) listener.onRecord(record);
+                    if ("daily_production".equals(table)) {
+                        listener.onProductionChanged();
+                    } else if (record != null) {
+                        listener.onRecord(record);
+                    }
                     return;
                 }
                 if ("phx_error".equals(event)) {

@@ -120,9 +120,13 @@ public final class MainActivity extends Activity {
         String connection = state.getString("connection_state", null);
         String deviceStatus = state.getString("device_status", null);
         String latest = state.getString("latest_payload", null);
+        String productionHistory = state.getString("production_history", null);
+        String configuration = state.getString("configuration", null);
         if (connection != null) sendEventToDashboard("connection", connection);
         if (deviceStatus != null) sendEventToDashboard("device_status", deviceStatus);
         if (latest != null) sendEventToDashboard("telemetry", latest);
+        if (productionHistory != null) sendEventToDashboard("production_history", productionHistory);
+        if (configuration != null) sendEventToDashboard("configuration", configuration);
     }
 
     private void sendEventToDashboard(String type, String data) {
