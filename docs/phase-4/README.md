@@ -2,6 +2,8 @@
 
 Branch: `Phase_4_Production_Packaging`, based on Phase 3. Started 2026-10-31.
 
+**Superseding rule in Android 1.9.1:** [Opening-reference refinement](../phase-5/02-version-1.9.1-refinements.md) replaces the original negative carton-balance policy below. Inventory now starts after the first carton-entry date and available stock is floored at zero; uncovered usage is tracked separately.
+
 ## Deployed implementation
 
 - Production remains Stock + Sortie - latest earlier Stock; first entry produces zero. Missing calendar days use the latest earlier entry.

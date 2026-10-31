@@ -21,6 +21,7 @@ MQTT monitoring and control dashboards for an Arduino Opta, with both browser an
 | `Phase_3_Alarm_Notifications` | Server alarm phase | Adds the approved alarm engine, fresh-device offline detection, event/audit history, acknowledgement, threshold configuration and delivery queue. | Backend deployed; Firebase/Gmail sending and client alarm center remain pending. See `docs/phase-3`. |
 | `Phase_4_Production_Packaging` | Production backend | Audited historical corrections, owner-only deletion, dependent flock/production recalculation, carton receipts and consumption. | Backend tests passed; business field acceptance remains open. See `docs/phase-4`. |
 | `Phase_5_Android_App` | Android 1.9.0 | Historical production edits, carton stock/receipts, shared alarm list/acknowledgement, thresholds, role-aware controls and 24-hour aggregate charts. | Pilot testing; FCM delivery and full French localization remain pending. See `docs/phase-5`. |
+| `Phase_5_App_Refinements` | Android 1.9.1 | Dedicated Alarms tab; Overview flock, performance and interactive carton tray; opening-stock reference; audited carton corrections/deletion; manager access. | Updated pilot test build. See `docs/phase-5/02-version-1.9.1-refinements.md`. |
 
 ## Branch lineage
 

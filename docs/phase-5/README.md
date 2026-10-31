@@ -2,6 +2,8 @@
 
 Branch: `Phase_5_Android_App`, based on `Phase_4_Production_Packaging`. Started 2026-10-31. Version: 1.9.0 (code 19).
 
+Pilot feedback is implemented in [version 1.9.1](02-version-1.9.1-refinements.md) on `Phase_5_App_Refinements`: dedicated Alarms tab, expanded Overview, interactive carton card, opening-stock reference, carton edits/deletion and manager account provisioning.
+
 ## Implemented application slice
 
 - Existing five mobile tabs are preserved. Production supports editing historical Stock/Sortie/mortality without changing the date. Server validation recalculates dependent records transactionally.
