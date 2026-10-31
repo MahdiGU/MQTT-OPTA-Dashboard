@@ -17,7 +17,10 @@ const server=http.createServer(async(req,res)=>{
     const response=await fetch('https://oauth2.googleapis.com/token',{method:'POST',body:new URLSearchParams({client_id:client.client_id,client_secret:client.client_secret,
       code:url.searchParams.get('code'),code_verifier:verifier,redirect_uri:redirect,grant_type:'authorization_code'}),signal:AbortSignal.timeout(20000)});
     const token=await response.json();if(!response.ok||!token.refresh_token)throw Error('No offline authorization received. Revoke the old grant and authorize again.');
-    if(!String(token.scope).split(' ').includes('https://www.googleapis.com/auth/gmail.send'))throw Error('Gmail send permission was not granted.');
+    const scopes=String(token.scope||'').split(/\s+/);
+    if(!scopes.includes('https://www.googleapis.com/auth/gmail.send')){
+      const error=Error('Gmail send permission was not granted.');error.code='GMAIL_SCOPE_REQUIRED';throw error;
+    }
     const userResponse=await fetch('https://openidconnect.googleapis.com/v1/userinfo',{headers:{authorization:'Bearer '+token.access_token},signal:AbortSignal.timeout(10000)});
     const user=await userResponse.json();
     if(!userResponse.ok||user.email!=='elmajdautomation@gmail.com'||!user.email_verified)throw Error('Authorize the elmajdautomation@gmail.com mailbox.');
@@ -25,7 +28,13 @@ const server=http.createServer(async(req,res)=>{
     fs.writeFileSync(outputFile,JSON.stringify({client_id:client.client_id,client_secret:client.client_secret,refresh_token:token.refresh_token,sender_email:user.email}),{mode:0o600});
     res.writeHead(200,{'content-type':'text/html; charset=utf-8'});res.end('<h1>ElMAJD Automation</h1><p>Autorisation Gmail reçue. Vous pouvez fermer cette fenêtre et revenir à Codex.</p>');
     console.log('AUTHORIZED: Gmail sender verified; credentials saved privately.');server.close();clearTimeout(expiry);
-  }catch(error){res.writeHead(400,{'content-type':'text/plain; charset=utf-8'});res.end('Authorization could not be completed. Return to Codex.');console.error(error.message);server.close();clearTimeout(expiry);process.exitCode=1;}
+  }catch(error){
+    res.writeHead(400,{'content-type':'text/plain; charset=utf-8'});
+    res.end(error.code==='GMAIL_SCOPE_REQUIRED'
+      ? 'ElMAJD Automation : Google a confirmé la connexion, mais pas la permission Gmail. Relancez l’autorisation depuis Codex et cochez « Envoyer des e-mails en votre nom » avant de continuer.'
+      : 'Authorization could not be completed. Return to Codex.');
+    console.error(error.message);server.close();clearTimeout(expiry);process.exitCode=1;
+  }
 });
 server.listen(0,'127.0.0.1',()=>{
   redirect=`http://127.0.0.1:${server.address().port}/oauth2/callback`;
