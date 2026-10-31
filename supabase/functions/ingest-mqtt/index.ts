@@ -16,6 +16,7 @@ function object(value: unknown): JsonObject {
 }
 
 function finiteNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
   const number = typeof value === "number" ? value : Number(value);
   return Number.isFinite(number) ? number : null;
 }
@@ -31,9 +32,18 @@ function bit(value: unknown): boolean | null {
   return null;
 }
 
-function fiveMinuteBucket(date: Date): string {
-  const ms = 5 * 60 * 1000;
-  return new Date(Math.floor(date.getTime() / ms) * ms).toISOString();
+function limitedText(value: unknown, maximum: number): string | null {
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  return text ? text.slice(0, maximum) : null;
+}
+
+function capturedAt(value: unknown): string | null {
+  const seconds = finiteNumber(value);
+  if (seconds === null || seconds < 1_700_000_000 || seconds > 4_102_444_800) {
+    return null;
+  }
+  return new Date(seconds * 1000).toISOString();
 }
 
 async function parseBody(request: Request): Promise<JsonObject> {
@@ -70,12 +80,14 @@ Deno.serve(async (request) => {
     const supabaseUrl = requireEnvironment("SUPABASE_URL");
     const serviceRoleKey = requireSupabaseSecretKey();
     const envelope = await parseBody(request);
-    const topic = String(envelope.topic || "opta/outputs");
+    const topic = String(envelope.topic || "opta/outputs").slice(0, 256);
     const deviceId = String(
-      envelope.clientid || envelope.client_id || envelope.device_id || "arduino-opta",
-    ).slice(0, 128);
+      envelope.clientid || envelope.client_id || envelope.device_id || "",
+    ).trim().slice(0, 128);
+    if (!deviceId) return jsonResponse({ error: "MQTT client ID is required" }, 400);
+
     const payload = parsePayload(envelope.payload ?? envelope);
-    const receivedAt = new Date();
+    const receivedAt = new Date().toISOString();
     const restHeaders = {
       apikey: serviceRoleKey,
       authorization: `Bearer ${serviceRoleKey}`,
@@ -92,31 +104,44 @@ Deno.serve(async (request) => {
     }
     const farmId = String(farms[0].id);
 
-    if (topic.endsWith("/status")) {
+    const deviceResponse = await fetch(
+      `${supabaseUrl}/rest/v1/devices?farm_id=eq.${farmId}` +
+        `&mqtt_client_id=eq.${encodeURIComponent(deviceId)}` +
+        "&enabled=eq.true&select=telemetry_topic,status_topic,command_topic&limit=1",
+      { headers: restHeaders },
+    );
+    const devices = await readJson(deviceResponse);
+    if (!deviceResponse.ok || !Array.isArray(devices) || !devices[0]) {
+      return jsonResponse({ error: "Unknown or disabled MQTT device" }, 403);
+    }
+    const registeredDevice = object(devices[0]);
+    const statusTopic = String(registeredDevice.status_topic || "opta/status");
+    const telemetryTopic = String(registeredDevice.telemetry_topic || "opta/outputs");
+
+    if (topic === statusTopic) {
       const statusText = typeof payload === "string"
         ? payload.toLowerCase()
         : String(object(payload).status || "unknown").toLowerCase();
       const mqttStatus = statusText === "online" || statusText === "offline"
         ? statusText
         : "unknown";
-      const statusResponse = await fetch(
-        `${supabaseUrl}/rest/v1/device_latest?on_conflict=farm_id,device_id`,
-        {
-          method: "POST",
-          headers: {
-            ...restHeaders,
-            prefer: "resolution=merge-duplicates,return=minimal",
-          },
-          body: JSON.stringify({
-            farm_id: farmId,
-            device_id: deviceId,
-            mqtt_status: mqttStatus,
-            received_at: receivedAt.toISOString(),
-          }),
-        },
-      );
+      const statusResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/update_device_mqtt_status`, {
+        method: "POST",
+        headers: restHeaders,
+        body: JSON.stringify({
+          target_farm: farmId,
+          target_device: deviceId,
+          target_status: mqttStatus,
+          status_received_at: receivedAt,
+        }),
+      });
+      const statusResult = await readJson(statusResponse);
       if (!statusResponse.ok) throw new Error("Could not store device status");
-      return jsonResponse({ accepted: true, kind: "status", mqtt_status: mqttStatus });
+      return jsonResponse({ accepted: true, kind: "status", result: statusResult });
+    }
+
+    if (topic !== telemetryTopic) {
+      return jsonResponse({ error: "Topic is not registered for this device" }, 403);
     }
 
     const telemetry = object(payload);
@@ -124,14 +149,23 @@ Deno.serve(async (request) => {
     const leds = object(telemetry.leds);
     const i1 = object(telemetry.i1);
     const inputs = object(telemetry.inputs);
+    const buffer = object(telemetry.buffer);
     if (Object.keys(telemetry).length === 0) {
       return jsonResponse({ error: "Telemetry payload must be a JSON object" }, 400);
     }
 
-    const values = {
-      farm_id: farmId,
-      device_id: deviceId,
-      recorded_at: receivedAt.toISOString(),
+    const normalized = {
+      received_at: receivedAt,
+      captured_at: capturedAt(telemetry.captured_at),
+      boot_id: limitedText(telemetry.boot_id, 96),
+      schema_version: integer(telemetry.schema),
+      firmware_version: limitedText(telemetry.firmware, 64),
+      replay: bit(telemetry.replay) ?? false,
+      buffer_pending: integer(buffer.pending),
+      buffer_dropped: integer(buffer.dropped),
+      payload_farm_id: limitedText(telemetry.farm_id, 128),
+      payload_house_id: limitedText(telemetry.house_id, 128),
+      payload_device_id: limitedText(telemetry.device_id, 128),
       seq: integer(telemetry.seq),
       up_s: integer(telemetry.up_s),
       rssi: integer(telemetry.rssi),
@@ -142,6 +176,10 @@ Deno.serve(async (request) => {
       d1: bit(outputs.D1),
       d2: bit(outputs.D2),
       d3: bit(outputs.D3),
+      l0: bit(leds.L0),
+      l1: bit(leds.L1),
+      l2: bit(leds.L2),
+      l3: bit(leds.L3),
       i2: bit(inputs.I2),
       i3: bit(inputs.I3),
       i4: bit(inputs.I4),
@@ -151,47 +189,20 @@ Deno.serve(async (request) => {
       i8: bit(inputs.I8),
       raw_payload: telemetry,
     };
-    const latest = {
-      ...values,
-      mqtt_status: "online",
-      received_at: receivedAt.toISOString(),
-      l0: bit(leds.L0),
-      l1: bit(leds.L1),
-      l2: bit(leds.L2),
-      l3: bit(leds.L3),
-    };
-    delete (latest as JsonObject).recorded_at;
 
-    const latestResponse = await fetch(
-      `${supabaseUrl}/rest/v1/device_latest?on_conflict=farm_id,device_id`,
-      {
-        method: "POST",
-        headers: {
-          ...restHeaders,
-          prefer: "resolution=merge-duplicates,return=minimal",
-        },
-        body: JSON.stringify(latest),
-      },
-    );
-    if (!latestResponse.ok) throw new Error("Could not update latest device state");
+    const ingestResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/ingest_device_telemetry`, {
+      method: "POST",
+      headers: restHeaders,
+      body: JSON.stringify({
+        target_farm: farmId,
+        target_device: deviceId,
+        normalized,
+      }),
+    });
+    const ingestResult = await readJson(ingestResponse);
+    if (!ingestResponse.ok) throw new Error("Could not store telemetry");
 
-    const historyResponse = await fetch(
-      `${supabaseUrl}/rest/v1/telemetry?on_conflict=farm_id,device_id,ingest_bucket`,
-      {
-        method: "POST",
-        headers: {
-          ...restHeaders,
-          prefer: "resolution=ignore-duplicates,return=minimal",
-        },
-        body: JSON.stringify({
-          ...values,
-          ingest_bucket: fiveMinuteBucket(receivedAt),
-        }),
-      },
-    );
-    if (!historyResponse.ok) throw new Error("Could not store telemetry history");
-
-    return jsonResponse({ accepted: true, kind: "telemetry", device_id: deviceId });
+    return jsonResponse({ accepted: true, kind: "telemetry", result: ingestResult });
   } catch (error) {
     console.error(error);
     return jsonResponse({ error: "MQTT ingestion failed" }, 500);

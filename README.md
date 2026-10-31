@@ -15,6 +15,9 @@ MQTT monitoring and control dashboards for an Arduino Opta, with both browser an
 | `Supabase_MQTT_Bridge` | Cloud-bridge development branch | Starts the migration to a Supabase-only Android connection. Adds secure EMQX webhook ingestion, live device state, five-minute server-side telemetry sampling, an audited command function, and EMQX HTTP publishing with fixed QoS 0/retain off. The Android cutover is intentionally deferred until the live bridge is configured and tested. | Use to configure and validate the new backend architecture without interrupting the current app. |
 | `Android_Supabase_Cutover` | Supabase-only Android milestone | Removes phone-side MQTT credentials and the Paho MQTT client. Version 1.7 signs in only with Supabase, polls `device_latest` every five seconds, reads cloud history and production data, and sends plain commands through the authenticated `send-mqtt-command` Edge Function. | Use to test the new phone architecture. Firebase server push and Supabase Realtime are the next migration stages. |
 | `Android_Supabase_Realtime` | Realtime Android milestone | Version 1.8 replaces five-second polling with a farm-scoped authenticated Supabase Realtime subscription. Version 1.8.1 adds an animated cooling-pad status on input I7 with shared 12-hour cloud history. Version 1.8.2 fixes the WebSocket handshake credential flow and adds visible Realtime diagnostics. Version 1.8.3 subscribes to production changes, restores cached production/configuration, and reconciles dashboard data every five minutes. Version 1.8.4 persists and restores the authenticated cloud state so production entry remains enabled after reopening the app. It renews the channel token and reconnects with backoff. | **Recommended Supabase-only test branch.** Use it to validate near-instant telemetry and shared production updates while preserving the tested 1.7 polling branch. |
+| `Phase_0_Baseline` | Engineering baseline | Pilot scope, alarm policy, acceptance criteria, governance/RACI, risk register and change control. | Use as the approved planning and audit baseline. |
+| `Phase_1_Opta_Firmware` | Opta firmware phase | Modular v4.0 firmware with versioned identity, UTC source time, boot/sequence identity and a 120-frame RAM replay buffer. | Use for installed-controller field validation. |
+| `Phase_2_Cloud_Ingestion` | Cloud ingestion phase | Registers the pilot controller and topics, validates EMQX webhooks, stores raw replay-safe telemetry, protects current state from delayed frames and maintains five-minute aggregates. | Use for Phase 2 cloud and replay testing; not yet an accepted M2 release. |
 
 ## Branch lineage
 
@@ -28,6 +31,10 @@ main ─────────────── Generic browser dashboard
                            └─ Supabase_MQTT_Bridge
                                 └─ Android_Supabase_Cutover
                                      └─ Android_Supabase_Realtime
+
+Android_Supabase_Realtime ── Phase_0_Baseline
+                                  └─ Phase_1_Opta_Firmware
+                                       └─ Phase_2_Cloud_Ingestion
 ```
 
 The branches are intentionally separate. No Android or poultry-demo work has been merged into `main`.
@@ -41,6 +48,7 @@ The branches are intentionally separate. No Android or poultry-demo work has bee
 - For the staged EMQX-to-Supabase architecture migration, use `Supabase_MQTT_Bridge`.
 - For the first Android cutover test, use `Android_Supabase_Cutover`.
 - For live Supabase telemetry without phone-side MQTT, use `Android_Supabase_Realtime`.
+- For the current engineering implementation, use `Phase_2_Cloud_Ingestion`.
 - Use `Poultry_Demo_Arduino` only when comparing with the original foreground-only prototype.
 
 ## MQTT protocol

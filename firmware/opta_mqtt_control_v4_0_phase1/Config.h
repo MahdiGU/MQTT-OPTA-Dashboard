@@ -8,9 +8,9 @@ constexpr char FIRMWARE_VERSION[] = "4.0.0-phase1";
 constexpr uint16_t TELEMETRY_SCHEMA = 2;
 
 // Public/scoped device identity. Adjust only when commissioning a different controller.
-constexpr char FARM_ID[] = "farm-pilot-01";
+constexpr char FARM_ID[] = "elmajd-poultry";
 constexpr char HOUSE_ID[] = "house-01";
-constexpr char DEVICE_ID[] = "opta-01";
+constexpr char DEVICE_ID[] = "opta-control-01";
 
 // Secrets are placeholders in Git. Populate a private working copy before upload.
 constexpr char WIFI_SSID[] = "CHANGE_ME";
@@ -19,7 +19,7 @@ constexpr char MQTT_HOST[] = "CHANGE_ME";
 constexpr uint16_t MQTT_PORT = 8883;
 constexpr char MQTT_USERNAME[] = "CHANGE_ME";
 constexpr char MQTT_PASSWORD[] = "CHANGE_ME";
-constexpr char MQTT_CLIENT_ID[] = "opta-01";
+constexpr char MQTT_CLIENT_ID[] = "opta-control-01";
 
 constexpr char TOPIC_TELEMETRY[] = "opta/outputs";
 constexpr char TOPIC_STATUS[] = "opta/status";
