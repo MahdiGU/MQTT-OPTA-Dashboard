@@ -22,7 +22,8 @@ MQTT monitoring and control dashboards for an Arduino Opta, with both browser an
 | `Phase_4_Production_Packaging` | Production backend | Audited historical corrections, owner-only deletion, dependent flock/production recalculation, carton receipts and consumption. | Backend tests passed; business field acceptance remains open. See `docs/phase-4`. |
 | `Phase_5_Android_App` | Android 1.9.0 | Historical production edits, carton stock/receipts, shared alarm list/acknowledgement, thresholds, role-aware controls and 24-hour aggregate charts. | Pilot testing; FCM delivery and full French localization remain pending. See `docs/phase-5`. |
 | `Phase_5_App_Refinements` | Android 1.9.1 | Dedicated Alarms tab; Overview flock, performance and interactive carton tray; opening-stock reference; audited carton corrections/deletion; manager access. | Updated pilot test build. See `docs/phase-5/02-version-1.9.1-refinements.md`. |
-| `Phase_3_FCM_Delivery` | Android 1.9.2 + FCM worker | Secure phone registration, native push receiver, self-test button, Vault-backed sender, retry leases and per-phone outcomes. | Server deployed; actual phone delivery acceptance and Gmail fallback remain pending. See `docs/phase-3/05-fcm-delivery.md`. |
+| `Phase_3_FCM_Delivery` | Android 1.9.2 + FCM worker | Secure phone registration, native push receiver, self-test button, Vault-backed sender, retry leases and per-phone outcomes. | Phone push delivery confirmed by the owner. See `docs/phase-3/05-fcm-delivery.md`. |
+| `French_Account_Gmail` | Android 1.10.0 + email delivery | French/English interface and notifications, in-app password changes and email-code recovery, Gmail fallback queue/worker and email self-test. | Latest pilot development branch. Gmail activation requires the sender OAuth grant in Vault. See [delivery report](docs/phase-3/06-french-account-gmail.md). |
 
 ## Branch lineage
 
