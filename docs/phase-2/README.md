@@ -10,6 +10,8 @@ The first Phase 2 cloud slice is deployed. Supabase now registers the pilot hous
 
 The live EMQX webhook accepted firmware `4.0.0-phase1` after deployment. The currently flashed controller still emits the former payload identity (`farm-pilot-01` / `opta-01`), so those frames are accepted but marked `identity_mismatch`. The Phase 2 configuration uses `elmajd-poultry` / `opta-control-01`; reflashing it will remove that diagnostic flag.
 
+Update at Phase 3 start: identity is now correct, and firmware `4.0.2-phase2-ntpfix` supplies valid source time. Live capture/reception differed by about one second. The scheduled offline evaluator and alarm/audit storage are implemented in Phase 3; outage/replay and backup acceptance remain open.
+
 ## Documents
 
 - [Cloud ingestion architecture and data contract](01-cloud-ingestion-architecture.md)

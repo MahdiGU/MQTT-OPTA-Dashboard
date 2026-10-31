@@ -18,6 +18,7 @@ MQTT monitoring and control dashboards for an Arduino Opta, with both browser an
 | `Phase_0_Baseline` | Engineering baseline | Pilot scope, alarm policy, acceptance criteria, governance/RACI, risk register and change control. | Use as the approved planning and audit baseline. |
 | `Phase_1_Opta_Firmware` | Opta firmware phase | Modular v4.0 firmware with versioned identity, UTC source time, boot/sequence identity and a 120-frame RAM replay buffer. | Use for installed-controller field validation. |
 | `Phase_2_Cloud_Ingestion` | Cloud ingestion phase | Registers the pilot controller and topics, validates EMQX webhooks, stores raw replay-safe telemetry, protects current state from delayed frames and maintains five-minute aggregates. | Use for Phase 2 cloud and replay testing; not yet an accepted M2 release. |
+| `Phase_3_Alarm_Notifications` | Server alarm phase | Adds the approved alarm engine, fresh-device offline detection, event/audit history, acknowledgement, threshold configuration and delivery queue. | Backend deployed; Firebase/Gmail sending and client alarm center remain pending. See `docs/phase-3`. |
 
 ## Branch lineage
 
@@ -35,6 +36,7 @@ main ─────────────── Generic browser dashboard
 Android_Supabase_Realtime ── Phase_0_Baseline
                                   └─ Phase_1_Opta_Firmware
                                        └─ Phase_2_Cloud_Ingestion
+                                            └─ Phase_3_Alarm_Notifications
 ```
 
 The branches are intentionally separate. No Android or poultry-demo work has been merged into `main`.
