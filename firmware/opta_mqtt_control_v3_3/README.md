@@ -29,6 +29,6 @@ Set the Wi-Fi SSID/password, MQTT host/user/password/client ID and confirm the t
 - Telemetry and ordinary command publications use QoS 0 and retain disabled.
 - The status last-will intentionally uses retain enabled.
 - The sketch currently publishes every 5 seconds.
-- Temperature conversion currently assumes 0-10 V equals -50 to 100 C. This must be confirmed against the actual transmitter and calibration record.
+- Temperature conversion uses 0-10 V equals -50 to 100 C. The owner confirmed this as the pilot baseline on 2026-10-31; field accuracy will be checked during commissioning.
 - The local build is reproducible with the versions recorded above; a commissioned release tag and binary checksum are still required.
 - The sketch does not yet implement persistent local buffering, device timestamps, firmware identity fields, scoped farm/house/device identity, command IDs, expiry or explicit acknowledgements.

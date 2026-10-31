@@ -18,7 +18,7 @@ Report date: 2026-10-31
 
 **Result**
 
-The two-stage temperature defaults, delays, hysteresis and SMS deferral were approved by Mahdi Guermazi on 2026-10-31. Open decisions: authorize FCM and select the email provider.
+The two-stage temperature defaults, delays, hysteresis and SMS deferral were approved by Mahdi Guermazi on 2026-10-31. FCM is approved as the primary Android push channel and Gmail as the fallback email service using the project mailbox supplied privately.
 
 ## Task: Collect final firmware, libraries, transmitter documents and I/O schedule
 
@@ -37,7 +37,7 @@ The two-stage temperature defaults, delays, hysteresis and SMS deferral were app
 
 **Result**
 
-The authoritative `.ino` and verified toolchain/library versions are now available. The owner waived detailed PT100 manufacturer/calibration paperwork, but the installed range must still be matched to the firmware and a basic reference comparison recorded. The terminal schedule and final electrical schematic remain in progress because the hardware is almost ready. Credential rotation remains an immediate security action.
+The authoritative `.ino` and verified toolchain/library versions are available. The owner confirmed that the firmware's 0-10 V = -50 to 100 C PT100 conversion is correct and approved it as the baseline. A basic reference comparison is deferred to commissioning. The terminal schedule and final electrical schematic remain in progress because the hardware is almost ready. Credential rotation remains an immediate security action.
 
 ## Task: Freeze acceptance criteria, owners, risks and change process
 

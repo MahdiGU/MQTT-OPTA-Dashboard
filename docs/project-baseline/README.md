@@ -13,8 +13,8 @@ This package converts the Phase 0 planning tasks into an auditable implementatio
 
 | Work item | Result | Status |
 |---|---|---|
-| Alarm and notification policy | Two-stage temperature policy approved by Mahdi Guermazi; delivery services still require configuration. | Threshold policy approved; provider setup open |
-| Firmware, library, transmitter and I/O evidence | Arduino v3.3 was added, compiled and versioned; remaining hardware evidence gaps were recorded. | Firmware evidence verified; hardware evidence incomplete |
+| Alarm and notification policy | Two-stage temperature policy, FCM push and Gmail fallback approved by Mahdi Guermazi. | Policy and channels approved; implementation occurs in Phase 3 |
+| Firmware, library, transmitter and I/O evidence | Arduino v3.3 was added, compiled and versioned; its 0-10 V = -50 to 100 C conversion is approved as the PT100 baseline. | Firmware/PT100 baseline verified; electrical evidence incomplete |
 | Acceptance criteria, owners, risks and change process | Baseline documents are defined; Mahdi Guermazi is owner/admin and Adnen Guermazi is manager. | Pilot roles assigned; technical roles open |
 | M0 requirements baseline | Gate criteria and blockers are explicit. | Not yet approved |
 
@@ -32,10 +32,8 @@ This package converts the Phase 0 planning tasks into an auditable implementatio
 
 ## Decisions required to close M0
 
-1. Select the email delivery provider and authorize Firebase Cloud Messaging configuration.
-2. Confirm that the firmware's 0-10 V = -50 to 100 C conversion matches the installed transmitter, or provide the correct configured range. Manufacturer/model paperwork is waived for the pilot.
-3. Deliver or approve the final terminal schedule and installation-ready electrical schematic when the hardware is finalized.
-4. Assign named people to the firmware, cloud, Android/web and electrical engineering responsibilities, or explicitly assign those responsibilities to the owner.
-5. Rotate credentials found embedded in supplied/development artifacts and revoke the previous values.
+1. Deliver or approve the final terminal schedule and installation-ready electrical schematic when the hardware is finalized.
+2. Assign named people to the firmware, cloud, Android/web and electrical engineering responsibilities, or explicitly assign those responsibilities to the owner.
+3. Rotate credentials found embedded in supplied/development artifacts and revoke the previous values.
 
 M0 must remain open until the owner accepts the baseline and the critical evidence/security items have a named owner and target date.

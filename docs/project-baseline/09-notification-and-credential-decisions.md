@@ -21,12 +21,14 @@ Push notifications can be disabled by the phone, blocked by battery settings or 
 
 An email delivery provider is the server-side service that actually sends this message. Examples include Resend, Brevo or SendGrid. The owner needs to choose one provider, verify the sender/domain if required and place its API credential in Supabase secrets. The Android app does not receive that credential.
 
-For the pilot, the simplest decision is:
+The approved pilot decision is:
 
-- approve FCM as the primary notification channel;
-- choose one transactional email provider for critical fallback;
+- use FCM as the primary notification channel;
+- use Gmail and the privately supplied ElMAJD Automation project mailbox for critical fallback;
 - keep SMS disabled;
 - send alerts to the owner/admin and manager accounts.
+
+The mailbox address and its authorization credentials must be stored as private deployment configuration, not committed to this public repository. Phase 3 must choose the server-side Gmail integration method and record delivery results in Supabase.
 
 ## 3. What credential rotation means
 

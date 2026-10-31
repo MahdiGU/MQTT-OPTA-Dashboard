@@ -1,7 +1,7 @@
 # Pilot Scope and Alarm Policy
 
 Decision record: ADR-P0-001  
-Status: Temperature policy approved; delivery-provider configuration pending  
+Status: Pilot temperature and delivery policy approved  
 Effective scope: one farm, one poultry house, one Arduino Opta controller, one owner/admin and one manager
 
 ## 1. Pilot scope
@@ -71,6 +71,6 @@ Command acknowledgement, command expiry, physical feedback, equipment-specific i
 |---|---|---|---|
 | Two-stage 30/33 C policy | Approved | Mahdi Guermazi | 2026-10-31 |
 | Delays and hysteresis | Approved as specified in this document | Mahdi Guermazi | 2026-10-31 |
-| Firebase Cloud Messaging | Pending authorization | Owner/admin | Pending |
-| Email provider | Provider not selected | Owner/admin | Pending |
+| Firebase Cloud Messaging | Approved as primary Android push channel | Mahdi Guermazi | 2026-10-31 |
+| Email provider | Gmail selected for fallback delivery; project mailbox supplied privately | Mahdi Guermazi | 2026-10-31 |
 | SMS deferred | Approved for pilot | Mahdi Guermazi | 2026-10-31 |

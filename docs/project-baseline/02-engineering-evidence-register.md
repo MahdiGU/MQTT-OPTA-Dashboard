@@ -14,19 +14,19 @@ Purpose: identify the evidence available for Phase 1 and record what must still 
 | Supabase Edge Functions | MQTT ingestion and command-delivery sources are present in the repository | Available | Verify deployed versions, secrets and test coverage later. |
 | Arduino sketch | Authoritative `opta_mqtt_control_v3_3.ino` supplied; original SHA-256 recorded; credential-redacted copy added under `firmware/` | Available | Use v3.3 as the Phase 1 source baseline. Preserve the supplied original outside Git and never commit populated credentials. |
 | Arduino toolchain and libraries | Arduino CLI 1.4.1; Arduino Mbed OS Opta Boards core 4.6.0; ArduinoMqttClient 0.1.8 | Verified locally | Preserve these versions in the firmware manifest and CI/build instructions. |
-| Temperature chain | PT100 through 0-10 V transmitter on I1; firmware assumes -50 to 100 C; owner waived manufacturer/model paperwork | Partially defined | Confirm the installed transmitter's configured range matches the firmware. Treat +/-0.5 C as unverified until a field comparison is recorded. |
+| Temperature chain | PT100 through 0-10 V transmitter on I1; 0-10 V = -50 to 100 C approved as the firmware baseline | Baseline confirmed | Preserve these constants and verify the complete chain against a trusted reference during commissioning. |
 | Level sensors | I2-I6 are 24 V PNP/NO capacitive sensors; 1=full, 0=empty | Defined logically | Supply manufacturer/model, terminal numbers, supply/common and installation notes. |
 | Cooling feedback | I7 is a 24 V NO auxiliary contact; 1=working | Defined logically | Supply terminal numbers and source equipment/contact rating. |
 | Fan feedback | Relay/LED control state only | Known limitation | Select independent running feedback and Opta extension inputs for a later phase. |
 | Terminal schedule | Logical I1-I7 assignment is known | Incomplete | Produce final cabinet terminal and cable schedule. |
 | Electrical schematic | Concept exists in the specification | Incomplete | A qualified electrical reviewer must produce/approve the installation-ready schematic. |
-| Calibration record | Owner considers a formal manufacturer/calibration package unnecessary for the pilot | Waived with limitation | Record at least one basic comparison against a trusted reference before accepting displayed temperature; do not claim verified +/-0.5 C without evidence. |
+| Calibration record | Formal manufacturer/calibration package waived for the pilot | Deferred to commissioning | Record a basic comparison against a trusted reference before accepting the +/-0.5 C field-accuracy requirement. |
 
 ## 2. Authoritative pilot I/O baseline
 
 | Channel | Signal | Pilot meaning | Validation required |
 |---|---|---|---|
-| I1 | Analog 0-10 V from PT100 transmitter | Temperature in C and sensor fault state | Confirm at minimum that the transmitter range matches the firmware's -50 to 100 C assumption and perform a basic field comparison. Detailed manufacturer paperwork is waived for the pilot. |
+| I1 | Analog 0-10 V from PT100 transmitter | Temperature in C and sensor fault state | Use the approved -50 to 100 C mapping and perform a basic field comparison during commissioning. Detailed manufacturer paperwork is waived for the pilot. |
 | I2-I6 | 24 V PNP normally-open capacitive sensors | `1` full/material detected; `0` empty/not detected | Confirm sensor-to-terminal mapping and field state for each cistern/silo. |
 | I7 | 24 V normally-open auxiliary contact | `1` cooling working; `0` cooling not working | Confirm the contact is isolated and changes with the intended cooling contactor. |
 | I8 | Not allocated in the approved pilot definition | Reserved | Do not assign without a change request. |

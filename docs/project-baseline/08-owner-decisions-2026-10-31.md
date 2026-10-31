@@ -10,12 +10,12 @@ Personal email addresses are intentionally not stored in this public repository.
 | Item | Owner response | Recorded disposition |
 |---|---|---|
 | Two-stage temperature policy | Approved by Mahdi Guermazi | Approved for the pilot: warning at 30 C and critical at 33 C with the delays, recovery and hysteresis in ADR-P0-001. |
-| Notification delivery configuration | Clarification requested | Policy is approved conceptually, but Firebase Cloud Messaging authorization and the email provider are not yet selected/configured. |
-| PT100 manufacturer/model/calibration package | Considered not needed | Manufacturer/model paperwork is waived for the pilot. The configured input range and a basic field comparison remain necessary because the firmware converts voltage to temperature and the dashboard must not display a knowingly wrong value. The formal +/-0.5 C claim remains unverified until measured. |
+| Notification delivery configuration | Gmail project mailbox supplied | Gmail is selected as the fallback email service and FCM is approved as the primary Android push channel. The mailbox address is kept out of the public repository and will be supplied through private configuration. |
+| PT100 manufacturer/model/calibration package | Firmware data confirmed correct | The firmware's 0-10 V = -50 to 100 C mapping is the approved baseline. Manufacturer/model paperwork is waived. A field comparison remains a commissioning verification, not a Phase 0 decision blocker. |
 | Terminal schedule/electrical schematic | Hardware almost ready | Work remains in progress. The final schedule/schematic is required before commissioning and may be delivered when the cabinet is finalized. |
 | Pilot user roles | Named | Mahdi Guermazi is owner/admin. Adnen Guermazi is manager. Technical engineering roles remain to be named or explicitly assigned to the owner. |
 | Credential rotation | Clarification requested | Open security action. Rotation means changing potentially exposed passwords/keys, updating authorized systems, revoking the old values and keeping replacement secrets out of Git and distributable artifacts. |
 
 ## Effect on M0
 
-The alarm thresholds are approved and the two pilot user roles are named. M0 remains open for notification-service selection/authorization, final hardware documentation, technical-role ownership and credential rotation. PT100 manufacturer paperwork is waived, but the firmware conversion range must still be confirmed before temperature acceptance.
+The alarm thresholds, FCM/Gmail notification channels, PT100 conversion baseline and two pilot user roles are approved. M0 remains open for final hardware documentation, technical-role ownership and credential rotation.
