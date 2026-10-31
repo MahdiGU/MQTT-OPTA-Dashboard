@@ -25,6 +25,9 @@
   document.querySelector('[data-screen="status"]').insertAdjacentHTML('afterend',`<section class="screen" data-screen="alarms"><div class="hero"><div><div class="eyebrow">Server monitoring</div><h2>Alarms & history</h2><p>Active conditions, acknowledgements and recovery</p></div></div><section class="panel"><div class="panel-head"><h3>Alarm history</h3><button class="p5-small" id="alarmRefresh">Refresh</button></div><p class="p5-section-note">Acknowledgement stops reminders; recovery clears the condition. Phone push delivery is still being connected.</p><div id="alarmList">Sign in to load alarms.</div></section></section>`);
   document.querySelector('[data-nav="status"]').insertAdjacentHTML('afterend','<button data-nav="alarms"><span class="nav-icon">!</span>Alarms</button>');
   document.querySelectorAll('[data-nav]').forEach(button=>button.onclick=()=>{document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b===button));document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===button.dataset.nav));scrollTo({top:0,behavior:'smooth'});if(button.dataset.nav==='overview')requestAnimationFrame(drawWeek);});
+  document.querySelector('[data-screen="connection"]').insertAdjacentHTML('afterbegin',`<section class="panel"><div class="eyebrow">Phone notifications</div><h3>Firebase push</h3><p id="pushStatus" class="message">Sign in to register this phone.</p><div class="p5-actions"><button id="retryPush">Register / retry</button><button id="testPush">Send me a test notification</button></div><p class="p5-section-note">Allow notifications in Android settings. Gmail fallback is still pending. Force-stopping the app in Android settings prevents messages until the app is reopened.</p></section>`);
+  $('retryPush').onclick=()=>call('push_sync');$('testPush').onclick=()=>{message('Requesting a push test...');call('push_test');};
+  document.querySelector('[data-screen="alarms"] .p5-section-note').textContent='Acknowledgement stops reminders; recovery clears the condition. Check Connection for this phone’s push registration status.';
   $('overviewCartons').onclick=()=>{document.querySelector('[data-nav="configuration"]').click();$('packagingPanel').scrollIntoView({behavior:'smooth',block:'start'});};
   e.prodBtn.insertAdjacentHTML('afterend','<button type="button" class="p5-small hidden" id="cancelProductionEdit">Cancel edit</button>');
   e.date.value=$('receiptDate').value=businessDate(); e.date.max=$('receiptDate').max=businessDate();
@@ -37,6 +40,7 @@
     $('receiptSave').disabled=$('thresholdSave').disabled=busy||!state.cloud||!canEdit();
     e.prodBtn.disabled=productionBusy||!state.cloud||!canEdit();e.configBtn.disabled=!state.cloud||!canEdit();
     e.send.disabled=!state.cloud||!canEdit();
+    $('retryPush').disabled=$('testPush').disabled=!state.cloud||!canEdit();
     document.querySelectorAll('[data-delete]').forEach(b=>b.hidden=role!=='owner');
     document.querySelectorAll('[data-edit-production]').forEach(b=>b.hidden=!canEdit());
     document.querySelectorAll('[data-receipt-edit]').forEach(b=>b.hidden=!canEdit());
@@ -111,6 +115,8 @@
     if(type==='production_error')productionBusy=false;
     if(type==='cloud_connection'){controls();if(data==='online')call('refresh');}
     if(type==='production_history')controls();
+    if(type==='push_status')$('pushStatus').textContent=data;
+    if(type==='open_alarms')document.querySelector('[data-nav="alarms"]').click();
     if(type==='configuration')$('overviewFlock').textContent=Number.isInteger(state.flock)?state.flock.toLocaleString():'Not configured';
     if(type==='telemetry'){
       const p=JSON.parse(data),source=p.captured_at||p.received_at;

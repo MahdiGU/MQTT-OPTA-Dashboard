@@ -209,6 +209,7 @@ public final class CloudForegroundService extends Service {
     }
 
     private void connectCloud() {
+        PushRegistration.deactivate(this);
         handler.removeCallbacks(reconcileRunnable);
         handler.removeCallbacks(reconnectRunnable);
         realtimeClient.disconnect();
@@ -223,6 +224,8 @@ public final class CloudForegroundService extends Service {
             try {
                 supabaseClient.signIn(credentials.supabaseEmail, credentials.supabasePassword);
                 signedIn = true;
+                PushRegistration.activate(CloudForegroundService.this);
+                syncPush();
                 broadcast("cloud_connection", "online");
                 broadcast("connection", "online");
                 updateMonitorNotification("Starting live Supabase updates...");
@@ -256,6 +259,7 @@ public final class CloudForegroundService extends Service {
                 broadcast("phase5_data",supabaseClient.phase5Action("refresh",new JSONObject()));
                 SupabaseClient.RealtimeSession session = supabaseClient.realtimeSession();
                 realtimeClient.updateAccessToken(session.accessToken);
+                syncPush();
             } catch (Exception error) {
                 broadcast("realtime_error", "Cloud reconciliation failed: " + friendlyError(error));
                 if (!realtimeConnected) {
@@ -439,14 +443,20 @@ public final class CloudForegroundService extends Service {
 
     private void phase5Action(String action, String payload) {
         if (!signedIn) { broadcast("phase5_error","Cloud sign-in is required."); return; }
+        if("push_sync".equals(action)){syncPush();return;}
         cloudExecutor.execute(() -> {
             try {
                 String response=supabaseClient.phase5Action(action,new JSONObject(payload==null?"{}":payload));
+                if("push_test".equals(action)) { broadcast("push_status","Test accepted by Firebase — check the phone notification");return; }
                 if (!"refresh".equals(action)) broadcast("phase5_saved",action);
                 broadcast("phase5_data","refresh".equals(action)?response:supabaseClient.phase5Action("refresh",new JSONObject()));
                 if ("edit".equals(action)) { requestProductionHistory(); requestConfiguration(); }
-            } catch(Exception error) { broadcast("phase5_error",friendlyError(error)); }
+            } catch(Exception error) { broadcast("push_test".equals(action)?"push_status":"phase5_error",friendlyError(error)); }
         });
+    }
+
+    private void syncPush(){
+        if(signedIn&&!stopping)PushRegistration.sync(this,supabaseClient,cloudExecutor,status->broadcast("push_status",status));
     }
 
     private void requestConfiguration() {
@@ -461,6 +471,8 @@ public final class CloudForegroundService extends Service {
     }
 
     private void handleTemperatureAlert(double temperature) {
+        // The approved server policy takes over after successful registration.
+        if(PushRegistration.ready(this))return;
         long now = System.currentTimeMillis();
         long lastAlert = statePreferences.getLong("last_temperature_alert", 0L);
         boolean isHot = temperature >= statePreferences.getFloat("critical_temperature",33.0f);
@@ -472,6 +484,8 @@ public final class CloudForegroundService extends Service {
     }
 
     private void stopMonitoring() {
+        boolean unregister=signedIn;
+        PushRegistration.deactivate(this);
         stopping = true;
         signedIn = false;
         realtimeConnected = false;
@@ -482,7 +496,8 @@ public final class CloudForegroundService extends Service {
         broadcast("cloud_connection", "offline");
         broadcast("connection", "stopped");
         stopForeground(STOP_FOREGROUND_REMOVE);
-        stopSelf();
+        if(unregister)cloudExecutor.execute(()->{try{supabaseClient.unregisterPush(PushRegistration.installation(this));}catch(Exception ignored){}finally{stopSelf();}});
+        else stopSelf();
     }
 
     private void broadcast(String type, String data) {
@@ -503,6 +518,8 @@ public final class CloudForegroundService extends Service {
             statePreferences.edit().putString("production_history", data).apply();
         } else if ("configuration".equals(type)) {
             statePreferences.edit().putString("configuration", data).apply();
+        } else if ("push_status".equals(type)) {
+            statePreferences.edit().putString("push_status", data).apply();
         }
         Intent event = new Intent(ACTION_EVENT)
             .setPackage(getPackageName())

@@ -207,6 +207,8 @@ final class SupabaseClient {
         JSONObject body = new JSONObject().put("target_farm",farmId);
         String rpc;
         switch (action) {
+            case "push_test":
+                return request("POST","/functions/v1/dispatch-alarms",new JSONObject().put("action","test").toString(),null,accessToken);
             case "refresh": {
                 JSONArray membership = new JSONArray(request("GET","/rest/v1/farm_members?select=role&farm_id=eq."+farmId+"&user_id=eq."+userId,null,null,accessToken));
                 JSONArray houses = new JSONArray(request("GET","/rest/v1/poultry_houses?select=id&farm_id=eq."+farmId+"&order=slug&limit=1",null,null,accessToken));
@@ -252,6 +254,16 @@ final class SupabaseClient {
         }
         return request("POST","/rest/v1/rpc/"+rpc,body.toString(),null,accessToken);
     }
+
+    void registerPush(String installation,String token,boolean enabled) throws Exception {
+        ensureSession();
+        request("POST","/rest/v1/rpc/register_push_device",new JSONObject().put("target_farm",farmId)
+            .put("installation",installation).put("device_token",token).put("notifications_enabled",enabled).toString(),null,accessToken);
+    }
+    void unregisterPush(String installation) throws Exception {
+        ensureSession();request("POST","/rest/v1/rpc/unregister_push_device",new JSONObject().put("installation",installation).toString(),null,accessToken);
+    }
+    String pushUserId(){return userId;}
 
     static final class RealtimeSession {
         final String accessToken;

@@ -2,6 +2,7 @@ import java.security.KeyStore
 
 plugins {
     id("com.android.application")
+    id("com.google.gms.google-services")
 }
 
 val debugStorePassword = "ElMajdDemo2026!"
@@ -19,8 +20,8 @@ android {
         applicationId = "com.mahdi.poultrydashboard"
         minSdk = 26
         targetSdk = 35
-        versionCode = 20
-        versionName = "1.9.1"
+        versionCode = 21
+        versionName = "1.9.2"
     }
 
     signingConfigs {
@@ -53,5 +54,7 @@ android {
 }
 
 dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
+    implementation("com.google.firebase:firebase-messaging")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

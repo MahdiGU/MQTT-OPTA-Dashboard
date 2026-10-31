@@ -129,7 +129,11 @@ public final class MainActivity extends Activity {
         if (latest != null) sendEventToDashboard("telemetry", latest);
         if (productionHistory != null) sendEventToDashboard("production_history", productionHistory);
         if (configuration != null) sendEventToDashboard("configuration", configuration);
+        sendEventToDashboard("push_status",state.getString("push_status","Sign in to register this phone"));
+        if(getIntent().getBooleanExtra("open_alarms",false)){sendEventToDashboard("open_alarms","");getIntent().removeExtra("open_alarms");}
     }
+
+    @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);dispatchCurrentState();}
 
     private void sendEventToDashboard(String type, String data) {
         if (dashboard == null || type == null) return;
@@ -240,6 +244,7 @@ public final class MainActivity extends Activity {
 
         @JavascriptInterface
         public void signOut() {
+            PushRegistration.deactivate(MainActivity.this);
             new CredentialStore(MainActivity.this).clear();
             Intent stop = new Intent(MainActivity.this, CloudForegroundService.class)
                 .setAction(CloudForegroundService.ACTION_STOP);

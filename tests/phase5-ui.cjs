@@ -12,6 +12,10 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
     const data={role:'manager',house_id:'test-house',settings:[{warning_c:30,critical_c:33}],cartons:[{received:100,consumed:20,balance:80,reference_date:'2026-10-20',shortfall:0}],receipts:[{id:'receipt1',receipt_date:'2026-10-20',quantity:100,note:'Opening reference'}],alarms:[{id:'test-alarm',code:'temperature_critical',severity:'critical',activated_at:new Date().toISOString(),resolved_at:null,acknowledged_at:null}]};
     await page.evaluate(data=>{showApp();elMajdNativeEvent('cloud_connection','online');elMajdNativeEvent('phase5_data',JSON.stringify(data));elMajdNativeEvent('production_history',JSON.stringify([{id:1,production_date:'2026-10-20',stock:1000,sortie:0,mortality:2,eggs:0,chicken_count:998,production_rate:0,cartons_used:0}]));},data);
     await page.evaluate(()=>elMajdNativeEvent('configuration','{"chicken_count":995}'));
+    await page.click('[data-nav="connection"]');await page.click('#retryPush');await page.click('#testPush');
+    assert.equal(await page.evaluate(()=>testCalls.some(([a])=>a==='push_sync')&&testCalls.some(([a])=>a==='push_test')),true);
+    await page.evaluate(()=>{elMajdNativeEvent('push_status','Registered — notifications enabled');elMajdNativeEvent('open_alarms','');});
+    assert.equal(await page.locator('[data-screen="alarms"]').isVisible(),true);await page.click('[data-nav="overview"]');
     assert.equal(await page.locator('[data-nav]').count(),6);
     assert.equal(await page.locator('#overviewFlock').textContent(),'995');
     assert.equal(await page.locator('[data-screen="overview"] .weekly').count(),1);
