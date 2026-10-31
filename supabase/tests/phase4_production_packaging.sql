@@ -37,7 +37,8 @@ begin
   update public.farm_members set role='owner' where farm_id=f and user_id=u;
   perform public.delete_daily_production(f,middle_id);
   if (select chicken_count from public.flock_settings where farm_id=f)<>996 then raise exception 'Delete mortality restore failed'; end if;
-  if (select balance from public.carton_balance where farm_id=f)<>85 then raise exception 'Carton balance failed'; end if;
+  -- A receipt today is an opening reference; earlier production is excluded.
+  if (select balance from public.carton_balance where farm_id=f)<>100 then raise exception 'Carton opening balance failed'; end if;
   if not exists(select 1 from public.production_audit where farm_id=f and action='DELETE') then raise exception 'Delete audit missing'; end if;
   perform set_config('request.jwt.claim.sub',gen_random_uuid()::text,true);
   begin

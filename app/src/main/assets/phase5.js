@@ -3,20 +3,29 @@
   const businessDate = () => new Date(Date.now()+3600000).toISOString().slice(0,10);
   const escape = value => String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const uid = () => '10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(+c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>+c/4).toString(16));
-  let role='viewer', house='', editing=null, requestId=uid(), busy=false, productionBusy=false, warningC=30, criticalC=33;
+  let role='viewer', house='', editing=null, requestId=uid(), busy=false, productionBusy=false, warningC=30, criticalC=33, receiptEditing=null, receiptRows=[], referenceDay=null;
   const canEdit=()=>['owner','manager'].includes(role);
   const call=(action,input={})=>{if(native&&state.cloud)window.ElMajdNative.phase5Action(action,JSON.stringify(input));else message('Cloud sign-in is required.');};
   const message=text=>{$('phase5Message').textContent=text;};
   document.head.insertAdjacentHTML('beforeend',`<style>
     .p5-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.p5-actions button,.p5-small{padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--g);font-weight:800}
     .alarm-item{padding:12px;border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:12px;margin:8px 0}.alarm-item.critical{border-left-color:var(--red)}.alarm-item small{display:block;color:var(--muted);margin-top:5px}.p5-shortage{color:var(--red)}.p5-section-note{font-size:.75rem;color:var(--muted)}
+    .nav{grid-template-columns:repeat(6,minmax(0,1fr))}.nav button{font-size:.53rem}
+    .carton-overview{width:100%;font:inherit;text-align:left;cursor:pointer;position:relative;overflow:hidden}.carton-overview svg{width:72px;height:64px;float:right;margin:-4px -5px 0 4px;transition:transform .25s,color .25s;color:#aab6ac}.carton-overview.available svg{color:var(--g)}.carton-overview:active svg,.carton-overview:hover svg{transform:translateY(-4px) rotate(-3deg)}.carton-overview .tray-extra{opacity:.2;transition:opacity .3s}.carton-overview.available .tray-extra{opacity:1}.carton-entry{padding:12px 0;border-bottom:1px solid var(--line)}
+    @media(prefers-reduced-motion:reduce){.carton-overview svg{transition:none;transform:none!important}}
   </style>`);
   document.querySelector('[data-screen="configuration"]').insertAdjacentHTML('beforeend',`
-    <section class="panel"><div class="eyebrow">Packaging inventory</div><h3>Empty cartons</h3><div class="quick"><div><span>Received</span><strong id="cartonsReceived">—</strong></div><div><span>Consumed</span><strong id="cartonsConsumed">—</strong></div><div><span>Balance</span><strong id="cartonsBalance">—</strong></div></div><p class="p5-section-note">30 eggs/carton with 10% allowance. A negative balance indicates missing cartons or receipts.</p>
-    <form id="cartonForm" class="form"><label class="field"><span>Receipt date (GMT+1)</span><input type="date" id="receiptDate" required></label><label class="field"><span>New cartons received</span><input type="number" min="1" step="1" id="receiptQuantity" required></label><label class="field"><span>Delivery note</span><input maxlength="500" id="receiptNote"></label><button class="primary" id="receiptSave" disabled>Add to carton stock</button></form><div id="cartonReceipts" class="p5-section-note"></div></section>
+    <section class="panel" id="packagingPanel"><div class="eyebrow">Packaging inventory</div><h3>Empty cartons</h3><div class="quick"><div><span>Received</span><strong id="cartonsReceived">—</strong></div><div><span>Consumed</span><strong id="cartonsConsumed">—</strong></div><div><span>Available</span><strong id="cartonsBalance">—</strong></div></div><p class="p5-section-note" id="packagingReference">The first stock entry is the opening reference. Consumption starts on the next production day. 30 eggs/carton with 10% allowance.</p><p class="p5-section-note" id="packagingShortfall"></p>
+    <form id="cartonForm" class="form"><label class="field"><span>Entry date (GMT+1)</span><input type="date" id="receiptDate" required></label><label class="field"><span>Cartons in this entry</span><input type="number" min="1" step="1" id="receiptQuantity" required></label><label class="field"><span>Delivery note</span><input maxlength="500" id="receiptNote"></label><button class="primary" id="receiptSave" disabled>Add to carton stock</button><button type="button" id="cancelReceiptEdit" class="p5-small hidden">Cancel carton edit</button></form><div id="cartonReceipts" class="p5-section-note"></div></section>
     <section class="panel"><div class="eyebrow">Server alarm policy</div><h3>Temperature thresholds</h3><form id="thresholdForm" class="form"><div class="two"><label class="field"><span>Warning °C</span><input id="warningThreshold" type="number" min="-49" max="98" step="0.1" required></label><label class="field"><span>Critical °C</span><input id="criticalThreshold" type="number" min="-48" max="100" step="0.1" required></label></div><button id="thresholdSave" class="primary" disabled>Save thresholds</button></form><p class="p5-section-note">Activation delays and recovery hysteresis follow the approved server policy.</p></section>
     <section class="panel"><button class="p5-small" id="phase5Refresh">Refresh shared data</button><p id="phase5Message" class="message">Sign in to load packaging and alarm settings.</p></section>`);
-  document.querySelector('[data-screen="status"]').insertAdjacentHTML('afterbegin',`<section class="panel"><div class="panel-head"><div><div class="eyebrow">Server monitoring</div><h3>Alarms & history</h3></div><button class="p5-small" id="alarmRefresh">Refresh</button></div><p class="p5-section-note">Acknowledgement stops reminders; recovery clears the condition. Phone push delivery is still being connected.</p><div id="alarmList">Sign in to load alarms.</div></section>`);
+  const overview=document.querySelector('[data-screen="overview"]');
+  overview.querySelector('.kpis').insertAdjacentHTML('beforeend',`<article class="kpi"><div class="kpi-icon">C</div><span>Actual flock</span><strong id="overviewFlock">—</strong><small>Chickens currently in the house</small></article><button type="button" class="kpi carton-overview" id="overviewCartons" aria-label="Open carton inventory"><svg viewBox="0 0 90 75" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M9 40 L25 29 H65 L81 40 L76 51 H14 Z"/><path class="tray-extra" d="M10 50 L16 61 H75 L81 50 M12 59 L18 69 H73 L79 59"/><path d="M9 40 H81 M23 42 V50 M38 42 V50 M53 42 V50 M68 42 V50"/></g><g fill="currentColor" opacity=".35"><ellipse cx="28" cy="31" rx="7" ry="10"/><ellipse cx="45" cy="31" rx="7" ry="10"/><ellipse cx="62" cy="31" rx="7" ry="10"/></g></svg><span>Available cartons</span><strong id="overviewCartonCount">—</strong><small>Tap to view or adjust stock</small></button>`);
+  overview.appendChild(document.querySelector('.panel.weekly'));
+  document.querySelector('[data-screen="status"]').insertAdjacentHTML('afterend',`<section class="screen" data-screen="alarms"><div class="hero"><div><div class="eyebrow">Server monitoring</div><h2>Alarms & history</h2><p>Active conditions, acknowledgements and recovery</p></div></div><section class="panel"><div class="panel-head"><h3>Alarm history</h3><button class="p5-small" id="alarmRefresh">Refresh</button></div><p class="p5-section-note">Acknowledgement stops reminders; recovery clears the condition. Phone push delivery is still being connected.</p><div id="alarmList">Sign in to load alarms.</div></section></section>`);
+  document.querySelector('[data-nav="status"]').insertAdjacentHTML('afterend','<button data-nav="alarms"><span class="nav-icon">!</span>Alarms</button>');
+  document.querySelectorAll('[data-nav]').forEach(button=>button.onclick=()=>{document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b===button));document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===button.dataset.nav));scrollTo({top:0,behavior:'smooth'});if(button.dataset.nav==='overview')requestAnimationFrame(drawWeek);});
+  $('overviewCartons').onclick=()=>{document.querySelector('[data-nav="configuration"]').click();$('packagingPanel').scrollIntoView({behavior:'smooth',block:'start'});};
   e.prodBtn.insertAdjacentHTML('afterend','<button type="button" class="p5-small hidden" id="cancelProductionEdit">Cancel edit</button>');
   e.date.value=$('receiptDate').value=businessDate(); e.date.max=$('receiptDate').max=businessDate();
   e.date.previousElementSibling.textContent='Production date (fixed GMT+1)';
@@ -30,12 +39,14 @@
     e.send.disabled=!state.cloud||!canEdit();
     document.querySelectorAll('[data-delete]').forEach(b=>b.hidden=role!=='owner');
     document.querySelectorAll('[data-edit-production]').forEach(b=>b.hidden=!canEdit());
+    document.querySelectorAll('[data-receipt-edit]').forEach(b=>b.hidden=!canEdit());
+    document.querySelectorAll('[data-receipt-delete]').forEach(b=>b.hidden=role!=='owner');
   }
   function cancelEdit(){editing=null;e.date.disabled=false;$('cancelProductionEdit').classList.add('hidden');e.prodBtn.textContent='Calculate and save';e.stock.value=e.sortie.value=e.mortality.value='';e.date.value=businessDate();preview();}
   $('cancelProductionEdit').onclick=cancelEdit;
   const originalRows=renderRows;
   renderRows=data=>{originalRows(data);e.history.querySelectorAll('.production-row').forEach((row,index)=>{
-    const item=state.rows[index];row.insertAdjacentHTML('beforeend',`<div><span>Cartons used</span><strong>${escape(item.cartons_used??Math.ceil(item.eggs*1.1/30))}</strong></div><div class="p5-actions"><button type="button" data-edit-production="${item.id}">Edit</button></div>`);
+    const item=state.rows[index],used=referenceDay&&item.production_date>referenceDay?(item.cartons_used??Math.ceil(item.eggs*1.1/30)):0;row.insertAdjacentHTML('beforeend',`<div><span>Cartons counted</span><strong>${escape(used)}</strong></div><div class="p5-actions"><button type="button" data-edit-production="${item.id}">Edit</button></div>`);
   });controls();};
   e.history.addEventListener('click',event=>{
     const button=event.target.closest('[data-edit-production]');if(!button||!canEdit())return;
@@ -60,18 +71,31 @@
     const input={date:e.date.value,stock:values[0],sortie:values[1],mortality:values[2]};productionBusy=true;e.prodBtn.disabled=true;
     if(editing){input.id=editing.id;call('edit',input);}else if(native)window.ElMajdNative.publishProduction(JSON.stringify(input));
   };
+  function cancelReceipt(){receiptEditing=null;$('receiptSave').textContent='Add to carton stock';$('cancelReceiptEdit').classList.add('hidden');$('receiptQuantity').value=$('receiptNote').value='';$('receiptDate').value=businessDate();}
+  $('cancelReceiptEdit').onclick=cancelReceipt;
   $('cartonForm').onsubmit=event=>{event.preventDefault();if(busy||!canEdit())return;const n=Number($('receiptQuantity').value);if(!Number.isSafeInteger(n)||n<=0)return;
-    busy=true;controls();call('receipt',{date:$('receiptDate').value,quantity:n,note:$('receiptNote').value,request_id:requestId});};
+    busy=true;controls();call(receiptEditing?'receipt_edit':'receipt',{id:receiptEditing?.id,date:$('receiptDate').value,quantity:n,note:$('receiptNote').value,request_id:requestId});};
+  $('cartonReceipts').onclick=event=>{
+    const edit=event.target.closest('[data-receipt-edit]'),del=event.target.closest('[data-receipt-delete]');
+    const row=receiptRows.find(r=>String(r.id)===(edit?.dataset.receiptEdit||del?.dataset.receiptDelete));if(!row||busy)return;
+    if(edit&&canEdit()){receiptEditing=row;$('receiptDate').value=row.receipt_date;$('receiptQuantity').value=row.quantity;$('receiptNote').value=row.note;$('receiptSave').textContent='Save carton correction';$('cancelReceiptEdit').classList.remove('hidden');$('cartonForm').scrollIntoView({behavior:'smooth'});}
+    if(del&&role==='owner'&&confirm('Delete this carton entry? If it is the opening entry, the next dated entry becomes the reference.')){busy=true;controls();call('receipt_delete',{id:row.id});}
+  };
   $('thresholdForm').onsubmit=event=>{event.preventDefault();if(!canEdit())return;const warning=Number($('warningThreshold').value),critical=Number($('criticalThreshold').value);
     if(critical<warning+1){message('Critical threshold must be at least 1 °C above warning.');return;}busy=true;controls();call('thresholds',{house_id:house,warning,critical});};
   $('phase5Refresh').onclick=$('alarmRefresh').onclick=()=>call('refresh');
   document.querySelectorAll('[data-nav]').forEach(button=>button.addEventListener('click',()=>{if(state.cloud)call('refresh');}));
   $('alarmList').onclick=event=>{const b=event.target.closest('[data-ack]');if(!b)return;b.disabled=true;call('ack',{id:b.dataset.ack});};
   function featureData(data){
-    role=data.role;house=data.house_id;const cartons=data.cartons?.[0];
+    role=data.role;house=data.house_id;const cartons=data.cartons?.[0];referenceDay=cartons?.reference_date||null;
     $('cartonsReceived').textContent=cartons?.received??0;$('cartonsConsumed').textContent=cartons?.consumed??0;$('cartonsBalance').textContent=cartons?.balance??0;
-    $('cartonsBalance').classList.toggle('p5-shortage',Number(cartons?.balance)<0);
-    $('cartonReceipts').innerHTML=(data.receipts||[]).map(r=>`<p>${escape(r.receipt_date)} · +${escape(r.quantity)} cartons · ${escape(r.note)}</p>`).join('')||'<p>No carton receipts yet.</p>';
+    $('overviewCartonCount').textContent=Number(cartons?.balance??0).toLocaleString();$('overviewCartons').classList.toggle('available',Number(cartons?.balance)>0);
+    $('overviewCartons').setAttribute('aria-label',`${cartons?.balance??0} cartons available. Open packaging inventory.`);
+    $('packagingReference').textContent=referenceDay?`Opening reference: ${referenceDay}. Production consumption starts after this date; 30 eggs/carton with 10% allowance.`:'Add the first stock entry as the opening reference. Consumption starts on the following production day.';
+    $('packagingShortfall').textContent=cartons?.shortfall>0?`${cartons.shortfall} cartons of recorded consumption were not covered by available stock. Available cartons remain at zero until a new delivery.`:'';
+    receiptRows=data.receipts||[];
+    $('cartonReceipts').innerHTML=receiptRows.map(r=>`<article class="carton-entry"><strong>${escape(r.receipt_date)} · ${escape(r.quantity)} cartons</strong>${r.receipt_date===referenceDay?' · Opening reference':''}<p>${escape(r.note)}</p><div class="p5-actions"><button data-receipt-edit="${escape(r.id)}">Adjust</button><button data-receipt-delete="${escape(r.id)}">Delete</button></div></article>`).join('')||'<p>No carton entries yet.</p>';
+    if(state.rows.length)renderRows(JSON.stringify(state.rows));
     const cfg=data.settings?.[0];if(cfg){warningC=+cfg.warning_c;criticalC=+cfg.critical_c;if(document.activeElement!==$('warningThreshold')&&document.activeElement!==$('criticalThreshold')){$('warningThreshold').value=cfg.warning_c;$('criticalThreshold').value=cfg.critical_c;}}
     const alarms=[...(data.alarms||[])].sort((a,b)=>Number(!!a.resolved_at)-Number(!!b.resolved_at));
     $('alarmList').innerHTML=alarms.map(a=>`<article class="alarm-item ${escape(a.severity)}"><strong>${escape(a.code.replaceAll('_',' '))}</strong><small>${a.resolved_at?'Recovered':a.acknowledged_at?'Active · acknowledged':'Active · acknowledgement needed'} · ${escape(new Date(a.activated_at).toLocaleString())}</small>${!a.resolved_at&&!a.acknowledged_at?`<div class="p5-actions"><button data-ack="${escape(a.id)}">Acknowledge</button></div>`:''}</article>`).join('')||'<p>No server alarms recorded.</p>';
@@ -81,12 +105,13 @@
   window.elMajdNativeEvent=(type,data)=>{
     originalEvent(type,data);
     if(type==='phase5_data'){try{featureData(JSON.parse(data));}catch{message('Could not read shared farm data.');}}
-    if(type==='phase5_saved'){busy=false;if(data==='edit'){productionBusy=false;cancelEdit();e.prodMsg.textContent='Correction saved; dependent production and flock recalculated.';}if(data==='receipt'){requestId=uid();$('receiptQuantity').value=$('receiptNote').value='';}message('Saved to the shared database.');controls();}
+    if(type==='phase5_saved'){busy=false;if(data==='edit'){productionBusy=false;cancelEdit();e.prodMsg.textContent='Correction saved; dependent production and flock recalculated.';}if(['receipt','receipt_edit','receipt_delete'].includes(data)){requestId=uid();cancelReceipt();}message('Saved to the shared database.');controls();}
     if(type==='phase5_error'){busy=false;productionBusy=false;e.prodBtn.disabled=!state.cloud||!canEdit();message(data);e.prodMsg.textContent=data;$('alarmList').querySelectorAll('[data-ack]').forEach(b=>b.disabled=false);controls();}
     if(type==='production_saved'||type==='production_deleted'){productionBusy=false;cancelEdit();if(state.cloud)call('refresh');}
     if(type==='production_error')productionBusy=false;
     if(type==='cloud_connection'){controls();if(data==='online')call('refresh');}
     if(type==='production_history')controls();
+    if(type==='configuration')$('overviewFlock').textContent=Number.isInteger(state.flock)?state.flock.toLocaleString():'Not configured';
     if(type==='telemetry'){
       const p=JSON.parse(data),source=p.captured_at||p.received_at;
       e.updated.textContent=`Measured: ${source?new Date(source).toLocaleString():'time unavailable'} • received: ${p.received_at?new Date(p.received_at).toLocaleTimeString():'—'}`;
@@ -117,6 +142,6 @@
     const monday=+today-((today.getUTCDay()+6)%7)*dayMs;
     return Array.from({length:8},(_,i)=>{const start=new Date(monday-(7-i)*7*dayMs).toISOString().slice(0,10),end=new Date(monday-(6-i)*7*dayMs).toISOString().slice(0,10),rows=state.rows.filter(r=>r.production_date>=start&&r.production_date<end);return{label:`Week of ${start}`,short:start.slice(5),rate:rows.length?rows.reduce((n,r)=>n+ +r.production_rate,0)/rows.length:null,m:rows.reduce((n,r)=>n+ +r.mortality,0)};});
   };
-  if(native){e.otemp.textContent=e.temp.textContent='—';e.updated.textContent='Waiting for a live measurement';document.querySelectorAll('.equipment').forEach(n=>{n.classList.remove('full');n.querySelector('.equipment-state').textContent='UNKNOWN';});document.querySelectorAll('.fan-card').forEach(n=>{n.classList.remove('on');n.querySelector('small').textContent='Unknown control state';});$('coolingPad').classList.remove('on');$('coolingPadState').textContent='UNKNOWN';$('coolingPadDescription').textContent='Waiting for auxiliary feedback';controls();}
+  if(native){e.otemp.textContent=e.temp.textContent='—';e.updated.textContent='Waiting for a live measurement';e.otempStatus.textContent=e.tempStatus.textContent='Waiting for a live measurement';e.volts.textContent=e.ovolts.textContent='—';document.querySelectorAll('.equipment').forEach(n=>{n.classList.remove('full');n.querySelector('.equipment-state').textContent='UNKNOWN';});document.querySelectorAll('.fan-card').forEach(n=>{n.classList.remove('on');n.querySelector('small').textContent='Unknown control state';});$('coolingPad').classList.remove('on');$('coolingPadState').textContent='UNKNOWN';$('coolingPadDescription').textContent='Waiting for auxiliary feedback';controls();}
   else if(location.search.includes('preview'))featureData({role:'owner',house_id:'preview',settings:[{warning_c:30,critical_c:33}],cartons:[{received:1000,consumed:780,balance:220}],receipts:[],alarms:[]});
 })();

@@ -215,9 +215,9 @@ final class SupabaseClient {
                     .put("role",membership.length()>0?membership.getJSONObject(0).getString("role"):"viewer")
                     .put("house_id",house)
                     .put("settings",new JSONArray(request("GET","/rest/v1/alarm_settings?select=house_id,warning_c,critical_c&house_id=eq."+house,null,null,accessToken)))
-                    .put("cartons",new JSONArray(request("GET","/rest/v1/carton_balance?select=received,consumed,balance&farm_id=eq."+farmId,null,null,accessToken)))
-                    .put("receipts",new JSONArray(request("GET","/rest/v1/carton_receipts?select=receipt_date,quantity,note&farm_id=eq."+farmId+"&order=created_at.desc&limit=20",null,null,accessToken)))
-                    .put("alarms",new JSONArray(request("GET","/rest/v1/alarm_events?select=id,code,severity,activated_at,resolved_at,acknowledged_at&farm_id=eq."+farmId+"&order=activated_at.desc&limit=100",null,null,accessToken)))
+                    .put("cartons",new JSONArray(request("GET","/rest/v1/carton_balance?select=received,consumed,balance,reference_date,shortfall&farm_id=eq."+farmId,null,null,accessToken)))
+                    .put("receipts",new JSONArray(request("GET","/rest/v1/carton_receipts?select=id,receipt_date,quantity,note&farm_id=eq."+farmId+"&order=created_at.desc&limit=100",null,null,accessToken)))
+                    .put("alarms",new JSONArray(request("GET","/rest/v1/alarm_events?select=id,code,severity,activated_at,resolved_at,acknowledged_at&farm_id=eq."+farmId+"&order=resolved_at.desc.nullsfirst,activated_at.desc&limit=100",null,null,accessToken)))
                     .toString();
             }
             case "edit":
@@ -233,6 +233,15 @@ final class SupabaseClient {
             case "ack":
                 rpc="acknowledge_alarm";
                 body=new JSONObject().put("target_event",input.getString("id"));
+                break;
+            case "receipt_edit":
+                rpc="edit_carton_receipt";
+                body.put("receipt_id",input.getString("id")).put("target_date",input.getString("date"))
+                    .put("carton_count",input.getInt("quantity")).put("receipt_note",input.optString("note"));
+                break;
+            case "receipt_delete":
+                rpc="delete_carton_receipt";
+                body.put("receipt_id",input.getString("id"));
                 break;
             case "thresholds":
                 rpc="configure_alarm_temperature";
