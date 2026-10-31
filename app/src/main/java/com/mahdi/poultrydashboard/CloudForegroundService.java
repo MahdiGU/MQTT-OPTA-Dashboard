@@ -442,16 +442,36 @@ public final class CloudForegroundService extends Service {
     }
 
     private void phase5Action(String action, String payload) {
+        if ("password_change".equals(action)) {
+            cloudExecutor.execute(() -> {
+                try {
+                    if(!signedIn||activeCredentials==null)throw new IllegalStateException("Cloud sign-in is required.");
+                    JSONObject input=new JSONObject(payload);
+                    String next=input.getString("password");
+                    supabaseClient.changePassword(input.getString("current"),next);
+                    activeCredentials=new CredentialStore.Credentials(activeCredentials.supabaseEmail,next);
+                    try {
+                        if(credentialStore.hasSavedCredentials())credentialStore.save(activeCredentials);
+                        broadcast("account_saved","password_change");
+                    } catch(Exception storageError) {
+                        credentialStore.clear();
+                        broadcast("account_saved","password_changed_unsaved");
+                    }
+                } catch(Exception error) {broadcast("account_error",friendlyError(error));}
+            });
+            return;
+        }
         if (!signedIn) { broadcast("phase5_error","Cloud sign-in is required."); return; }
         if("push_sync".equals(action)){syncPush();return;}
         cloudExecutor.execute(() -> {
             try {
                 String response=supabaseClient.phase5Action(action,new JSONObject(payload==null?"{}":payload));
+                if("email_test".equals(action)) { broadcast("email_status","Test accepted by Gmail — check your inbox and spam folder");return; }
                 if("push_test".equals(action)) { broadcast("push_status","Test accepted by Firebase — check the phone notification");return; }
                 if (!"refresh".equals(action)) broadcast("phase5_saved",action);
                 broadcast("phase5_data","refresh".equals(action)?response:supabaseClient.phase5Action("refresh",new JSONObject()));
                 if ("edit".equals(action)) { requestProductionHistory(); requestConfiguration(); }
-            } catch(Exception error) { broadcast("push_test".equals(action)?"push_status":"phase5_error",friendlyError(error)); }
+            } catch(Exception error) { broadcast("email_test".equals(action)?"email_status":"push_test".equals(action)?"push_status":"phase5_error",friendlyError(error)); }
         });
     }
 

@@ -40,6 +40,41 @@ final class SupabaseClient {
         loadFarm();
     }
 
+    void changePassword(String currentPassword, String newPassword) throws Exception {
+        validatePassword(newPassword);
+        // Verify the current password without replacing the monitoring session.
+        JSONObject verified = new JSONObject(request("POST", "/auth/v1/token?grant_type=password",
+            new JSONObject().put("email",email).put("password",currentPassword).toString(),null,null));
+        String temporaryToken=verified.getString("access_token");
+        try {
+            if(!userId.equals(verified.getJSONObject("user").getString("id")))
+                throw new IllegalStateException("Account verification failed.");
+            request("PUT","/auth/v1/user",new JSONObject().put("password",newPassword).toString(),null,temporaryToken);
+            password=newPassword;
+        } finally {
+            try { request("POST","/auth/v1/logout?scope=local",null,null,temporaryToken); } catch(Exception ignored) {}
+        }
+    }
+
+    void requestPasswordRecovery(String recoveryEmail) throws Exception {
+        request("POST","/functions/v1/account-recovery",new JSONObject().put("email",recoveryEmail).toString(),null,null);
+    }
+
+    void recoverPassword(String recoveryEmail, String code, String newPassword) throws Exception {
+        validatePassword(newPassword);
+        if(!code.matches("[0-9]{6,10}")) throw new IllegalArgumentException("Enter the code from the recovery email.");
+        JSONObject session=new JSONObject(request("POST","/auth/v1/verify",new JSONObject()
+            .put("email",recoveryEmail).put("token",code).put("type","recovery").toString(),null,null));
+        String token=session.getString("access_token");
+        try { request("PUT","/auth/v1/user",new JSONObject().put("password",newPassword).toString(),null,token); }
+        finally { try { request("POST","/auth/v1/logout?scope=local",null,null,token); } catch(Exception ignored) {} }
+    }
+
+    private static void validatePassword(String value) {
+        if(value==null||value.length()<12||value.length()>128)
+            throw new IllegalArgumentException("Use a password with 12 to 128 characters.");
+    }
+
     String readLatest() throws Exception {
         ensureSession();
         String path = "/rest/v1/device_latest?select=device_id,mqtt_status,received_at,captured_at,firmware_version,replay,buffer_pending,seq,up_s,rssi,volts,temp_c,sensor_fault,d0,d1,d2,d3,l0,l1,l2,l3,i2,i3,i4,i5,i6,i7,i8"
@@ -207,6 +242,8 @@ final class SupabaseClient {
         JSONObject body = new JSONObject().put("target_farm",farmId);
         String rpc;
         switch (action) {
+            case "email_test":
+                return request("POST","/functions/v1/dispatch-alarms",new JSONObject().put("action","test_email").toString(),null,accessToken);
             case "push_test":
                 return request("POST","/functions/v1/dispatch-alarms",new JSONObject().put("action","test").toString(),null,accessToken);
             case "refresh": {
@@ -351,7 +388,7 @@ final class SupabaseClient {
             String message = response;
             try {
                 JSONObject error = new JSONObject(response);
-                message = error.optString("msg", error.optString("message", error.optString("error_description", response)));
+                message = error.optString("msg", error.optString("message", error.optString("error_description", error.optString("error",response))));
             } catch (Exception ignored) {
                 // Keep the server response as the diagnostic message.
             }

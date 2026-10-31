@@ -7,6 +7,7 @@ globalThis.Deno={env:{get:key=>({SUPABASE_URL:'https://test.supabase.invalid',SU
 globalThis.fetch=async(url,options={})=>{
   url=String(url);const ok=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json'}});
   if(url.endsWith('/rpc/push_worker_config'))return ok({service_account:secret,worker_secret:'worker-test'});
+  if(url.endsWith('/rpc/gmail_worker_config'))return ok(null);
   if(url==='https://oauth2.googleapis.com/token'){
     const jwt=options.body.get('assertion'),[header,payload,signature]=jwt.split('.');
     assert(verify('RSA-SHA256',Buffer.from(header+'.'+payload),publicKey,Buffer.from(signature,'base64url')));

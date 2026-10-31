@@ -7,13 +7,20 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
   const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{})});
   try{
     const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
-    await page.addInitScript(()=>{window.testCalls=[];window.ElMajdNative={hasSavedLogin:()=>false,phase5Action:(a,p)=>testCalls.push([a,JSON.parse(p)]),requestCloudHistory:()=>{},publishProduction:p=>testCalls.push(['create',JSON.parse(p)])};});
+    await page.addInitScript(()=>{window.testCalls=[];window.ElMajdNative={hasSavedLogin:()=>false,recoverAccount:(a,p)=>testCalls.push([a,JSON.parse(p)]),phase5Action:(a,p)=>testCalls.push([a,JSON.parse(p)]),requestCloudHistory:()=>{},publishProduction:p=>testCalls.push(['create',JSON.parse(p)])};});
     await page.goto(`http://127.0.0.1:${server.address().port}/`);
     assert.equal(await page.locator('html').getAttribute('lang'),'fr');
     assert.match(await page.locator('[data-nav="overview"]').innerText(),/Accueil/);
     await page.evaluate(()=>I18n.set('en'));assert.match(await page.locator('[data-nav="overview"]').innerText(),/Overview/);
     await page.evaluate(()=>I18n.set('fr'));assert.equal(await page.locator('#commandAction').inputValue(),'ON');
     await page.evaluate(()=>{document.getElementById('commandAction').value='OFF';document.getElementById('commandAction').dispatchEvent(new Event('change'));});assert.equal(await page.locator('#commandPayload').inputValue(),'D0 OFF');
+    await page.click('#forgotPassword');await page.fill('#recoveryEmail','test@example.invalid');await page.click('#sendRecovery');
+    assert.equal(await page.evaluate(()=>testCalls.some(([a,p])=>a==='request'&&p.email==='test@example.invalid')),true);
+    await page.evaluate(()=>elMajdNativeEvent('account_saved','request'));assert.equal(await page.locator('#sendRecovery').isDisabled(),true);
+    await page.fill('#recoveryCode','123456');await page.fill('#recoveryPassword','ExamplePassword12!');await page.fill('#recoveryConfirm','ExamplePassword13!');await page.click('#resetPassword');
+    assert.match(await page.locator('#recoveryMessage').innerText(),/correspondent/);assert.equal(await page.evaluate(()=>testCalls.some(([a])=>a==='reset')),false);
+    await page.fill('#recoveryConfirm','ExamplePassword12!');await page.click('#resetPassword');assert.equal(await page.evaluate(()=>testCalls.some(([a,p])=>a==='reset'&&p.code==='123456')),true);
+    await page.evaluate(()=>elMajdNativeEvent('account_saved','reset'));assert.equal(await page.locator('#recoveryPassword').inputValue(),'');await page.click('#closeRecovery');
     const data={role:'manager',house_id:'test-house',settings:[{warning_c:30,critical_c:33}],cartons:[{received:100,consumed:20,balance:80,reference_date:'2026-10-20',shortfall:0}],receipts:[{id:'receipt1',receipt_date:'2026-10-20',quantity:100,note:'Opening reference'}],alarms:[{id:'test-alarm',code:'temperature_critical',severity:'critical',activated_at:new Date().toISOString(),resolved_at:null,acknowledged_at:null}]};
     await page.evaluate(data=>{showApp();elMajdNativeEvent('cloud_connection','online');elMajdNativeEvent('phase5_data',JSON.stringify(data));elMajdNativeEvent('production_history',JSON.stringify([{id:1,production_date:'2026-10-20',stock:1000,sortie:0,mortality:2,eggs:0,chicken_count:998,production_rate:0,cartons_used:0}]));},data);
     await page.evaluate(()=>elMajdNativeEvent('configuration','{"chicken_count":995}'));
@@ -30,6 +37,9 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
     if(process.env.UI_SCREENSHOT)await page.screenshot({path:process.env.UI_SCREENSHOT,fullPage:true});
     await page.click('#overviewCartons');assert.equal(await page.locator('[data-screen="configuration"]').isVisible(),true);
     assert.equal(await page.locator('[data-user-content]').first().textContent(),'Opening reference');
+    await page.fill('#currentPassword','OldPassword12!');await page.fill('#newPassword','NewPassword12!');await page.fill('#confirmPassword','NewPassword12!');await page.click('#changePassword');
+    assert.equal(await page.evaluate(()=>testCalls.some(([a,p])=>a==='password_change'&&p.current==='OldPassword12!')),true);
+    await page.evaluate(()=>elMajdNativeEvent('account_saved','password_change'));assert.equal(await page.locator('#newPassword').inputValue(),'');
     assert.equal(await page.locator('[data-receipt-delete]').isVisible(),false);
     await page.click('[data-receipt-edit="receipt1"]');await page.fill('#receiptQuantity','120');await page.click('#receiptSave');
     assert.equal(await page.evaluate(()=>testCalls.some(([a,p])=>a==='receipt_edit'&&p.id==='receipt1'&&p.quantity===120)),true);

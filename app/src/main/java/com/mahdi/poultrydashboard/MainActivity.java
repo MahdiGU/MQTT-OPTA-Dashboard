@@ -22,6 +22,7 @@ public final class MainActivity extends Activity {
     private static final int NOTIFICATION_PERMISSION_REQUEST = 33;
     private WebView dashboard;
     private boolean receiverRegistered;
+    private final java.util.concurrent.ExecutorService accountExecutor=java.util.concurrent.Executors.newSingleThreadExecutor();
 
     private final BroadcastReceiver cloudEvents = new BroadcastReceiver() {
         @Override
@@ -143,6 +144,19 @@ public final class MainActivity extends Activity {
     }
 
     private final class NativeBridge {
+        @JavascriptInterface
+        public void recoverAccount(String action,String payload) {
+            accountExecutor.execute(() -> {
+                try {
+                    JSONObject input=new JSONObject(payload);
+                    SupabaseClient recoveryClient=new SupabaseClient();
+                    if("request".equals(action))recoveryClient.requestPasswordRecovery(input.getString("email"));
+                    else if("reset".equals(action))recoveryClient.recoverPassword(input.getString("email"),input.getString("code"),input.getString("password"));
+                    else throw new IllegalArgumentException("Unknown recovery action.");
+                    sendEventToDashboard("account_saved",action);
+                } catch(Exception error) {sendEventToDashboard("account_error",error.getMessage());}
+            });
+        }
         @JavascriptInterface
         public void setLanguage(String language){getSharedPreferences("elmajd_settings",MODE_PRIVATE).edit().putString("language","en".equals(language)?"en":"fr").apply();}
         @JavascriptInterface

@@ -11,6 +11,7 @@ on:
       - Phase_5_Android_App
       - Phase_5_App_Refinements
       - Phase_3_FCM_Delivery
+      - French_Account_Gmail
   workflow_dispatch:
 
 permissions:
@@ -38,7 +39,7 @@ jobs:
         run: gradle --no-daemon :app:assembleDebug
 
       - name: Create named install package
-        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ElMajd-Automation-1.9.2.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ElMajd-Automation-1.10.0.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -46,6 +47,6 @@ jobs:
           name: ElMajd-Automation-debug-apk
           path: |
             app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/apk/debug/ElMajd-Automation-1.9.2.apk
+            app/build/outputs/apk/debug/ElMajd-Automation-1.10.0.apk
           if-no-files-found: error
           retention-days: 30
