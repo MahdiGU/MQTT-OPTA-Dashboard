@@ -1,7 +1,7 @@
 # Pilot Scope and Alarm Policy
 
 Decision record: ADR-P0-001  
-Status: Pilot temperature and delivery policy approved  
+Status: Pilot temperature and delivery policy approved
 Effective scope: one farm, one poultry house, one Arduino Opta controller, one owner/admin and one manager
 
 ## 1. Pilot scope
