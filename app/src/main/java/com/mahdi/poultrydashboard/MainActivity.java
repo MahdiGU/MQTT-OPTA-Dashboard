@@ -144,6 +144,8 @@ public final class MainActivity extends Activity {
 
     private final class NativeBridge {
         @JavascriptInterface
+        public void setLanguage(String language){getSharedPreferences("elmajd_settings",MODE_PRIVATE).edit().putString("language","en".equals(language)?"en":"fr").apply();}
+        @JavascriptInterface
         public void phase5Action(String action, String input) {
             Intent service = new Intent(MainActivity.this, CloudForegroundService.class)
                 .setAction(CloudForegroundService.ACTION_PHASE5)

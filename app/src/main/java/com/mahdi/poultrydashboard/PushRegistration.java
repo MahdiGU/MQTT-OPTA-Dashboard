@@ -29,7 +29,7 @@ final class PushRegistration {
             String token=task.getResult();prefs(context).edit().putString("token",token).apply();
             try{executor.execute(()->{
                 if(!active(context))return;
-                try{client.registerPush(installation(context),token,permitted(context));if(!active(context))return;prefs(context).edit().putBoolean("registered",true).putString("bound_user",client.pushUserId()).apply();status.accept(permitted(context)?"Registered — notifications enabled":"Registered — allow notifications in Android settings");}
+                try{client.registerPush(installation(context),token,permitted(context),LocalStrings.language(context));if(!active(context))return;prefs(context).edit().putBoolean("registered",true).putString("bound_user",client.pushUserId()).apply();status.accept(permitted(context)?"Registered — notifications enabled":"Registered — allow notifications in Android settings");}
                 catch(Exception error){prefs(context).edit().putBoolean("registered",false).apply();status.accept("Phone registration failed — sign in again or retry");}
             });}catch(java.util.concurrent.RejectedExecutionException ignored){/* Service has stopped. */}
         });
@@ -42,7 +42,7 @@ final class PushRegistration {
             try{
                 SupabaseClient client=new SupabaseClient();client.signIn(login.supabaseEmail,login.supabasePassword);
                 if(active(context)&&login.supabaseEmail.equals(new CredentialStore(context).savedSupabaseEmail())){
-                    client.registerPush(installation(context),token,permitted(context));
+                    client.registerPush(installation(context),token,permitted(context),LocalStrings.language(context));
                     if(active(context))prefs(context).edit().putString("bound_user",client.pushUserId()).apply();
                 }
             }catch(Exception ignored){/* Next signed-in reconciliation retries. */}

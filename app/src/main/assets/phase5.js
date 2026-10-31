@@ -64,7 +64,7 @@
     const following=state.rows.filter(r=>r.production_date>e.date.value).sort((a,b)=>a.production_date.localeCompare(b.production_date))[0];
     const base=editing?+editing.chicken_count+ +editing.mortality:following?+following.chicken_count+ +following.mortality:state.flock;
     const eggs=earlier?+e.stock.value+ +e.sortie.value- +earlier.stock:0,remaining=base===null?null:base- +e.mortality.value;
-    e.calc.textContent=`${eggs.toLocaleString()} eggs`;e.rate.textContent=remaining===null||eggs<0||eggs>remaining?'—':remaining?`${(eggs/remaining*100).toFixed(2)}%`:'0.00%';
+    e.calc.textContent=`${eggs.toLocaleString(I18n.locale())} eggs`;e.rate.textContent=remaining===null||eggs<0||eggs>remaining?'—':remaining?`${(eggs/remaining*100).toFixed(2)}%`:'0.00%';
     e.remaining.textContent=`Preview: ${remaining??'unknown'} chickens • ${Math.ceil(Math.max(0,eggs)*1.1/30)} cartons. Server validates all affected dates.`;
   };
   [e.stock,e.sortie,e.mortality].forEach(x=>x.oninput=preview);e.date.onchange=preview;
@@ -93,16 +93,16 @@
   function featureData(data){
     role=data.role;house=data.house_id;const cartons=data.cartons?.[0];referenceDay=cartons?.reference_date||null;
     $('cartonsReceived').textContent=cartons?.received??0;$('cartonsConsumed').textContent=cartons?.consumed??0;$('cartonsBalance').textContent=cartons?.balance??0;
-    $('overviewCartonCount').textContent=Number(cartons?.balance??0).toLocaleString();$('overviewCartons').classList.toggle('available',Number(cartons?.balance)>0);
+    $('overviewCartonCount').textContent=Number(cartons?.balance??0).toLocaleString(I18n.locale());$('overviewCartons').classList.toggle('available',Number(cartons?.balance)>0);
     $('overviewCartons').setAttribute('aria-label',`${cartons?.balance??0} cartons available. Open packaging inventory.`);
     $('packagingReference').textContent=referenceDay?`Opening reference: ${referenceDay}. Production consumption starts after this date; 30 eggs/carton with 10% allowance.`:'Add the first stock entry as the opening reference. Consumption starts on the following production day.';
     $('packagingShortfall').textContent=cartons?.shortfall>0?`${cartons.shortfall} cartons of recorded consumption were not covered by available stock. Available cartons remain at zero until a new delivery.`:'';
     receiptRows=data.receipts||[];
-    $('cartonReceipts').innerHTML=receiptRows.map(r=>`<article class="carton-entry"><strong>${escape(r.receipt_date)} · ${escape(r.quantity)} cartons</strong>${r.receipt_date===referenceDay?' · Opening reference':''}<p>${escape(r.note)}</p><div class="p5-actions"><button data-receipt-edit="${escape(r.id)}">Adjust</button><button data-receipt-delete="${escape(r.id)}">Delete</button></div></article>`).join('')||'<p>No carton entries yet.</p>';
+    $('cartonReceipts').innerHTML=receiptRows.map(r=>`<article class="carton-entry"><strong>${escape(r.receipt_date)} · ${escape(r.quantity)} cartons</strong>${r.receipt_date===referenceDay?' · Opening reference':''}<p data-user-content>${escape(r.note)}</p><div class="p5-actions"><button data-receipt-edit="${escape(r.id)}">Adjust</button><button data-receipt-delete="${escape(r.id)}">Delete</button></div></article>`).join('')||'<p>No carton entries yet.</p>';
     if(state.rows.length)renderRows(JSON.stringify(state.rows));
     const cfg=data.settings?.[0];if(cfg){warningC=+cfg.warning_c;criticalC=+cfg.critical_c;if(document.activeElement!==$('warningThreshold')&&document.activeElement!==$('criticalThreshold')){$('warningThreshold').value=cfg.warning_c;$('criticalThreshold').value=cfg.critical_c;}}
     const alarms=[...(data.alarms||[])].sort((a,b)=>Number(!!a.resolved_at)-Number(!!b.resolved_at));
-    $('alarmList').innerHTML=alarms.map(a=>`<article class="alarm-item ${escape(a.severity)}"><strong>${escape(a.code.replaceAll('_',' '))}</strong><small>${a.resolved_at?'Recovered':a.acknowledged_at?'Active · acknowledged':'Active · acknowledgement needed'} · ${escape(new Date(a.activated_at).toLocaleString())}</small>${!a.resolved_at&&!a.acknowledged_at?`<div class="p5-actions"><button data-ack="${escape(a.id)}">Acknowledge</button></div>`:''}</article>`).join('')||'<p>No server alarms recorded.</p>';
+    $('alarmList').innerHTML=alarms.map(a=>`<article class="alarm-item ${escape(a.severity)}"><strong>${escape(a.code.replaceAll('_',' '))}</strong><small>${a.resolved_at?'Recovered':a.acknowledged_at?'Active · acknowledged':'Active · acknowledgement needed'} · ${escape(new Date(a.activated_at).toLocaleString(I18n.locale()))}</small>${!a.resolved_at&&!a.acknowledged_at?`<div class="p5-actions"><button data-ack="${escape(a.id)}">Acknowledge</button></div>`:''}</article>`).join('')||'<p>No server alarms recorded.</p>';
     message(`Shared data synchronized • ${role}`);controls();
   }
   const originalEvent=window.elMajdNativeEvent;
@@ -117,10 +117,10 @@
     if(type==='production_history')controls();
     if(type==='push_status')$('pushStatus').textContent=data;
     if(type==='open_alarms')document.querySelector('[data-nav="alarms"]').click();
-    if(type==='configuration')$('overviewFlock').textContent=Number.isInteger(state.flock)?state.flock.toLocaleString():'Not configured';
+    if(type==='configuration')$('overviewFlock').textContent=Number.isInteger(state.flock)?state.flock.toLocaleString(I18n.locale()):'Not configured';
     if(type==='telemetry'){
       const p=JSON.parse(data),source=p.captured_at||p.received_at;
-      e.updated.textContent=`Measured: ${source?new Date(source).toLocaleString():'time unavailable'} • received: ${p.received_at?new Date(p.received_at).toLocaleTimeString():'—'}`;
+      e.updated.textContent=`Measured: ${source?new Date(source).toLocaleString(I18n.locale()):'time unavailable'} • received: ${p.received_at?new Date(p.received_at).toLocaleTimeString():'—'}`;
       if(p.i1?.temp_c===null||p.i1?.temp_c===undefined){e.temp.textContent=e.otemp.textContent='—';e.tempStatus.textContent=e.otempStatus.textContent='Temperature unavailable';}
       else {const t=+p.i1.temp_c;e.alert.textContent=`Temperature is at or above ${criticalC} °C`;e.alert.classList.toggle('show',t>=criticalC);e.tempStatus.textContent=e.otempStatus.textContent=t>=criticalC?'Critical temperature':t>=warningC?'Temperature warning':'Below warning threshold';}
       $('coolingPadDescription').textContent=p.inputs.I7===1?'Running — auxiliary contact confirmed':'Not running — auxiliary contact open';
@@ -137,7 +137,7 @@
     e.chartEmpty.classList.toggle('hidden',valid.length>0);if(!valid.length){e.chartEmpty.textContent='No valid measurements in the last 24 hours.';return;}
     const values=valid.map(r=>+r[sensor]),min=Math.min(...values),max=Math.max(...values),pad=Math.max((max-min)*.12,sensor==='temp'?.5:.1),low=min-pad,high=max+pad;
     const left=44,right=12,top=18,bottom=34,w=box.width-left-right,h=box.height-top-bottom,X=t=>left+(t-from)/86400000*w,Y=v=>top+h-(v-low)/(high-low)*h;
-    c.font='10px system-ui';for(let i=0;i<=4;i++){const y=top+h*i/4;c.strokeStyle='#dce8df';c.beginPath();c.moveTo(left,y);c.lineTo(left+w,y);c.stroke();c.fillStyle='#718179';c.fillText((high-(high-low)*i/4).toFixed(sensor==='temp'?1:2),0,y+3);c.fillText(new Date(from+(to-from)*i/4).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),Math.min(left+w-28,left+w*i/4),box.height-10);}
+    c.font='10px system-ui';for(let i=0;i<=4;i++){const y=top+h*i/4;c.strokeStyle='#dce8df';c.beginPath();c.moveTo(left,y);c.lineTo(left+w,y);c.stroke();c.fillStyle='#718179';c.fillText((high-(high-low)*i/4).toFixed(sensor==='temp'?1:2),0,y+3);c.fillText(new Date(from+(to-from)*i/4).toLocaleTimeString(I18n.locale(),{hour:'2-digit',minute:'2-digit'}),Math.min(left+w-28,left+w*i/4),box.height-10);}
     c.strokeStyle=sensor==='temp'?'#e99424':'#3388dc';c.lineWidth=2.5;c.beginPath();let prior=null;
     rows.forEach(row=>{if(row[sensor]===null||row[sensor]===undefined||!Number.isFinite(+row[sensor])){prior=null;return;}const x=X(row.t),y=Y(+row[sensor]);if(!prior||row.t-prior.t>450000)c.moveTo(x,y);else{if(sensor!=='temp')c.lineTo(x,Y(+prior[sensor]));c.lineTo(x,y);}prior=row;});c.stroke();
     c.fillStyle=c.strokeStyle;valid.forEach(r=>{c.beginPath();c.arc(X(r.t),Y(+r[sensor]),2,0,Math.PI*2);c.fill();});

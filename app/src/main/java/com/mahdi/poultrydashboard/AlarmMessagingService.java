@@ -20,7 +20,7 @@ public final class AlarmMessagingService extends FirebaseMessagingService {
         SharedPreferences seen=getSharedPreferences("elmajd_push_seen",MODE_PRIVATE);
         if(seen.contains(delivery))return;
         NotificationManager manager=getSystemService(NotificationManager.class);
-        manager.createNotificationChannel(new NotificationChannel("server_alarms","Farm server alarms",NotificationManager.IMPORTANCE_HIGH));
+        manager.createNotificationChannel(new NotificationChannel("server_alarms",LocalStrings.text(this,"Farm server alarms"),NotificationManager.IMPORTANCE_HIGH));
         PendingIntent open=PendingIntent.getActivity(this,0,new Intent(this,MainActivity.class)
             .putExtra("open_alarms",true).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
         Notification notification=new Notification.Builder(this,"server_alarms")

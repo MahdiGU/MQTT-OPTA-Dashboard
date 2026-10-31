@@ -532,18 +532,18 @@ public final class CloudForegroundService extends Service {
         NotificationManager manager = getSystemService(NotificationManager.class);
         NotificationChannel monitor = new NotificationChannel(
             MONITOR_CHANNEL,
-            "Cloud monitoring",
+            LocalStrings.text(this,"Cloud monitoring"),
             NotificationManager.IMPORTANCE_LOW
         );
-        monitor.setDescription("Keeps the Supabase dashboard synchronized in the background");
+        monitor.setDescription(LocalStrings.text(this,"Keeps the Supabase dashboard synchronized in the background"));
         manager.createNotificationChannel(monitor);
 
         NotificationChannel alert = new NotificationChannel(
             ALERT_CHANNEL,
-            "Temperature alerts",
+            LocalStrings.text(this,"Temperature alerts"),
             NotificationManager.IMPORTANCE_HIGH
         );
-        alert.setDescription("Local fallback alerts at the last synchronized critical threshold");
+        alert.setDescription(LocalStrings.text(this,"Local fallback alerts at the last synchronized critical threshold"));
         manager.createNotificationChannel(alert);
     }
 
@@ -559,13 +559,13 @@ public final class CloudForegroundService extends Service {
         );
         return new Notification.Builder(this, MONITOR_CHANNEL)
             .setSmallIcon(android.R.drawable.stat_notify_sync)
-            .setContentTitle("ElMajd cloud monitoring")
-            .setContentText(text)
+            .setContentTitle(LocalStrings.text(this,"ElMajd cloud monitoring"))
+            .setContentText(LocalStrings.text(this,text))
             .setContentIntent(contentIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setCategory(Notification.CATEGORY_SERVICE)
-            .addAction(new Notification.Action.Builder(null, "Stop monitoring", stopIntent).build())
+            .addAction(new Notification.Action.Builder(null, LocalStrings.text(this,"Stop monitoring"), stopIntent).build())
             .build();
     }
 
@@ -588,8 +588,8 @@ public final class CloudForegroundService extends Service {
         );
         Notification notification = new Notification.Builder(this, ALERT_CHANNEL)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
-            .setContentTitle("High poultry-house temperature")
-            .setContentText(String.format(Locale.getDefault(), "Temperature is %.1f C (limit: %.1f C)", temperature,statePreferences.getFloat("critical_temperature",33.0f)))
+            .setContentTitle(LocalStrings.text(this,"High poultry-house temperature"))
+            .setContentText(String.format(Locale.forLanguageTag(LocalStrings.language(this)),"fr".equals(LocalStrings.language(this))?"Température : %.1f °C (seuil : %.1f °C)":"Temperature is %.1f C (limit: %.1f C)", temperature,statePreferences.getFloat("critical_temperature",33.0f)))
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .setCategory(Notification.CATEGORY_ALARM)

@@ -255,10 +255,10 @@ final class SupabaseClient {
         return request("POST","/rest/v1/rpc/"+rpc,body.toString(),null,accessToken);
     }
 
-    void registerPush(String installation,String token,boolean enabled) throws Exception {
+    void registerPush(String installation,String token,boolean enabled,String language) throws Exception {
         ensureSession();
         request("POST","/rest/v1/rpc/register_push_device",new JSONObject().put("target_farm",farmId)
-            .put("installation",installation).put("device_token",token).put("notifications_enabled",enabled).toString(),null,accessToken);
+            .put("installation",installation).put("device_token",token).put("notifications_enabled",enabled).put("preferred_language",language).toString(),null,accessToken);
     }
     void unregisterPush(String installation) throws Exception {
         ensureSession();request("POST","/rest/v1/rpc/unregister_push_device",new JSONObject().put("installation",installation).toString(),null,accessToken);
