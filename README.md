@@ -20,6 +20,7 @@ MQTT monitoring and control dashboards for an Arduino Opta, with both browser an
 | `Phase_2_Cloud_Ingestion` | Cloud ingestion phase | Registers the pilot controller and topics, validates EMQX webhooks, stores raw replay-safe telemetry, protects current state from delayed frames and maintains five-minute aggregates. | Use for Phase 2 cloud and replay testing; not yet an accepted M2 release. |
 | `Phase_3_Alarm_Notifications` | Server alarm phase | Adds the approved alarm engine, fresh-device offline detection, event/audit history, acknowledgement, threshold configuration and delivery queue. | Backend deployed; Firebase/Gmail sending and client alarm center remain pending. See `docs/phase-3`. |
 | `Phase_4_Production_Packaging` | Production backend | Audited historical corrections, owner-only deletion, dependent flock/production recalculation, carton receipts and consumption. | Backend tests passed; business field acceptance remains open. See `docs/phase-4`. |
+| `Phase_5_Android_App` | Android 1.9.0 | Historical production edits, carton stock/receipts, shared alarm list/acknowledgement, thresholds, role-aware controls and 24-hour aggregate charts. | Pilot testing; FCM delivery and full French localization remain pending. See `docs/phase-5`. |
 
 ## Branch lineage
 

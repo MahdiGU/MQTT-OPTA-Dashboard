@@ -463,7 +463,7 @@ public final class CloudForegroundService extends Service {
     private void handleTemperatureAlert(double temperature) {
         long now = System.currentTimeMillis();
         long lastAlert = statePreferences.getLong("last_temperature_alert", 0L);
-        boolean isHot = temperature > 33.0;
+        boolean isHot = temperature >= statePreferences.getFloat("critical_temperature",33.0f);
         if (isHot && (!hot || now - lastAlert >= ALERT_COOLDOWN_MS)) {
             showTemperatureNotification(temperature);
             statePreferences.edit().putLong("last_temperature_alert", now).apply();
@@ -486,6 +486,13 @@ public final class CloudForegroundService extends Service {
     }
 
     private void broadcast(String type, String data) {
+        if ("phase5_data".equals(type)) {
+            try {
+                org.json.JSONArray settings=new JSONObject(data).optJSONArray("settings");
+                if(settings!=null && settings.length()>0) statePreferences.edit()
+                    .putFloat("critical_temperature",(float)settings.getJSONObject(0).getDouble("critical_c")).apply();
+            } catch(Exception ignored) { /* Keep last known fallback threshold. */ }
+        }
         if ("connection".equals(type)) {
             statePreferences.edit().putString("connection_state", data).apply();
         } else if ("cloud_connection".equals(type)) {
@@ -519,7 +526,7 @@ public final class CloudForegroundService extends Service {
             "Temperature alerts",
             NotificationManager.IMPORTANCE_HIGH
         );
-        alert.setDescription("Alerts when poultry-house temperature exceeds 33 C");
+        alert.setDescription("Local fallback alerts at the last synchronized critical threshold");
         manager.createNotificationChannel(alert);
     }
 
@@ -565,7 +572,7 @@ public final class CloudForegroundService extends Service {
         Notification notification = new Notification.Builder(this, ALERT_CHANNEL)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setContentTitle("High poultry-house temperature")
-            .setContentText(String.format(Locale.getDefault(), "Temperature is %.1f C (limit: 33 C)", temperature))
+            .setContentText(String.format(Locale.getDefault(), "Temperature is %.1f C (limit: %.1f C)", temperature,statePreferences.getFloat("critical_temperature",33.0f)))
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .setCategory(Notification.CATEGORY_ALARM)

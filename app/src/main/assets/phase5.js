@@ -3,7 +3,7 @@
   const businessDate = () => new Date(Date.now()+3600000).toISOString().slice(0,10);
   const escape = value => String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const uid = () => '10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(+c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>+c/4).toString(16));
-  let role='viewer', house='', editing=null, requestId=uid(), busy=false, productionBusy=false;
+  let role='viewer', house='', editing=null, requestId=uid(), busy=false, productionBusy=false, warningC=30, criticalC=33;
   const canEdit=()=>['owner','manager'].includes(role);
   const call=(action,input={})=>{if(native&&state.cloud)window.ElMajdNative.phase5Action(action,JSON.stringify(input));else message('Cloud sign-in is required.');};
   const message=text=>{$('phase5Message').textContent=text;};
@@ -72,7 +72,7 @@
     $('cartonsReceived').textContent=cartons?.received??0;$('cartonsConsumed').textContent=cartons?.consumed??0;$('cartonsBalance').textContent=cartons?.balance??0;
     $('cartonsBalance').classList.toggle('p5-shortage',Number(cartons?.balance)<0);
     $('cartonReceipts').innerHTML=(data.receipts||[]).map(r=>`<p>${escape(r.receipt_date)} · +${escape(r.quantity)} cartons · ${escape(r.note)}</p>`).join('')||'<p>No carton receipts yet.</p>';
-    const cfg=data.settings?.[0];if(cfg&&document.activeElement!==$('warningThreshold')&&document.activeElement!==$('criticalThreshold')){$('warningThreshold').value=cfg.warning_c;$('criticalThreshold').value=cfg.critical_c;}
+    const cfg=data.settings?.[0];if(cfg){warningC=+cfg.warning_c;criticalC=+cfg.critical_c;if(document.activeElement!==$('warningThreshold')&&document.activeElement!==$('criticalThreshold')){$('warningThreshold').value=cfg.warning_c;$('criticalThreshold').value=cfg.critical_c;}}
     const alarms=[...(data.alarms||[])].sort((a,b)=>Number(!!a.resolved_at)-Number(!!b.resolved_at));
     $('alarmList').innerHTML=alarms.map(a=>`<article class="alarm-item ${escape(a.severity)}"><strong>${escape(a.code.replaceAll('_',' '))}</strong><small>${a.resolved_at?'Recovered':a.acknowledged_at?'Active · acknowledged':'Active · acknowledgement needed'} · ${escape(new Date(a.activated_at).toLocaleString())}</small>${!a.resolved_at&&!a.acknowledged_at?`<div class="p5-actions"><button data-ack="${escape(a.id)}">Acknowledge</button></div>`:''}</article>`).join('')||'<p>No server alarms recorded.</p>';
     message(`Shared data synchronized • ${role}`);controls();
@@ -91,6 +91,7 @@
       const p=JSON.parse(data),source=p.captured_at||p.received_at;
       e.updated.textContent=`Measured: ${source?new Date(source).toLocaleString():'time unavailable'} • received: ${p.received_at?new Date(p.received_at).toLocaleTimeString():'—'}`;
       if(p.i1?.temp_c===null||p.i1?.temp_c===undefined){e.temp.textContent=e.otemp.textContent='—';e.tempStatus.textContent=e.otempStatus.textContent='Temperature unavailable';}
+      else {const t=+p.i1.temp_c;e.alert.textContent=`Temperature is at or above ${criticalC} °C`;e.alert.classList.toggle('show',t>=criticalC);e.tempStatus.textContent=e.otempStatus.textContent=t>=criticalC?'Critical temperature':t>=warningC?'Temperature warning':'Below warning threshold';}
       $('coolingPadDescription').textContent=p.inputs.I7===1?'Running — auxiliary contact confirmed':'Not running — auxiliary contact open';
     }
     controls();
@@ -116,6 +117,6 @@
     const monday=+today-((today.getUTCDay()+6)%7)*dayMs;
     return Array.from({length:8},(_,i)=>{const start=new Date(monday-(7-i)*7*dayMs).toISOString().slice(0,10),end=new Date(monday-(6-i)*7*dayMs).toISOString().slice(0,10),rows=state.rows.filter(r=>r.production_date>=start&&r.production_date<end);return{label:`Week of ${start}`,short:start.slice(5),rate:rows.length?rows.reduce((n,r)=>n+ +r.production_rate,0)/rows.length:null,m:rows.reduce((n,r)=>n+ +r.mortality,0)};});
   };
-  if(native){e.otemp.textContent=e.temp.textContent='—';e.updated.textContent='Waiting for a live measurement';controls();}
+  if(native){e.otemp.textContent=e.temp.textContent='—';e.updated.textContent='Waiting for a live measurement';document.querySelectorAll('.equipment').forEach(n=>{n.classList.remove('full');n.querySelector('.equipment-state').textContent='UNKNOWN';});document.querySelectorAll('.fan-card').forEach(n=>{n.classList.remove('on');n.querySelector('small').textContent='Unknown control state';});$('coolingPad').classList.remove('on');$('coolingPadState').textContent='UNKNOWN';$('coolingPadDescription').textContent='Waiting for auxiliary feedback';controls();}
   else if(location.search.includes('preview'))featureData({role:'owner',house_id:'preview',settings:[{warning_c:30,critical_c:33}],cartons:[{received:1000,consumed:780,balance:220}],receipts:[],alarms:[]});
 })();
