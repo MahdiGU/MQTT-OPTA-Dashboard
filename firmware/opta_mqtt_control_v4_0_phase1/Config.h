@@ -4,7 +4,7 @@
 
 namespace Config {
 
-constexpr char FIRMWARE_VERSION[] = "4.0.0-phase1";
+constexpr char FIRMWARE_VERSION[] = "4.0.1-phase2-ntpdiag";
 constexpr uint16_t TELEMETRY_SCHEMA = 2;
 
 // Public/scoped device identity. Adjust only when commissioning a different controller.
@@ -32,6 +32,7 @@ constexpr uint32_t MQTT_KEEPALIVE_S = 60;
 constexpr uint32_t NTP_RETRY_MS = 60000;
 constexpr uint32_t NTP_RESYNC_MS = 6UL * 60UL * 60UL * 1000UL;
 constexpr char NTP_SERVER[] = "pool.ntp.org";
+constexpr bool NTP_DIAGNOSTICS = true;
 
 // Ten minutes at the five-second sample interval. Oldest-first drop on overflow.
 constexpr size_t TELEMETRY_BUFFER_CAPACITY = 120;

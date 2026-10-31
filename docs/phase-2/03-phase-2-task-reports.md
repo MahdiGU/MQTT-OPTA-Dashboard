@@ -22,6 +22,10 @@ Added chart-ready five-minute source-time buckets derived from accepted raw hist
 
 Not complete. Registry `last_seen_at` is now maintained, providing the required source. A scheduled server-side evaluator and alarm event lifecycle still need implementation and timed validation.
 
+## Investigate missing device capture time
+
+Investigation started. Live raw telemetry proves the installed firmware sends a null capture time after multiple expected NTP attempts. Added clean UDP socket recovery, explicit DNS resolution and stage-specific serial diagnostics in firmware `4.0.1-phase2-ntpdiag`. The Opta build passes. Root-cause classification remains pending upload and serial evidence from the installed controller.
+
 ## Add alarm/audit persistence
 
 Not started in this slice. It depends on the approved Phase 0 alarm matrix and the authoritative freshness evaluator. Existing command audit behavior is preserved.

@@ -37,6 +37,10 @@ New metadata includes:
 - `farm_id`, `house_id`, `device_id`
 - `boot_id`
 - `captured_at` as Unix UTC seconds, or `null` before NTP synchronization
+
+## Phase 2 NTP diagnostic build
+
+Firmware `4.0.1-phase2-ntpdiag` resets the UDP socket after Wi-Fi loss or a failed initial bind and prints a concise diagnostic for socket creation, DNS resolution, packet transmission, timeout, reply validation and successful synchronization. This is an investigation build: upload it, open the serial monitor at 115200 baud and preserve the first `NTP:` lines.
 - `replay`
 - `buffer.pending` and `buffer.dropped`
 

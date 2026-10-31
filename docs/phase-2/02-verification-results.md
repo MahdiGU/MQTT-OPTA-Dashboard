@@ -38,3 +38,11 @@ Supabase reported no new RLS or ingestion-function security finding. The two exi
 4. Disconnect Wi-Fi long enough to queue multiple frames.
 5. Restore connectivity and verify oldest-first replay, unique history rows and no latest-state regression.
 6. Simulate a five-minute silence and verify the planned server-side offline evaluator.
+
+## NTP investigation started
+
+The latest identity-correct live frame was inspected in Supabase. It contained `captured_at: null` in the original `raw_payload` at device uptime 178 seconds, proving that the Edge Function did not discard a valid timestamp: the firmware had not acquired one.
+
+Firmware `4.0.1-phase2-ntpdiag` adds event-based serial diagnostics and fixes a plausible UDP lifecycle failure: the earlier implementation retained its UDP-started state across Wi-Fi loss and did not explicitly close a partially opened socket after a failed bind. The diagnostic build closes and recreates the socket, resolves the NTP hostname explicitly, and reports send, timeout, malformed response, invalid timestamp and synchronization outcomes. It compiles successfully for `arduino:mbed_opta:opta` using Arduino mbed Opta core 4.6.0.
+
+Field evidence is still required. Upload the diagnostic build and retain the first serial lines prefixed with `NTP:`.
