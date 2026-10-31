@@ -20,7 +20,7 @@ Implemented atomic initial push queue creation, policy-specific repeat slots, te
 
 ## Configure Firebase Cloud Messaging
 
-Pending. Owner confirmed no Firebase project exists. Project creation, Android registration, FCM credentials, token registration, send worker, retries and expired-token cleanup are required. No provider delivery is claimed by this implementation.
+Project and Android registration complete. The owner supplied Firebase project ID `elmajd-automation`; CLI access succeeded, the existing Android package was registered, and `app/google-services.json` was fetched and checked against the project/package identity. FCM SDK integration, protected sender credentials, phone token registration, send worker, retries and expired-token cleanup remain required. No provider delivery is claimed by this implementation.
 
 ## Configure Gmail fallback
 

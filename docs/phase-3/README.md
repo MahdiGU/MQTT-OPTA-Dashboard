@@ -21,7 +21,7 @@ The existing Android version is unchanged. It does not yet display these server 
 
 ## Next dependencies
 
-The owner confirmed that no Firebase project exists yet. Create the project, register the Android package and configure protected FCM sender credentials. Authorize the approved Gmail mailbox through a secure Google OAuth flow. Neither ordinary mailbox passwords nor private keys should be committed or pasted into task comments.
+Firebase project `elmajd-automation` now exists and access through the requested owner account is verified. Android package `com.mahdi.poultrydashboard` is registered and its SDK configuration is saved in `app/google-services.json`. See [Firebase registration](04-firebase-registration.md). FCM SDK integration, phone token registration, protected sender credentials and delivery remain pending. Authorize the approved Gmail mailbox through a secure Google OAuth flow. Neither ordinary mailbox passwords nor private keys should be committed or pasted into task comments.
 
 Only an owner membership currently exists in the pilot farm. Add the manager's authenticated account to the farm before testing delivery to both users.
 
