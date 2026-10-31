@@ -43,4 +43,10 @@ Google External apps left in Testing normally issue refresh tokens that expire a
 - Security advisor: the private throttle table deliberately has no client RLS policies; no direct client access is granted. Existing role-checked SECURITY DEFINER application RPC warnings remain intentional. Leaked-password screening is not enabled in the project and is not added by this change.
 - Pending: actual Gmail OAuth grant/import, actual recovery-email and fallback inbox acceptance, and installation/phone acceptance of 1.10.0. Device background/force-stop limitations from 1.9.2 still apply.
 
+## Build and handover
+
+GitHub Actions build [41231110422](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/actions/runs/41231110422) succeeded for source commit `e086dbe`. The named APK is `ElMajd-Automation-1.10.0.apk`, 5,992,397 bytes, SHA-256 `86f7a0f7d1c35bfef2ca2b878d360ab33fb0bf6e6c9a5e84a40b82cdbce6a7ef`. Packaged `index.html`, `i18n.js`, `phase5.js` and `account.js` match the tested sources byte for byte. Local handover: `artifacts/french-1.10.0-build/` (ignored by Git).
+
+ClickUp search is available but task comments/status updates were rejected by its daily MCP limit (100/100). Reports for localization, FCM phone acceptance and Gmail integration are retained here for later task synchronization. No ClickUp update is claimed.
+
 Sources: [Supabase custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp), [Supabase email templates](https://supabase.com/docs/guides/auth/auth-email-templates), [Google OAuth offline access and token expiry](https://developers.google.com/identity/protocols/oauth2), [Gmail scopes](https://developers.google.com/workspace/gmail/api/auth/scopes).
