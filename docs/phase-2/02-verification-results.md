@@ -46,3 +46,7 @@ The latest identity-correct live frame was inspected in Supabase. It contained `
 Firmware `4.0.1-phase2-ntpdiag` adds event-based serial diagnostics and fixes a plausible UDP lifecycle failure: the earlier implementation retained its UDP-started state across Wi-Fi loss and did not explicitly close a partially opened socket after a failed bind. The diagnostic build closes and recreates the socket, resolves the NTP hostname explicitly, and reports send, timeout, malformed response, invalid timestamp and synchronization outcomes. It compiles successfully for `arduino:mbed_opta:opta` using Arduino mbed Opta core 4.6.0.
 
 Field evidence is still required. Upload the diagnostic build and retain the first serial lines prefixed with `NTP:`.
+
+### Root cause confirmed from field log
+
+The controller successfully opened UDP, resolved `pool.ntp.org`, and then reported a send failure. Review of Arduino mbed Opta core 4.6.0 confirmed that `MbedUDP::endPacket()` returns the transmitted byte count on success. The 48-byte NTP request therefore returned `48`, but firmware `4.0.1-phase2-ntpdiag` incorrectly accepted only return value `1`. Firmware `4.0.2-phase2-ntpfix` treats any positive result as success and proceeds to receive the reply. Final synchronization and non-null cloud `captured_at` remain to be verified after upload.

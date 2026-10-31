@@ -4,7 +4,7 @@
 
 namespace Config {
 
-constexpr char FIRMWARE_VERSION[] = "4.0.1-phase2-ntpdiag";
+constexpr char FIRMWARE_VERSION[] = "4.0.2-phase2-ntpfix";
 constexpr uint16_t TELEMETRY_SCHEMA = 2;
 
 // Public/scoped device identity. Adjust only when commissioning a different controller.

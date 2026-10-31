@@ -40,7 +40,7 @@ New metadata includes:
 
 ## Phase 2 NTP diagnostic build
 
-Firmware `4.0.1-phase2-ntpdiag` resets the UDP socket after Wi-Fi loss or a failed initial bind and prints a concise diagnostic for socket creation, DNS resolution, packet transmission, timeout, reply validation and successful synchronization. This is an investigation build: upload it, open the serial monitor at 115200 baud and preserve the first `NTP:` lines.
+Firmware `4.0.2-phase2-ntpfix` resets the UDP socket after Wi-Fi loss or a failed initial bind and prints a concise diagnostic for socket creation, DNS resolution, packet transmission, timeout, reply validation and successful synchronization. It also handles the Opta/Mbed `endPacket()` contract correctly: success returns the transmitted byte count rather than necessarily returning `1`.
 - `replay`
 - `buffer.pending` and `buffer.dropped`
 

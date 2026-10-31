@@ -105,7 +105,10 @@ void TimeSync::sendRequest() {
     return;
   }
   udp_.write(packet, sizeof(packet));
-  if (udp_.endPacket() != 1) {
+  // Arduino's Opta/Mbed UDP implementation returns the transmitted byte
+  // count on success (48 here), while some Arduino UDP implementations
+  // return 1. Only a non-positive result indicates failure.
+  if (udp_.endPacket() <= 0) {
     if (Config::NTP_DIAGNOSTICS && Serial) {
       Serial.println("NTP: UDP send failed; retry in 60 s");
     }

@@ -24,7 +24,7 @@ Not complete. Registry `last_seen_at` is now maintained, providing the required 
 
 ## Investigate missing device capture time
 
-Investigation started. Live raw telemetry proves the installed firmware sends a null capture time after multiple expected NTP attempts. Added clean UDP socket recovery, explicit DNS resolution and stage-specific serial diagnostics in firmware `4.0.1-phase2-ntpdiag`. The Opta build passes. Root-cause classification remains pending upload and serial evidence from the installed controller.
+Root cause confirmed. Live raw telemetry proved the firmware sent a null capture time, and the diagnostic field log showed successful DNS followed by a false UDP-send failure. Arduino mbed Opta core 4.6.0 returns the transmitted byte count from `MbedUDP::endPacket()`; the firmware incorrectly required exactly `1`. Firmware `4.0.2-phase2-ntpfix` now accepts every positive send result, preserves the socket recovery and diagnostics, and awaits the NTP reply. Final installed-device/cloud verification remains pending.
 
 ## Add alarm/audit persistence
 
