@@ -168,7 +168,9 @@ final class SupabaseRealtimeClient {
                 JSONObject config = new JSONObject()
                     .put("broadcast", new JSONObject().put("ack", false).put("self", false))
                     .put("presence", new JSONObject().put("enabled", false).put("key", ""))
-                    .put("postgres_changes", new JSONArray().put(change).put(productionChange))
+                    .put("postgres_changes", new JSONArray().put(change).put(productionChange)
+                        .put(new JSONObject().put("event","*").put("schema","public").put("table","alarm_events").put("filter","farm_id=eq."+farmId))
+                        .put(new JSONObject().put("event","*").put("schema","public").put("table","carton_receipts").put("filter","farm_id=eq."+farmId)))
                     .put("private", false);
                 JSONObject payload = new JSONObject()
                     .put("config", config)
@@ -210,7 +212,7 @@ final class SupabaseRealtimeClient {
                     JSONObject data = payload.optJSONObject("data");
                     String table = data == null ? "" : data.optString("table");
                     JSONObject record = data == null ? null : data.optJSONObject("record");
-                    if ("daily_production".equals(table)) {
+                    if ("daily_production".equals(table) || "alarm_events".equals(table) || "carton_receipts".equals(table)) {
                         listener.onProductionChanged();
                     } else if (record != null) {
                         listener.onRecord(record);

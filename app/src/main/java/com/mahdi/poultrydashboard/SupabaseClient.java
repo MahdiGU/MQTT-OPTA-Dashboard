@@ -42,7 +42,7 @@ final class SupabaseClient {
 
     String readLatest() throws Exception {
         ensureSession();
-        String path = "/rest/v1/device_latest?select=device_id,mqtt_status,received_at,seq,up_s,rssi,volts,temp_c,sensor_fault,d0,d1,d2,d3,l0,l1,l2,l3,i2,i3,i4,i5,i6,i7,i8"
+        String path = "/rest/v1/device_latest?select=device_id,mqtt_status,received_at,captured_at,firmware_version,replay,buffer_pending,seq,up_s,rssi,volts,temp_c,sensor_fault,d0,d1,d2,d3,l0,l1,l2,l3,i2,i3,i4,i5,i6,i7,i8"
             + "&farm_id=eq." + farmId + "&order=received_at.desc&limit=1";
         JSONArray rows = new JSONArray(request("GET", path, null, null, accessToken));
         if (rows.length() == 0) return "{}";
@@ -59,6 +59,9 @@ final class SupabaseClient {
             .put("device_id", row.optString("device_id", "arduino-opta"))
             .put("mqtt_status", row.optString("mqtt_status", "unknown"))
             .put("received_at", row.optString("received_at", ""))
+            .put("captured_at", row.opt("captured_at"))
+            .put("firmware", row.opt("firmware_version"))
+            .put("replay", row.optBoolean("replay"))
             .put("seq", row.optLong("seq"))
             .put("up_s", row.optLong("up_s"))
             .put("rssi", row.optInt("rssi"))
@@ -73,8 +76,8 @@ final class SupabaseClient {
                 .put("L2", bit(row, "l2"))
                 .put("L3", bit(row, "l3")))
             .put("i1", new JSONObject()
-                .put("volts", row.optDouble("volts"))
-                .put("temp_c", row.optDouble("temp_c"))
+                .put("volts", row.opt("volts"))
+                .put("temp_c", row.opt("temp_c"))
                 .put("fault", bit(row, "sensor_fault")))
             .put("inputs", new JSONObject()
                 .put("I2", bit(row, "i2"))
@@ -165,34 +168,80 @@ final class SupabaseClient {
     String readHistory(long sinceMs) throws Exception {
         ensureSession();
         String since = URLEncoder.encode(Instant.ofEpochMilli(sinceMs).toString(), StandardCharsets.UTF_8);
-        String path = "/rest/v1/telemetry?select=recorded_at,temp_c,i2,i3,i4,i5,i6,i7"
-            + "&farm_id=eq." + farmId + "&recorded_at=gte." + since + "&order=recorded_at.asc";
+        String path = "/rest/v1/telemetry_five_minute?select=bucket_start,temp_last,i2_last,i3_last,i4_last,i5_last,i6_last,i7_last"
+            + "&farm_id=eq." + farmId + "&bucket_start=gte." + since + "&order=bucket_start.asc&limit=1000";
         JSONArray rows = new JSONArray(request("GET", path, null, null, accessToken));
         JSONArray result = new JSONArray();
         for (int index = 0; index < rows.length(); index++) {
             JSONObject row = rows.getJSONObject(index);
             result.put(new JSONObject()
-                .put("t", Instant.parse(row.getString("recorded_at")).toEpochMilli())
-                .put("temp", row.optDouble("temp_c"))
-                .put("I2", row.optBoolean("i2") ? 1 : 0)
-                .put("I3", row.optBoolean("i3") ? 1 : 0)
-                .put("I4", row.optBoolean("i4") ? 1 : 0)
-                .put("I5", row.optBoolean("i5") ? 1 : 0)
-                .put("I6", row.optBoolean("i6") ? 1 : 0)
-                .put("I7", row.optBoolean("i7") ? 1 : 0));
+                .put("t", Instant.parse(row.getString("bucket_start")).toEpochMilli())
+                .put("temp", row.opt("temp_last"))
+                .put("I2", historyBit(row,"i2_last"))
+                .put("I3", historyBit(row,"i3_last"))
+                .put("I4", historyBit(row,"i4_last"))
+                .put("I5", historyBit(row,"i5_last"))
+                .put("I6", historyBit(row,"i6_last"))
+                .put("I7", historyBit(row,"i7_last")));
         }
         return result.toString();
     }
 
     String readProduction(int limit) throws Exception {
         ensureSession();
-        String path = "/rest/v1/daily_production?select=id,production_date,stock,sortie,eggs,mortality,production_rate,chicken_count,updated_at"
+        String path = "/rest/v1/daily_production?select=id,production_date,stock,sortie,eggs,mortality,production_rate,chicken_count,cartons_used,updated_at"
             + "&farm_id=eq." + farmId + "&order=production_date.desc&limit=" + limit;
         return request("GET", path, null, null, accessToken);
     }
 
     private static int bit(JSONObject row, String key) {
         return row.optBoolean(key, false) ? 1 : 0;
+    }
+
+    private static Object historyBit(JSONObject row, String key) {
+        return row.isNull(key) ? JSONObject.NULL : (row.optBoolean(key) ? 1 : 0);
+    }
+
+    String phase5Action(String action, JSONObject input) throws Exception {
+        ensureSession();
+        JSONObject body = new JSONObject().put("target_farm",farmId);
+        String rpc;
+        switch (action) {
+            case "refresh": {
+                JSONArray membership = new JSONArray(request("GET","/rest/v1/farm_members?select=role&farm_id=eq."+farmId+"&user_id=eq."+userId,null,null,accessToken));
+                JSONArray houses = new JSONArray(request("GET","/rest/v1/poultry_houses?select=id&farm_id=eq."+farmId+"&order=slug&limit=1",null,null,accessToken));
+                String house = houses.length()>0 ? houses.getJSONObject(0).getString("id") : "";
+                return new JSONObject()
+                    .put("role",membership.length()>0?membership.getJSONObject(0).getString("role"):"viewer")
+                    .put("house_id",house)
+                    .put("settings",new JSONArray(request("GET","/rest/v1/alarm_settings?select=house_id,warning_c,critical_c&house_id=eq."+house,null,null,accessToken)))
+                    .put("cartons",new JSONArray(request("GET","/rest/v1/carton_balance?select=received,consumed,balance&farm_id=eq."+farmId,null,null,accessToken)))
+                    .put("receipts",new JSONArray(request("GET","/rest/v1/carton_receipts?select=receipt_date,quantity,note&farm_id=eq."+farmId+"&order=created_at.desc&limit=20",null,null,accessToken)))
+                    .put("alarms",new JSONArray(request("GET","/rest/v1/alarm_events?select=id,code,severity,activated_at,resolved_at,acknowledged_at&farm_id=eq."+farmId+"&order=activated_at.desc&limit=100",null,null,accessToken)))
+                    .toString();
+            }
+            case "edit":
+                rpc="edit_daily_production";
+                body.put("production_id",input.getLong("id")).put("stock_count",input.getInt("stock"))
+                    .put("sortie_count",input.getInt("sortie")).put("mortality_count",input.getInt("mortality"));
+                break;
+            case "receipt":
+                rpc="record_carton_receipt";
+                body.put("target_date",input.getString("date")).put("carton_count",input.getInt("quantity"))
+                    .put("receipt_note",input.optString("note")).put("request_key",input.getString("request_id"));
+                break;
+            case "ack":
+                rpc="acknowledge_alarm";
+                body=new JSONObject().put("target_event",input.getString("id"));
+                break;
+            case "thresholds":
+                rpc="configure_alarm_temperature";
+                body=new JSONObject().put("target_house",input.getString("house_id"))
+                    .put("warning",input.getDouble("warning")).put("critical",input.getDouble("critical"));
+                break;
+            default: throw new IllegalArgumentException("Unknown application operation.");
+        }
+        return request("POST","/rest/v1/rpc/"+rpc,body.toString(),null,accessToken);
     }
 
     static final class RealtimeSession {

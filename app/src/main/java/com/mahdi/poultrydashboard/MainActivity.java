@@ -140,6 +140,14 @@ public final class MainActivity extends Activity {
 
     private final class NativeBridge {
         @JavascriptInterface
+        public void phase5Action(String action, String input) {
+            Intent service = new Intent(MainActivity.this, CloudForegroundService.class)
+                .setAction(CloudForegroundService.ACTION_PHASE5)
+                .putExtra("operation",action).putExtra(CloudForegroundService.EXTRA_PAYLOAD,input);
+            startService(service);
+        }
+
+        @JavascriptInterface
         public boolean hasSavedLogin() {
             return new CredentialStore(MainActivity.this).hasSavedCredentials();
         }

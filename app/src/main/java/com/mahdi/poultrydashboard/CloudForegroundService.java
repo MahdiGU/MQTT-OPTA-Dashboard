@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 
 public final class CloudForegroundService extends Service {
     static final String ACTION_START = "com.mahdi.poultrydashboard.START_CLOUD_MONITORING";
+    static final String ACTION_PHASE5 = "com.mahdi.poultrydashboard.PHASE5";
     static final String ACTION_STOP = "com.mahdi.poultrydashboard.STOP_CLOUD_MONITORING";
     static final String ACTION_PUBLISH = "com.mahdi.poultrydashboard.PUBLISH_COMMAND";
     static final String ACTION_PUBLISH_PRODUCTION = "com.mahdi.poultrydashboard.PUBLISH_PRODUCTION";
@@ -127,6 +128,10 @@ public final class CloudForegroundService extends Service {
         if (ACTION_STOP.equals(action)) {
             stopMonitoring();
             return START_NOT_STICKY;
+        }
+        if (ACTION_PHASE5.equals(action)) {
+            phase5Action(intent.getStringExtra("operation"),intent.getStringExtra(EXTRA_PAYLOAD));
+            return stickyMode();
         }
         if (ACTION_PUBLISH.equals(action)) {
             publish(intent == null ? null : intent.getStringExtra(EXTRA_PAYLOAD));
@@ -248,6 +253,7 @@ public final class CloudForegroundService extends Service {
                 handleLatest(supabaseClient.readLatest());
                 broadcast("production_history", supabaseClient.readProduction(90));
                 broadcast("configuration", supabaseClient.readConfiguration());
+                broadcast("phase5_data",supabaseClient.phase5Action("refresh",new JSONObject()));
                 SupabaseClient.RealtimeSession session = supabaseClient.realtimeSession();
                 realtimeClient.updateAccessToken(session.accessToken);
             } catch (Exception error) {
@@ -297,6 +303,7 @@ public final class CloudForegroundService extends Service {
         if (!stopping && signedIn) {
             requestProductionHistory();
             requestConfiguration();
+            phase5Action("refresh","{}");
         }
     };
 
@@ -306,7 +313,8 @@ public final class CloudForegroundService extends Service {
             broadcast("device_status", "No telemetry");
             return;
         }
-        String receivedAt = payload.optString("received_at", "");
+        String receivedAt = payload.optString("captured_at", "");
+        if (receivedAt.isEmpty() || "null".equals(receivedAt)) receivedAt=payload.optString("received_at", "");
         long ageMs = receivedAt.isEmpty()
             ? Long.MAX_VALUE
             : Math.max(0L, System.currentTimeMillis() - Instant.parse(receivedAt).toEpochMilli());
@@ -411,7 +419,7 @@ public final class CloudForegroundService extends Service {
         if (!signedIn) return;
         cloudExecutor.execute(() -> {
             try {
-                broadcast("history", supabaseClient.readHistory(System.currentTimeMillis() - 43_200_000L));
+                broadcast("history", supabaseClient.readHistory(System.currentTimeMillis() - 86_400_000L));
             } catch (Exception error) {
                 broadcast("history_error", friendlyError(error));
             }
@@ -426,6 +434,18 @@ public final class CloudForegroundService extends Service {
             } catch (Exception error) {
                 broadcast("production_history_error", friendlyError(error));
             }
+        });
+    }
+
+    private void phase5Action(String action, String payload) {
+        if (!signedIn) { broadcast("phase5_error","Cloud sign-in is required."); return; }
+        cloudExecutor.execute(() -> {
+            try {
+                String response=supabaseClient.phase5Action(action,new JSONObject(payload==null?"{}":payload));
+                if (!"refresh".equals(action)) broadcast("phase5_saved",action);
+                broadcast("phase5_data","refresh".equals(action)?response:supabaseClient.phase5Action("refresh",new JSONObject()));
+                if ("edit".equals(action)) { requestProductionHistory(); requestConfiguration(); }
+            } catch(Exception error) { broadcast("phase5_error",friendlyError(error)); }
         });
     }
 
