@@ -3,15 +3,15 @@
 Branch: `Phase_3_Alarm_Notifications`  
 Base: `Phase_2_Cloud_Ingestion`, commit `1242030`  
 Started: 2026-10-31  
-Status: alarm engine deployed; notification delivery and application integration pending
+Status: alarm engine and FCM worker deployed; Android 1.9.2 ready for phone validation; Gmail authorization/delivery pending
 
 ## Implemented
 
 Server-side temperature warning/critical, sensor fault, cistern/silo low, cooling-unavailable and controller-offline alarms follow the approved Phase 0 defaults. Fresh telemetry advances duration/sample state. Recovery, acknowledgement, recurrence, configuration changes and evidence are stored in Supabase.
 
-Push intentions are queued at activation; reminders and ten-minute critical email fallback are queued by a scheduled database job. No Firebase or Gmail send worker is connected yet. `pending` delivery records are intentions, not evidence that a phone or mailbox received a notification.
+Push intentions are queued at activation; reminders and ten-minute critical email fallback are queued by a scheduled database job. The Firebase worker is now deployed and scheduled every minute, with per-phone retries and delivery records. Gmail sending remains pending. `sent` push records mean FCM accepted the message, not proof of user receipt.
 
-The existing Android version is unchanged. It does not yet display these server alarm events or register an FCM token. Its existing local notifications remain separate from the new server engine.
+Android 1.9.1 added the server alarm center; Android 1.9.2 adds phone registration, token rotation, foreground/background handling and a self-test button. The local immediate temperature fallback is suppressed after phone registration succeeds and notification permission is enabled, allowing the approved duration-based server policy to take over.
 
 ## Documents
 
@@ -21,8 +21,8 @@ The existing Android version is unchanged. It does not yet display these server 
 
 ## Next dependencies
 
-Firebase project `elmajd-automation` now exists and access through the requested owner account is verified. Android package `com.mahdi.poultrydashboard` is registered and its SDK configuration is saved in `app/google-services.json`. See [Firebase registration](04-firebase-registration.md). FCM SDK integration, phone token registration, protected sender credentials and delivery remain pending. Authorize the approved Gmail mailbox through a secure Google OAuth flow. Neither ordinary mailbox passwords nor private keys should be committed or pasted into task comments.
+Firebase project `elmajd-automation` is configured. Android package `com.mahdi.poultrydashboard` is registered; protected server credentials are in Vault. See [FCM delivery implementation](05-fcm-delivery.md). Install 1.9.2 and validate a real phone notification. Authorize the approved Gmail mailbox through a secure Google OAuth flow. Neither ordinary mailbox passwords nor private keys should be committed or pasted into task comments.
 
-Only an owner membership currently exists in the pilot farm. Add the manager's authenticated account to the farm before testing delivery to both users.
+Owner and manager memberships are present. The manager membership was restored after the owner recreated that account; both users can register their own phones.
 
-Milestone M3 remains open until the Android alarm center, token registration, sender/retry worker, provider delivery evidence and closed-app phone tests pass.
+Milestone M3 remains open for real-phone delivery, closed-app/permission/sign-out tests and Gmail fallback evidence.

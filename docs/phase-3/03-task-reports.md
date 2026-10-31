@@ -20,7 +20,7 @@ Implemented atomic initial push queue creation, policy-specific repeat slots, te
 
 ## Configure Firebase Cloud Messaging
 
-Project and Android registration complete. The owner supplied Firebase project ID `elmajd-automation`; CLI access succeeded, the existing Android package was registered, and `app/google-services.json` was fetched and checked against the project/package identity. FCM SDK integration, protected sender credentials, phone token registration, send worker, retries and expired-token cleanup remain required. No provider delivery is claimed by this implementation.
+FCM implementation deployed on `Phase_3_FCM_Delivery`. Android 1.9.2 includes the SDK, token registration/rotation, permissions/status, native messaging and self-test. A scoped service account in Vault authorizes the scheduled worker. Leases, per-phone outcomes, retries, token invalidation and recipient/acknowledgement rechecks pass transactional/unit tests. Real scheduled worker calls return HTTP 200. No phone was registered at verification time, so actual provider-to-phone acceptance remains open. See `05-fcm-delivery.md`.
 
 ## Configure Gmail fallback
 
@@ -28,11 +28,11 @@ Pending. Gmail API OAuth authorization for the approved mailbox and secure serve
 
 ## Integrate alarm center and end-to-end tests
 
-Pending Android/web alarm list, acknowledgement controls, threshold screen and Realtime subscriptions. Follow with physical alarm scenarios and closed-app delivery tests for both users.
+Android alarm list, acknowledgement, threshold screen and Realtime subscriptions are implemented in Phase 5. Android 1.9.2 adds FCM handling. Physical alarm scenarios, closed-app delivery, notification permissions/sign-out and two-phone tests remain pending. Web parity remains a later phase.
 
 ## MILESTONE M3 - Alarm delivery accepted
 
-Not achieved. The backend alarm lifecycle is deployed and tested. Provider connection, app integration and actual delivery evidence remain required.
+Not achieved. Alarm lifecycle, FCM provider setup, worker and Android integration are deployed/built. Real phone delivery evidence and Gmail fallback remain required.
 
 ## ClickUp synchronization
 
