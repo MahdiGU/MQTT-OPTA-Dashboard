@@ -65,6 +65,8 @@ The repository's existing public pilot/debug keystore is not a production signin
 
 ## Required owner/manager acceptance
 
+Use the [1.11.0 pilot acceptance sheet](pilot-acceptance-1.11.0.md) to record phone, account, calculation and delivery results. All unexecuted scenarios are explicitly marked pending.
+
 1. Upgrade using the named 1.11.0 test APK; verify saved sign-in, live data and shared changes on both phones.
 2. Exercise approved dated flock/production/carton cases, including invalid historical corrections and manager-denied deletion; verify stored values and rates.
 3. Verify a controlled critical-condition notification while the app is closed/phone locked, acknowledgement cancellation, sign-out suppression and permission-denied behavior. Force-stop restrictions still apply.

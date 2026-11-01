@@ -129,7 +129,7 @@
       "url": "https://app.clickup.com/t/1ampw4tn0w4",
       "status_intent": "in_progress",
       "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nM5 remains open for owner/manager installation and UAT, TalkBack/background/restart tests and production signing handover. New 1.11.0 build is being verified.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nM5 remains open for owner/manager installation and UAT, TalkBack/background/restart tests and production signing handover. Android 1.11.0 (23) passed debug/unsigned-release compilation and pilot signer checks in Actions run 41288156791; packaged web assets match tested source b95007e. Use the named ElMajd-Automation-1.11.0.apk.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
     },
     {
       "task_id": "1ampw4tn0w3",
@@ -241,7 +241,7 @@
       "url": "https://app.clickup.com/t/1ampw4tn0ve",
       "status_intent": "in_progress",
       "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nM3 remains open for controlled critical-condition push delivery with app closed, actual inbox confirmation and two-phone/permission/sign-out acceptance; provider acceptance is distinguished from human receipt.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nOwner confirmed FCM self-test arrival and controlled Gmail fallback receipt in spam. Production-mode Gmail consent/credential replacement is complete. M3 remains open for controlled critical-condition push with app closed, normal inbox placement and two-phone/permission/sign-out acceptance; provider acceptance is distinguished from human receipt.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
     },
     {
       "task_id": "1ampw4tn0vc",
@@ -257,7 +257,7 @@
       "url": "https://app.clickup.com/t/1ampw4tn0vb",
       "status_intent": "complete",
       "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nGmail sender authorized and installed in Vault. Real scheduled email queue delivered one clearly labelled controlled TEST to the owner; provider acceptance/audit verified and fixture removed. Owner confirmed receipt in spam. Sender acceptance/normal inbox placement and Production-grant replacement remain operational follow-ups; Test-mode grants expire after seven days.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nGmail sender authorized in Vault. Real scheduled worker delivered a clearly labelled controlled TEST to the owner; provider acceptance/audit verified, fixture removed, and owner confirmed receipt in spam. Approved sender/privacy/terms pages are live; Google OAuth shows En production. Fresh consent after publication was sender/scope verified, provider-tested and installed, replacing the Test-mode grant. Temporary setup endpoint/RPC and local refresh-credential copy retired. Google verification is separate and incomplete; normal inbox placement remains an acceptance item.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
     },
     {
       "task_id": "1ampw4tn0va",
