@@ -76,12 +76,6 @@ public final class MainActivity extends Activity {
 
     private static boolean isDashboardUrl(String url){return "file:///android_asset/index.html".equals(url);}
 
-    @Override protected void onDestroy(){
-        accountExecutor.shutdown();
-        if(dashboard!=null){dashboard.removeJavascriptInterface("ElMajdNative");dashboard.destroy();dashboard=null;}
-        super.onDestroy();
-    }
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -298,7 +292,8 @@ public final class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        dashboard.destroy();
+        accountExecutor.shutdown();
+        if(dashboard!=null){dashboard.removeJavascriptInterface("ElMajdNative");dashboard.destroy();dashboard=null;}
         super.onDestroy();
     }
 }

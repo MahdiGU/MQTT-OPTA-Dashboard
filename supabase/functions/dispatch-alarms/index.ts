@@ -67,7 +67,7 @@ Deno.serve(async(request)=>{
       }
       await rpc('finish_push_delivery',{delivery:job.id,lease:job.lease_id,results});processed++;
     }
-    }catch{pushError=true;console.error('PUSH_BATCH_UNAVAILABLE');}
+    }catch(error){pushError=true;console.error('PUSH_BATCH_UNAVAILABLE',error instanceof Error?error.message:'unknown stage');}
     // Independent path: Gmail still runs if Firebase is temporarily unavailable.
     try {
       const gmail=await rpc('gmail_worker_config');
@@ -78,14 +78,16 @@ Deno.serve(async(request)=>{
           if(Date.now()-startedAt>42000)result={status:'retry',error_code:'WORKER_BUDGET'};
           else if(!await rpc('email_target_authorized',{delivery:job.id,lease:job.lease_id,recipient_email:job.email}))result={status:'failed',error_code:'TARGET_REVOKED'};
           else {
-            const fr=job.language!=='en',time=new Date(job.activated_at).toLocaleString(fr?'fr-FR':'en-GB',{timeZone:'Etc/GMT-1'});
-            result=await sendGmail(gmail,job.email,fr?'ElMAJD — Alarme non acquittée':'ElMAJD — Unacknowledged alarm',
-              `${alarmText(job.code,fr?'fr':'en')}\n\n${fr?'Détectée le':'Detected'} ${time} (GMT+1).\n${fr?'Cette alarme est toujours active et non acquittée après 10 minutes. Ouvrez l’onglet Alarmes dans l’application, vérifiez la situation et acquittez l’alarme.':'This alarm is still active and unacknowledged after 10 minutes. Open the Alarms tab in the app, check the situation and acknowledge the alarm.'}\n\n${fr?'Référence':'Reference'}: ${job.event_id}`,job.id);
+            const fr=job.language!=='en',test=job.code==='delivery_test',time=new Date(job.activated_at).toLocaleString(fr?'fr-FR':'en-GB',{timeZone:'Etc/GMT-1'});
+            const instructions=test?(fr?'Essai contrôlé de la file et du secours Gmail. Aucune action sur les équipements n’est requise.':'Controlled queue and Gmail fallback test. No equipment action is required.'):
+              (fr?'Cette alarme est toujours active et non acquittée après 10 minutes. Ouvrez l’onglet Alarmes dans l’application, vérifiez la situation et acquittez l’alarme.':'This alarm is still active and unacknowledged after 10 minutes. Open the Alarms tab in the app, check the situation and acknowledge the alarm.');
+            result=await sendGmail(gmail,job.email,test?'ElMAJD — TEST du secours Gmail':fr?'ElMAJD — Alarme non acquittée':'ElMAJD — Unacknowledged alarm',
+              `${alarmText(job.code,fr?'fr':'en')}\n\n${fr?'Détectée le':'Detected'} ${time} (GMT+1).\n${instructions}\n\n${fr?'Référence':'Reference'}: ${job.event_id}`,job.id);
           }
           await rpc('finish_email_delivery',{delivery:job.id,lease:job.lease_id,result});emailProcessed++;
         }
       }
-    }catch{emailError=true;console.error('EMAIL_BATCH_UNAVAILABLE');}
+    }catch(error){emailError=true;console.error('EMAIL_BATCH_UNAVAILABLE',error instanceof Error?error.message:'unknown stage');}
     return jsonResponse({processed,email_processed:emailProcessed,push_error:pushError,email_error:emailError},pushError||emailError?503:200);
   }catch(error){console.error(error instanceof Error?error.message:'Push dispatch error');return jsonResponse({error:'Push delivery is temporarily unavailable'},503);}
 });
