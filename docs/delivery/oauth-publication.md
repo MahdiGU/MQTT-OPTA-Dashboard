@@ -24,6 +24,8 @@ Publication is not Google verification. Gmail send access is sensitive, and Goog
 
 The initially authorized Gmail credential is in Supabase Vault and has passed provider/worker tests. It was issued while OAuth was in Test. A fresh grant is requested after Production publication so the earlier Test-mode expiry is not relied upon. Keep the working credential until the fresh grant is verified; update the named Vault secret only through a short-lived, authenticated administrative transfer, disable/drop that transfer afterward, and delete the helper's local credential copy.
 
-At this report revision the fresh consent is pending; do not claim the old credential has been replaced. Normal revocation/provider-security rules can still require reauthorization after Production publishing.
+The owner completed fresh consent after reviewing Google's unverified-app warning. The helper verified the sender and Gmail send scope. A provider test with the new offline grant passed, and the existing Vault credential was replaced successfully. The temporary rotation endpoint was disabled, the service-only rotation RPC dropped, and the local credential copy deleted. Existing delivery stayed configured during the transition. Normal revocation/provider-security rules can still require reauthorization after Production publishing.
+
+The first rotation wrapper attempted `SELECT ... FOR UPDATE` on `vault.secrets`, which the database correctly denied. Rotation was corrected to use the supported `vault.update_secret` function without requesting direct table-update privileges. A rolled-back dummy-credential test verified that path before the actual replacement. No extra Vault table grants were added.
 
 References: [Google audience](https://support.google.com/cloud/answer/15549945), [Google personal-use exception](https://support.google.com/cloud/answer/13464323), [Google OAuth policies](https://developers.google.com/identity/protocols/oauth2/policies).

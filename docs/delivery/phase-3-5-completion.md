@@ -8,7 +8,7 @@ This report supersedes outdated pending-work statements in the earlier phase sna
 
 | Phase | Implemented and verified | Remaining acceptance |
 |---|---|---|
-| 3 — Alarms | Alarm lifecycle/thresholds/audit, minute scheduling, FCM phone registration/delivery, localized notifications, acknowledged/recovered history, Gmail OAuth sender, ten-minute email fallback, retries and delivery audit; approved public sender pages and OAuth Production publishing | Controlled critical-condition push with app closed; two-phone/permission/sign-out/OEM tests; fresh Production-mode grant and normal inbox placement |
+| 3 — Alarms | Alarm lifecycle/thresholds/audit, minute scheduling, FCM phone registration/delivery, localized notifications, acknowledged/recovered history, Gmail OAuth sender, ten-minute email fallback, retries and delivery audit; approved public sender pages, OAuth Production publishing and fresh credential replacement | Controlled critical-condition push with app closed; two-phone/permission/sign-out/OEM tests and normal inbox placement |
 | 4 — Production | Formula/mortality/rate rules, audited edits and owner-only deletion, carton receipts/opening-reference/zero-floor/shortfall, role matrix, dated flock movements and historical recalculation | Owner validation against actual production/packaging records and shared-phone workflow |
 | 5 — Android | Six tabs, French/English, account/password management, live/history views, 24-hour charts, daily/weekly performance, historical paging, server previews, configuration and release-signing support | Install/upgrade 1.11.0, TalkBack/large-text/device/background UAT, production signing-key handover |
 
@@ -24,7 +24,7 @@ An initial worker HTTP 503 was followed by successful scheduled processing. Prov
 
 The app's Connection page reads safe channel-readiness metadata from a member-authorized RPC; it does not read Vault. **Gmail configured** means a server credential is installed, not a guarantee that every future message reaches an inbox. A self-test targets only the authenticated user's confirmed address.
 
-Operational follow-up: mark the approved sender as safe / the test as not junk in the receiving mailbox. The owner approved the sender information/privacy/terms pages and OAuth Production switch. The pages are live at https://elmajd-automation.web.app, their branding URLs/domain are saved, and Google now shows **En production**. A fresh authorization is being requested after the switch to replace the earlier Test-mode grant. Google verification is separate and has not been completed; the owner must review Google's unverified-app consent warning personally. See [OAuth publication record](oauth-publication.md).
+Operational follow-up: mark the approved sender as safe / the test as not junk in the receiving mailbox. The owner approved the sender information/privacy/terms pages and OAuth Production switch. The pages are live at https://elmajd-automation.web.app, their branding URLs/domain are saved, and Google now shows **En production**. Fresh consent after that switch was verified, provider-tested and installed in Vault, replacing the earlier Test-mode grant. Google verification is separate and has not been completed; the owner reviewed the unverified-app warning personally. See [OAuth publication record](oauth-publication.md).
 
 Recovery email now uses the authorized Gmail adapter, avoiding Supabase's default SMTP recipient restrictions and localhost recovery links. Supabase's single-use code verification and password update were already tested with a disposable account; the owner's in-app recovery/remembered-login UAT remains pending.
 
@@ -69,7 +69,7 @@ The repository's existing public pilot/debug keystore is not a production signin
 2. Exercise approved dated flock/production/carton cases, including invalid historical corrections and manager-denied deletion; verify stored values and rates.
 3. Verify a controlled critical-condition notification while the app is closed/phone locked, acknowledgement cancellation, sign-out suppression and permission-denied behavior. Force-stop restrictions still apply.
 4. Test the password-change/recovery screens with an owner-chosen password and verify remembered reconnect behavior.
-5. Complete TalkBack/large-text/device chart checks, normal Gmail inbox acceptance and the Production-mode credential replacement, and hand over the private production signing key before closing M5.
+5. Complete TalkBack/large-text/device chart checks and normal Gmail inbox acceptance, and hand over the private production signing key before closing M5. The Production-mode credential replacement is complete.
 
 ## ClickUp synchronization
 
