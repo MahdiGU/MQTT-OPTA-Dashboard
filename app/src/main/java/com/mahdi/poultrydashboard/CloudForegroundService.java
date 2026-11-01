@@ -466,12 +466,18 @@ public final class CloudForegroundService extends Service {
         cloudExecutor.execute(() -> {
             try {
                 String response=supabaseClient.phase5Action(action,new JSONObject(payload==null?"{}":payload));
+                if("production_page".equals(action)||"production_preview".equals(action)){broadcast(action,response);return;}
                 if("email_test".equals(action)) { broadcast("email_status","Test accepted by Gmail — check your inbox and spam folder");return; }
                 if("push_test".equals(action)) { broadcast("push_status","Test accepted by Firebase — check the phone notification");return; }
                 if (!"refresh".equals(action)) broadcast("phase5_saved",action);
                 broadcast("phase5_data","refresh".equals(action)?response:supabaseClient.phase5Action("refresh",new JSONObject()));
-                if ("edit".equals(action)) { requestProductionHistory(); requestConfiguration(); }
-            } catch(Exception error) { broadcast("email_test".equals(action)?"email_status":"push_test".equals(action)?"push_status":"phase5_error",friendlyError(error)); }
+                if ("edit".equals(action)||"flock_adjust".equals(action)) { requestProductionHistory(); requestConfiguration(); }
+            } catch(Exception error) {
+                if("production_page".equals(action)||"production_preview".equals(action)){
+                    try {broadcast(action+"_error",new JSONObject().put("request_id",new JSONObject(payload).optString("request_id")).put("message",friendlyError(error)).toString());}
+                    catch(Exception ignored){broadcast("phase5_error",friendlyError(error));}
+                }else broadcast("email_test".equals(action)?"email_status":"push_test".equals(action)?"push_status":"phase5_error",friendlyError(error));
+            }
         });
     }
 

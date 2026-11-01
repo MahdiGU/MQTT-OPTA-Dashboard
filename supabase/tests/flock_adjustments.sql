@@ -1,0 +1,42 @@
+begin;
+do $$
+declare f uuid;u uuid;request_key uuid:=gen_random_uuid();preview jsonb;count_before integer;entries_before bigint;
+begin
+  select farm_id,user_id into f,u from public.farm_members where role='owner' limit 1;
+  perform set_config('request.jwt.claim.sub',u::text,true);
+  delete from public.daily_production where farm_id=f;delete from public.flock_adjustments where farm_id=f;
+  update public.flock_settings set chicken_count=1000 where farm_id=f;
+  perform public.record_daily_production(f,current_date-20,1000,0,2);
+  perform public.record_flock_adjustment(f,current_date-15,1198,'received','Delivery',request_key);
+  perform public.record_daily_production(f,current_date-10,1500,0,3);
+  preview:=public.preview_daily_production(f,current_date-18,1200,0,1);
+  if (preview->>'remaining_flock')::integer is distinct from 997 or not (preview->>'valid')::boolean then raise exception 'Preview includes future incoming flock: %',preview;end if;
+  perform public.record_daily_production(f,current_date-18,1200,0,1);
+  if not exists(select 1 from public.daily_production where farm_id=f and production_date=current_date-18 and chicken_count=997) then raise exception 'Historical insertion includes future incoming birds';end if;
+  perform public.record_flock_adjustment(f,current_date-17,1144,'transfer_out','Moved to another house',gen_random_uuid());
+  preview:=public.preview_daily_production(f,current_date-16,1300,0,1);
+  if (preview->>'remaining_flock')::integer is distinct from 946 or not (preview->>'valid')::boolean then raise exception 'Preview between dated movements incorrect: %',preview;end if;
+  perform public.record_daily_production(f,current_date-16,1300,0,1);
+  if not exists(select 1 from public.daily_production where farm_id=f and production_date=current_date-16 and chicken_count=946) then raise exception 'Historical movement denominator incorrect';end if;
+  select chicken_count into count_before from public.flock_settings where farm_id=f;
+  select count(*) into entries_before from public.flock_adjustments where farm_id=f;
+  perform public.record_flock_adjustment(f,current_date-15,1198,'received','Delivery',request_key);
+  if (select chicken_count from public.flock_settings where farm_id=f)<>count_before or (select count(*) from public.flock_adjustments where farm_id=f)<>entries_before then raise exception 'Movement retry changed count';end if;
+  begin
+    perform public.record_flock_adjustment(f,current_date-20,0,'correction','Invalid reduction',gen_random_uuid());raise exception 'Invalid reduction accepted';
+  exception when raise_exception then if sqlerrm='Invalid reduction accepted' then raise;end if;end;
+  if (select chicken_count from public.flock_settings where farm_id=f)<>count_before or (select count(*) from public.flock_adjustments where farm_id=f)<>entries_before then raise exception 'Invalid movement not atomic';end if;
+  update public.farm_members set role='manager' where farm_id=f and user_id=u;
+  perform public.record_flock_adjustment(f,current_date,count_before+10,'correction','Recount',gen_random_uuid());
+  update public.farm_members set role='viewer' where farm_id=f and user_id=u;
+  begin perform public.record_flock_adjustment(f,current_date,100,'correction','Denied',gen_random_uuid());raise exception 'Viewer movement allowed';exception when insufficient_privilege then null;end;
+  perform set_config('request.jwt.claim.sub',gen_random_uuid()::text,true);
+  begin perform public.record_flock_adjustment(f,current_date,100,'correction','Denied',gen_random_uuid());raise exception 'Cross-farm movement allowed';exception when insufficient_privilege then null;end;
+  perform set_config('request.jwt.claim.sub',u::text,true);update public.farm_members set role='owner' where farm_id=f and user_id=u;
+  delete from public.daily_production where farm_id=f;delete from public.flock_adjustments where farm_id=f;delete from public.flock_settings where farm_id=f;
+  perform public.record_flock_adjustment(f,current_date-20,500,'initial','Initial placement',gen_random_uuid());
+  preview:=public.preview_daily_production(f,current_date-21,0,0,0);
+  if preview->>'error' is distinct from 'flock_not_started' then raise exception 'Pre-placement preview accepted';end if;
+  if has_table_privilege('authenticated','public.flock_settings','UPDATE') then raise exception 'Direct flock ledger bypass remains';end if;
+end $$;
+rollback;

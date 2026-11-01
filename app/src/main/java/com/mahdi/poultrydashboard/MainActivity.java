@@ -15,6 +15,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebResourceRequest;
 
 import org.json.JSONObject;
 
@@ -44,16 +45,21 @@ public final class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
-        settings.setAllowFileAccess(true);
+        settings.setAllowFileAccess(false);
+        settings.setAllowFileAccessFromFileURLs(false);
+        settings.setAllowUniversalAccessFromFileURLs(false);
+        settings.setBlockNetworkLoads(true);
         settings.setAllowContentAccess(false);
         settings.setMediaPlaybackRequiresUserGesture(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
 
         dashboard.setWebViewClient(new WebViewClient() {
+            @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest request){return !isDashboardUrl(request.getUrl().toString());}
+            @Override public boolean shouldOverrideUrlLoading(WebView view,String url){return !isDashboardUrl(url);}
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                dispatchCurrentState();
+                if(isDashboardUrl(url))dispatchCurrentState();
             }
         });
         dashboard.setWebChromeClient(new WebChromeClient());
@@ -64,7 +70,16 @@ public final class MainActivity extends Activity {
             dashboard.loadUrl("file:///android_asset/index.html");
         } else {
             dashboard.restoreState(savedInstanceState);
+            if(!isDashboardUrl(dashboard.getUrl()))dashboard.loadUrl("file:///android_asset/index.html");
         }
+    }
+
+    private static boolean isDashboardUrl(String url){return "file:///android_asset/index.html".equals(url);}
+
+    @Override protected void onDestroy(){
+        accountExecutor.shutdown();
+        if(dashboard!=null){dashboard.removeJavascriptInterface("ElMajdNative");dashboard.destroy();dashboard=null;}
+        super.onDestroy();
     }
 
     @Override
@@ -137,10 +152,11 @@ public final class MainActivity extends Activity {
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);dispatchCurrentState();}
 
     private void sendEventToDashboard(String type, String data) {
-        if (dashboard == null || type == null) return;
+        final WebView view=dashboard;
+        if (view == null || type == null) return;
         String script = "window.elMajdNativeEvent&&window.elMajdNativeEvent("
             + JSONObject.quote(type) + "," + JSONObject.quote(data == null ? "" : data) + ")";
-        dashboard.post(() -> dashboard.evaluateJavascript(script, null));
+        view.post(() -> {if(dashboard==view)view.evaluateJavascript(script, null);});
     }
 
     private final class NativeBridge {

@@ -6,9 +6,13 @@ if(path.resolve(outputFile).startsWith(path.resolve(__dirname,'..')+path.sep))th
 const client=JSON.parse(fs.readFileSync(clientFile,'utf8')).installed;
 if(!client?.client_id||!client?.client_secret)throw Error('A Desktop app OAuth client JSON is required.');
 const verifier=crypto.randomBytes(48).toString('base64url'),state=crypto.randomBytes(32).toString('base64url');
-let redirect,handling=false;
+let redirect,authorizeUrl,handling=false;
 const server=http.createServer(async(req,res)=>{
   const url=new URL(req.url,'http://127.0.0.1');
+  if(url.pathname==='/'&&req.method==='GET'){
+    res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});
+    res.end('<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>ElMAJD — Autorisation Gmail</title><body style="font:18px system-ui;max-width:650px;margin:60px auto;padding:24px"><h1>ElMAJD Automation</h1><p>Autorisez le compte <strong>elmajdautomation@gmail.com</strong>.</p><p>Dans l’écran Google, cochez <strong>Envoyer des e-mails en votre nom</strong>, puis continuez.</p><p><a style="display:inline-block;padding:16px;background:#08785c;color:white;border-radius:12px" href="'+authorizeUrl.replaceAll('&','&amp;')+'">Autoriser Gmail</a></p><p>Utilisez Brave sur cet ordinateur pour que Google puisse revenir à cette page locale.</p></body></html>');return;
+  }
   if(url.pathname!=='/oauth2/callback'||url.searchParams.get('state')!==state){res.writeHead(400);res.end('Invalid OAuth callback.');return;}
   if(handling){res.writeHead(409);res.end('Authorization is already processing.');return;}
   handling=true;
@@ -36,10 +40,13 @@ const server=http.createServer(async(req,res)=>{
     console.error(error.message);server.close();clearTimeout(expiry);process.exitCode=1;
   }
 });
-server.listen(0,'127.0.0.1',()=>{
+server.on('error',error=>{console.error(error.code==='EADDRINUSE'?'Local authorization port is already in use. Stop the previous helper or choose ELMAJD_OAUTH_PORT.':'Local authorization helper could not start.');clearTimeout(expiry);process.exitCode=1;});
+server.listen(Number(process.env.ELMAJD_OAUTH_PORT||8765),'127.0.0.1',()=>{
   redirect=`http://127.0.0.1:${server.address().port}/oauth2/callback`;
   const params=new URLSearchParams({client_id:client.client_id,redirect_uri:redirect,response_type:'code',access_type:'offline',prompt:'consent',
     scope:'openid email https://www.googleapis.com/auth/gmail.send',login_hint:'elmajdautomation@gmail.com',state,code_challenge:crypto.createHash('sha256').update(verifier).digest('base64url'),code_challenge_method:'S256'});
-  console.log('AUTHORIZE_URL: https://accounts.google.com/o/oauth2/v2/auth?'+params);
+  authorizeUrl='https://accounts.google.com/o/oauth2/v2/auth?'+params;
+  console.log('LOCAL_SETUP_URL: http://127.0.0.1:'+server.address().port+'/');
+  console.log('AUTHORIZE_URL: '+authorizeUrl);
 });
-const expiry=setTimeout(()=>{console.error('Authorization timed out. Run the helper again.');server.close();process.exitCode=1;},15*60*1000);
+const expiry=setTimeout(()=>{console.error('Authorization timed out. Run the helper again.');server.close();process.exitCode=1;},30*60*1000);

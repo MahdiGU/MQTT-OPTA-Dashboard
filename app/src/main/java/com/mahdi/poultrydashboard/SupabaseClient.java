@@ -149,9 +149,9 @@ final class SupabaseClient {
             new JSONObject()
                 .put("target_farm", farmId)
                 .put("target_date", input.getString("date"))
-                .put("stock_count", input.getInt("stock"))
-                .put("sortie_count", input.getInt("sortie"))
-                .put("mortality_count", input.getInt("mortality"))
+                .put("stock_count", wholeNumber(input,"stock"))
+                .put("sortie_count", wholeNumber(input,"sortie"))
+                .put("mortality_count", wholeNumber(input,"mortality"))
                 .toString(),
             null,
             accessToken
@@ -174,15 +174,15 @@ final class SupabaseClient {
 
     void saveConfiguration(int chickenCount) throws Exception {
         ensureSession();
-        JSONObject configuration = new JSONObject()
-            .put("farm_id", farmId)
-            .put("chicken_count", chickenCount)
-            .put("updated_by", userId);
+        JSONObject configuration = new JSONObject().put("target_farm",farmId)
+            .put("target_date",java.time.LocalDate.now(java.time.ZoneOffset.ofHours(1)).toString())
+            .put("target_count",chickenCount).put("adjustment_category",new JSONObject(readConfiguration()).has("chicken_count")?"correction":"initial")
+            .put("adjustment_note","Count entered through the native configuration action.").put("request_key",java.util.UUID.randomUUID().toString());
         request(
             "POST",
-            "/rest/v1/flock_settings?on_conflict=farm_id",
+            "/rest/v1/rpc/record_flock_adjustment",
             configuration.toString(),
-            "resolution=merge-duplicates,return=minimal",
+            null,
             accessToken
         );
     }
@@ -229,6 +229,27 @@ final class SupabaseClient {
         return request("GET", path, null, null, accessToken);
     }
 
+    private String readProductionPage(JSONObject input) throws Exception {
+        String before=input.optString("before","");
+        if(!before.isEmpty())java.time.LocalDate.parse(before);
+        String path="/rest/v1/daily_production?select=id,production_date,stock,sortie,eggs,mortality,production_rate,chicken_count,cartons_used,updated_at"
+            +"&farm_id=eq."+farmId+"&order=production_date.desc&limit=31";
+        if(!before.isEmpty())path+="&production_date=lt."+URLEncoder.encode(before,StandardCharsets.UTF_8);
+        JSONArray fetched=new JSONArray(request("GET",path,null,null,accessToken)),rows=new JSONArray();
+        for(int i=0;i<Math.min(30,fetched.length());i++)rows.put(fetched.get(i));
+        return new JSONObject().put("rows",rows).put("has_more",fetched.length()>30)
+            .put("request_id",input.optString("request_id")).toString();
+    }
+
+    private static int wholeNumber(JSONObject input,String name) throws Exception {
+        Object raw=input.get(name);
+        if(!(raw instanceof Number))throw new IllegalArgumentException("Enter valid whole numbers between 0 and 2147483647.");
+        try {
+            int value=new java.math.BigDecimal(raw.toString()).intValueExact();
+            if(value<0)throw new ArithmeticException();return value;
+        } catch(ArithmeticException error) {throw new IllegalArgumentException("Enter valid whole numbers between 0 and 2147483647.");}
+    }
+
     private static int bit(JSONObject row, String key) {
         return row.optBoolean(key, false) ? 1 : 0;
     }
@@ -242,6 +263,20 @@ final class SupabaseClient {
         JSONObject body = new JSONObject().put("target_farm",farmId);
         String rpc;
         switch (action) {
+            case "flock_adjust":
+                rpc="record_flock_adjustment";
+                body.put("target_date",input.getString("date")).put("target_count",wholeNumber(input,"count"))
+                    .put("adjustment_category",input.getString("category")).put("adjustment_note",input.optString("note"))
+                    .put("request_key",input.getString("request_id"));
+                break;
+            case "production_page": return readProductionPage(input);
+            case "production_preview": {
+                body.put("target_date",input.getString("date")).put("stock_count",wholeNumber(input,"stock"))
+                    .put("sortie_count",wholeNumber(input,"sortie")).put("mortality_count",wholeNumber(input,"mortality"))
+                    .put("production_id",input.has("id")?input.getLong("id"):JSONObject.NULL);
+                JSONObject result=new JSONObject(request("POST","/rest/v1/rpc/preview_daily_production",body.toString(),null,accessToken));
+                return result.put("request_id",input.optString("request_id")).toString();
+            }
             case "email_test":
                 return request("POST","/functions/v1/dispatch-alarms",new JSONObject().put("action","test_email").toString(),null,accessToken);
             case "push_test":
@@ -251,6 +286,8 @@ final class SupabaseClient {
                 JSONArray houses = new JSONArray(request("GET","/rest/v1/poultry_houses?select=id&farm_id=eq."+farmId+"&order=slug&limit=1",null,null,accessToken));
                 String house = houses.length()>0 ? houses.getJSONObject(0).getString("id") : "";
                 return new JSONObject()
+                    .put("channels",new JSONObject(request("POST","/rest/v1/rpc/notification_channels_status",body.toString(),null,accessToken)))
+                    .put("flock_adjustments",new JSONArray(request("GET","/rest/v1/flock_adjustments?select=id,effective_date,category,delta,previous_count,new_count,note&farm_id=eq."+farmId+"&order=created_at.desc&limit=50",null,null,accessToken)))
                     .put("role",membership.length()>0?membership.getJSONObject(0).getString("role"):"viewer")
                     .put("house_id",house)
                     .put("settings",new JSONArray(request("GET","/rest/v1/alarm_settings?select=house_id,warning_c,critical_c&house_id=eq."+house,null,null,accessToken)))
@@ -261,12 +298,12 @@ final class SupabaseClient {
             }
             case "edit":
                 rpc="edit_daily_production";
-                body.put("production_id",input.getLong("id")).put("stock_count",input.getInt("stock"))
-                    .put("sortie_count",input.getInt("sortie")).put("mortality_count",input.getInt("mortality"));
+                body.put("production_id",input.getLong("id")).put("stock_count",wholeNumber(input,"stock"))
+                    .put("sortie_count",wholeNumber(input,"sortie")).put("mortality_count",wholeNumber(input,"mortality"));
                 break;
             case "receipt":
                 rpc="record_carton_receipt";
-                body.put("target_date",input.getString("date")).put("carton_count",input.getInt("quantity"))
+                body.put("target_date",input.getString("date")).put("carton_count",wholeNumber(input,"quantity"))
                     .put("receipt_note",input.optString("note")).put("request_key",input.getString("request_id"));
                 break;
             case "ack":
@@ -276,7 +313,7 @@ final class SupabaseClient {
             case "receipt_edit":
                 rpc="edit_carton_receipt";
                 body.put("receipt_id",input.getString("id")).put("target_date",input.getString("date"))
-                    .put("carton_count",input.getInt("quantity")).put("receipt_note",input.optString("note"));
+                    .put("carton_count",wholeNumber(input,"quantity")).put("receipt_note",input.optString("note"));
                 break;
             case "receipt_delete":
                 rpc="delete_carton_receipt";

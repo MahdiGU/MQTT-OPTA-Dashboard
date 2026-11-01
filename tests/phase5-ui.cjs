@@ -6,8 +6,8 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{})});
   try{
-    const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
-    await page.addInitScript(()=>{window.testCalls=[];window.ElMajdNative={hasSavedLogin:()=>false,recoverAccount:(a,p)=>testCalls.push([a,JSON.parse(p)]),phase5Action:(a,p)=>testCalls.push([a,JSON.parse(p)]),requestCloudHistory:()=>{},publishProduction:p=>testCalls.push(['create',JSON.parse(p)])};});
+    const page=await browser.newPage({viewport:{width:Number(process.env.UI_WIDTH)||390,height:844}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+    await page.addInitScript(()=>{window.testCalls=[];window.ElMajdNative={hasSavedLogin:()=>false,recoverAccount:(a,p)=>testCalls.push([a,JSON.parse(p)]),phase5Action:(a,p)=>{const input=JSON.parse(p);testCalls.push([a,input]);if(a==='production_preview'&&window.autoPreview!==false)queueMicrotask(()=>elMajdNativeEvent('production_preview',JSON.stringify({...input,valid:true,eggs:400,remaining_flock:995,production_rate:40.2,cartons_used:15,previous_date:'2026-01-01'})));},requestCloudHistory:()=>{},publishProduction:p=>testCalls.push(['create',JSON.parse(p)])};});
     await page.goto(`http://127.0.0.1:${server.address().port}/`);
     assert.equal(await page.locator('html').getAttribute('lang'),'fr');
     assert.match(await page.locator('[data-nav="overview"]').innerText(),/Accueil/);
@@ -40,6 +40,10 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
     await page.fill('#currentPassword','OldPassword12!');await page.fill('#newPassword','NewPassword12!');await page.fill('#confirmPassword','NewPassword12!');await page.click('#changePassword');
     assert.equal(await page.evaluate(()=>testCalls.some(([a,p])=>a==='password_change'&&p.current==='OldPassword12!')),true);
     await page.evaluate(()=>elMajdNativeEvent('account_saved','password_change'));assert.equal(await page.locator('#newPassword').inputValue(),'');
+    await page.fill('#actualChickenCount','1000');await page.fill('#flockReason','Recount');await page.click('#saveConfiguration');
+    assert.equal(await page.evaluate(()=>testCalls.some(([a,p])=>a==='flock_adjust'&&p.count===1000&&p.category==='correction'&&p.note==='Recount')),true);
+    assert.equal(await page.locator('#saveConfiguration').isDisabled(),true);await page.evaluate(()=>elMajdNativeEvent('phase5_saved','flock_adjust'));
+    assert.equal(await page.locator('#flockReason').inputValue(),'');
     assert.equal(await page.locator('[data-receipt-delete]').isVisible(),false);
     await page.click('[data-receipt-edit="receipt1"]');await page.fill('#receiptQuantity','120');await page.click('#receiptSave');
     assert.equal(await page.evaluate(()=>testCalls.some(([a,p])=>a==='receipt_edit'&&p.id==='receipt1'&&p.quantity===120)),true);
@@ -60,8 +64,34 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
     assert.equal(await page.locator('[data-delete]').isVisible(),true);
     await page.click('[data-nav="configuration"]');page.once('dialog',d=>d.accept());await page.click('[data-receipt-delete="receipt1"]');
     assert.equal(await page.evaluate(()=>testCalls.some(([a,p])=>a==='receipt_delete'&&p.id==='receipt1')),true);
+    await page.click('[data-nav="production"]');
+    const records=Array.from({length:95},(_,i)=>({id:10000+i,production_date:new Date(Date.now()-i*86400000).toISOString().slice(0,10),stock:1000,sortie:100,mortality:1,eggs:100+i,chicken_count:20000,production_rate:50,cartons_used:4}));
+    await page.evaluate(rows=>elMajdNativeEvent('production_history',JSON.stringify(rows)),records.slice(0,90));
+    const latestValue=await page.locator('#latestProduction').textContent();assert.equal(await page.locator('.production-row').count(),30);
+    await page.click('#productionOlder');assert.equal(await page.locator('#productionOlder').isDisabled(),true);
+    const paging=await page.evaluate(()=>testCalls.filter(([a])=>a==='production_page').at(-1)[1]);assert.equal(paging.before,records[29].production_date);
+    await page.evaluate(({paging,rows})=>elMajdNativeEvent('production_page',JSON.stringify({request_id:paging.request_id,rows,has_more:true})),{paging,rows:records.slice(30,60)});
+    assert.equal(await page.locator('.production-row').count(),30);assert.equal(await page.locator('#latestProduction').textContent(),latestValue);
+    assert.equal(await page.locator('[data-edit-production="10030"]').count(),1);
+    await page.evaluate(()=>autoPreview=false);await page.click('[data-edit-production="10030"]');
+    await page.waitForFunction(()=>testCalls.filter(([a,p])=>a==='production_preview'&&p.id===10030).length>0);
+    const preview=await page.evaluate(()=>testCalls.filter(([a])=>a==='production_preview').at(-1)[1]);
+    await page.fill('#eggStock','1500');assert.equal(await page.locator('#saveProduction').isDisabled(),true);
+    await page.evaluate(p=>elMajdNativeEvent('production_preview',JSON.stringify({request_id:p.request_id,valid:true,eggs:9999,remaining_flock:20000,production_rate:50,cartons_used:367})),preview);
+    assert.equal(await page.locator('#saveProduction').isDisabled(),true);
+    await page.waitForFunction(id=>testCalls.filter(([a])=>a==='production_preview').at(-1)[1].request_id!==id,preview.request_id);
+    const currentPreview=await page.evaluate(()=>testCalls.filter(([a])=>a==='production_preview').at(-1)[1]);
+    await page.evaluate(p=>elMajdNativeEvent('production_preview',JSON.stringify({request_id:p.request_id,valid:false,error:'dependent_record_invalid',affected_date:'2026-10-20'})),currentPreview);
+    assert.match(await page.locator('#remainingChickenPreview').textContent(),/ultérieure/);assert.equal(await page.locator('#saveProduction').isDisabled(),true);
+    await page.fill('#eggStock','4294967297');assert.equal(await page.locator('#saveProduction').isDisabled(),true);assert.equal(await page.locator('#eggStock').evaluate(n=>n.validity.rangeOverflow),true);
+    await page.click('#cancelProductionEdit');await page.click('#productionNewer');assert.equal(await page.locator('[data-edit-production="10000"]').count(),1);
+    await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.locator('#productionOlder').evaluate(n=>getComputedStyle(n).minHeight),'44px');
+    await page.click('[data-nav="status"]');await page.locator('[data-screen="status"] [data-sensor="temp"]').click();
+    await page.evaluate(()=>{const now=Date.now();elMajdNativeEvent('history',JSON.stringify([{t:now-3600000,temp:25},{t:now-3300000,temp:26},{t:now-3000000,temp:null},{t:now-2700000,temp:27},{t:now-1200000,temp:28}]));});
+    await page.waitForFunction(()=>document.getElementById('historyChart').getAttribute('aria-label')?.includes('Minimum: 25'));
+    assert.match(await page.locator('#historyChart').getAttribute('aria-label'),/Mesures: 4/);await page.click('#closeChart');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
     assert.deepEqual(errors,[]);
-    console.log('PASS: six tabs, separate alarms, overview flock/performance, interactive carton card, carton edit/delete permissions, production edits, duplicate prevention, thresholds, acknowledgement, viewer restrictions, phone layout, no JS errors');
+    console.log('PASS: six tabs, localization, account flows, production/carton roles, paging without overview regression, stale/invalid preview rejection, numeric bounds, accessible charts and phone layout');
   }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});

@@ -1,0 +1,42 @@
+begin;
+do $$
+declare f uuid;u uuid;first_id bigint;preview jsonb;before_count integer;before_audit bigint;
+begin
+  select farm_id,user_id into f,u from public.farm_members where role='owner' limit 1;
+  perform set_config('request.jwt.claim.sub',u::text,true);
+  delete from public.daily_production where farm_id=f;
+  insert into public.flock_settings(farm_id,chicken_count,updated_by) values(f,1000,u) on conflict(farm_id) do update set chicken_count=1000;
+  preview:=public.preview_daily_production(f,current_date-400,1000,0,2);
+  if not (preview->>'valid')::boolean or (preview->>'eggs')::integer<>0 or not (preview->>'first_record')::boolean then raise exception 'First record preview failed';end if;
+  perform public.record_daily_production(f,current_date-400,1000,0,2);
+  perform public.record_daily_production(f,current_date-398,1500,100,3);
+  select id into first_id from public.daily_production where farm_id=f and production_date=current_date-400;
+  -- Predecessor is far outside the phone's recent history window.
+  preview:=public.preview_daily_production(f,current_date-397,1800,100,1);
+  if not (preview->>'valid')::boolean or (preview->>'eggs')::integer<>400 or (preview->>'previous_stock')::integer<>1500 then raise exception 'Authoritative predecessor missing';end if;
+  preview:=public.preview_daily_production(f,current_date-399,1300,100,1);
+  if not (preview->>'valid')::boolean or (preview->>'eggs')::integer<>400 or (preview->>'remaining_flock')::integer<>997 then raise exception 'Historical insertion preview failed';end if;
+  preview:=public.preview_daily_production(f,current_date-399,1700,0,1);
+  if preview->>'error' is distinct from 'dependent_record_invalid' then raise exception 'Invalid downstream correction not detected: %',preview;end if;
+  preview:=public.preview_daily_production(f,current_date-397,1,0,1);
+  if preview->>'error' is distinct from 'negative_production' then raise exception 'Negative production accepted';end if;
+  preview:=public.preview_daily_production(f,current_date-397,10000,0,1);
+  if preview->>'error' is distinct from 'production_exceeds_flock' then raise exception 'Over-production accepted';end if;
+  preview:=public.preview_daily_production(f,current_date-397,1500,0,9999);
+  if preview->>'error' is distinct from 'mortality_exceeds_flock' then raise exception 'Excess mortality accepted';end if;
+  preview:=public.preview_daily_production(f,current_date-398,1500,100,3);
+  if preview->>'error' is distinct from 'date_exists' then raise exception 'Existing date not identified';end if;
+  select chicken_count into before_count from public.flock_settings where farm_id=f;
+  select count(*) into before_audit from public.production_audit where farm_id=f;
+  preview:=public.preview_daily_production(f,current_date-400,1200,0,1,first_id);
+  if not (preview->>'valid')::boolean or (preview->>'eggs')::integer<>0 or (preview->>'remaining_flock')::integer<>999 then raise exception 'Edit preview failed';end if;
+  if (select chicken_count from public.flock_settings where farm_id=f)<>before_count or (select count(*) from public.production_audit where farm_id=f)<>before_audit then raise exception 'Preview mutated state';end if;
+  update public.farm_members set role='manager' where farm_id=f and user_id=u;
+  perform public.preview_daily_production(f,current_date-397,1800,100,1);
+  update public.farm_members set role='viewer' where farm_id=f and user_id=u;
+  begin perform public.preview_daily_production(f,current_date-397,1800,100,1);raise exception 'Viewer preview permitted';exception when insufficient_privilege then null;end;
+  perform set_config('request.jwt.claim.sub',gen_random_uuid()::text,true);
+  begin perform public.preview_daily_production(f,current_date-397,1800,100,1);raise exception 'Cross-farm preview permitted';exception when insufficient_privilege then null;end;
+  begin perform public.notification_channels_status(f);raise exception 'Cross-farm channel status permitted';exception when insufficient_privilege then null;end;
+end $$;
+rollback;

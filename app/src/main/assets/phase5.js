@@ -4,9 +4,43 @@
   const escape = value => String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const uid = () => '10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(+c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>+c/4).toString(16));
   let role='viewer', house='', editing=null, requestId=uid(), busy=false, productionBusy=false, warningC=30, criticalC=33, receiptEditing=null, receiptRows=[], referenceDay=null;
+  let previewReady=false,previewRequest=0,previewTimer,flockBusy=false,flockRequestId=uid();
   const canEdit=()=>['owner','manager'].includes(role);
   const call=(action,input={})=>{if(native&&state.cloud)window.ElMajdNative.phase5Action(action,JSON.stringify(input));else message('Cloud sign-in is required.');};
   const message=text=>{$('phase5Message').textContent=text;};
+  I18n.add({
+    'Enter Stock, Sortie and mortality to check saved records.':'Saisissez le stock, la sortie et la mortalité pour vérifier les données enregistrées.',
+    'Checking saved records…':'Vérification des données enregistrées…',
+    'Enter valid whole numbers between 0 and 2147483647.':'Saisissez des nombres entiers compris entre 0 et 2147483647.',
+    'A record already exists on this date. Use Edit.':'Une entrée existe déjà à cette date. Utilisez Modifier.',
+    'These values would invalidate a later record.':'Ces valeurs rendraient une entrée ultérieure invalide.',
+    'Historical records need complete Stock, Sortie and flock values.':'Les anciennes entrées doivent contenir le stock, la sortie et l’effectif.',
+    'Previous stock date':'Date du stock précédent','First record: production is zero.':'Première entrée : la production est égale à zéro.',
+    'Preview checked against saved records. Final validation occurs when saving.':'Aperçu vérifié sur les données enregistrées. La validation finale a lieu lors de l’enregistrement.',
+    'Gmail configured':'Gmail configuré','Gmail authorization required':'Autorisation Gmail requise',
+    'Push sender configured':'Service de notifications configuré',
+    'Recovered at':'Rétablie le','Acknowledged at':'Acquittée le',
+    'Flock adjustment':'Mouvement d’effectif','Effective date':'Date d’effet','Adjustment category':'Catégorie du mouvement',
+    'Count correction':'Correction du comptage','Initial flock':'Effectif initial','Birds received':'Réception de poules','Transfer in':'Transfert entrant','Transfer out':'Transfert sortant','Count reference':'Effectif de référence',
+    'Reason / reference':'Motif / référence','Flock movement history':'Historique des mouvements d’effectif',
+    'Enter the actual flock after this adjustment. Mortality is recorded in Production. Backdated changes recalculate later rates.':'Saisissez l’effectif actuel après ce mouvement. La mortalité se saisit dans Production. Une date antérieure recalcule les taux suivants.',
+    'No flock movements recorded.':'Aucun mouvement d’effectif enregistré.',
+    'A correction reason is required.':'Un motif est obligatoire pour corriger l’effectif.',
+    'Flock adjustment saved with audit history.':'Mouvement d’effectif enregistré avec historique.',
+    'Received birds must increase the current flock.':'Une réception doit augmenter l’effectif actuel.',
+    'Transferred birds must decrease the current flock.':'Un transfert sortant doit diminuer l’effectif actuel.',
+    'The flock is already initialized. Use a dated adjustment.':'L’effectif est déjà initialisé. Utilisez un mouvement daté.',
+    'Adjustment makes a historical flock count invalid.':'Ce mouvement rend un effectif historique invalide.',
+    'Production date precedes the initial flock date.':'La date de production précède l’arrivée de l’effectif initial.',
+  });
+  e.configBtn.insertAdjacentHTML('beforebegin',`<label class="field"><span>Effective date</span><input id="flockDate" type="date" required></label><label class="field"><span>Adjustment category</span><select id="flockCategory"><option value="correction">Count correction</option><option value="received">Birds received</option><option value="transfer_in">Transfer in</option><option value="transfer_out">Transfer out</option><option value="initial">Initial flock</option></select></label><label class="field"><span>Reason / reference</span><input id="flockReason" maxlength="500" required></label><p class="p5-section-note">Enter the actual flock after this adjustment. Mortality is recorded in Production. Backdated changes recalculate later rates.</p>`);
+  e.configForm.insertAdjacentHTML('beforeend','<h3>Flock movement history</h3><div id="flockHistory"></div>');
+  $('flockDate').value=$('flockDate').max=businessDate();e.flockInput.max='2147483647';
+  $('flockCategory').onchange=()=>$('flockReason').required=$('flockCategory').value==='correction';
+  e.configForm.onsubmit=event=>{event.preventDefault();if(flockBusy||!state.cloud||!canEdit())return;const count=Number(e.flockInput.value);
+    if(!Number.isInteger(count)||count<0||count>2147483647||!$('flockDate').value)return;
+    if($('flockCategory').value==='correction'&&!$('flockReason').value.trim()){e.configMsg.textContent='A correction reason is required.';return;}
+    flockBusy=true;controls();call('flock_adjust',{date:$('flockDate').value,count,category:$('flockCategory').value,note:$('flockReason').value,request_id:flockRequestId});};
   document.head.insertAdjacentHTML('beforeend',`<style>
     .p5-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.p5-actions button,.p5-small{padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--g);font-weight:800}
     .alarm-item{padding:12px;border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:12px;margin:8px 0}.alarm-item.critical{border-left-color:var(--red)}.alarm-item small{display:block;color:var(--muted);margin-top:5px}.p5-shortage{color:var(--red)}.p5-section-note{font-size:.75rem;color:var(--muted)}
@@ -27,6 +61,7 @@
   document.querySelectorAll('[data-nav]').forEach(button=>button.onclick=()=>{document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b===button));document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===button.dataset.nav));scrollTo({top:0,behavior:'smooth'});if(button.dataset.nav==='overview')requestAnimationFrame(drawWeek);});
   document.querySelector('[data-screen="connection"]').insertAdjacentHTML('afterbegin',`<section class="panel"><div class="eyebrow">Phone notifications</div><h3>Firebase push</h3><p id="pushStatus" class="message">Sign in to register this phone.</p><div class="p5-actions"><button id="retryPush">Register / retry</button><button id="testPush">Send me a test notification</button></div><p class="p5-section-note">Allow notifications in Android settings. Gmail fallback is still pending. Force-stopping the app in Android settings prevents messages until the app is reopened.</p></section>`);
   $('retryPush').onclick=()=>call('push_sync');$('testPush').onclick=()=>{message('Requesting a push test...');call('push_test');};
+  $('pushStatus').insertAdjacentHTML('afterend','<p id="channelStatus" class="p5-section-note"></p>');
   document.querySelector('[data-screen="alarms"] .p5-section-note').textContent='Acknowledgement stops reminders; recovery clears the condition. Check Connection for this phone’s push registration status.';
   $('overviewCartons').onclick=()=>{document.querySelector('[data-nav="configuration"]').click();$('packagingPanel').scrollIntoView({behavior:'smooth',block:'start'});};
   e.prodBtn.insertAdjacentHTML('afterend','<button type="button" class="p5-small hidden" id="cancelProductionEdit">Cancel edit</button>');
@@ -38,7 +73,7 @@
   document.querySelectorAll('.overview-meta span,.temp-copy p,.hero p').forEach(n=>{n.innerHTML=n.innerHTML.replaceAll('12-hour','24-hour');});
   function controls(){
     $('receiptSave').disabled=$('thresholdSave').disabled=busy||!state.cloud||!canEdit();
-    e.prodBtn.disabled=productionBusy||!state.cloud||!canEdit();e.configBtn.disabled=!state.cloud||!canEdit();
+    e.prodBtn.disabled=productionBusy||!state.cloud||!canEdit()||(native&&!previewReady);e.configBtn.disabled=flockBusy||!state.cloud||!canEdit();
     e.send.disabled=!state.cloud||!canEdit();
     $('retryPush').disabled=$('testPush').disabled=!state.cloud||!canEdit();
     document.querySelectorAll('[data-delete]').forEach(b=>b.hidden=role!=='owner');
@@ -50,16 +85,25 @@
   $('cancelProductionEdit').onclick=cancelEdit;
   const originalRows=renderRows;
   renderRows=data=>{originalRows(data);e.history.querySelectorAll('.production-row').forEach((row,index)=>{
-    const item=state.rows[index],used=referenceDay&&item.production_date>referenceDay?(item.cartons_used??Math.ceil(item.eggs*1.1/30)):0;row.insertAdjacentHTML('beforeend',`<div><span>Cartons counted</span><strong>${escape(used)}</strong></div><div class="p5-actions"><button type="button" data-edit-production="${item.id}">Edit</button></div>`);
+    const item=(window.productionPageRows||state.rows)[index],used=referenceDay&&item.production_date>referenceDay?(item.cartons_used??Math.ceil(item.eggs*1.1/30)):0;row.insertAdjacentHTML('beforeend',`<div><span>Cartons counted</span><strong>${escape(used)}</strong></div><div class="p5-actions"><button type="button" data-edit-production="${item.id}">Edit</button></div>`);
   });controls();};
   e.history.addEventListener('click',event=>{
     const button=event.target.closest('[data-edit-production]');if(!button||!canEdit())return;
-    const row=state.rows.find(r=>String(r.id)===button.dataset.editProduction);if(!row)return;
+    const row=[...state.rows,...(window.productionPageRows||[])].find(r=>String(r.id)===button.dataset.editProduction);if(!row)return;
     editing=row;e.date.value=row.production_date;e.date.disabled=true;e.stock.value=row.stock;e.sortie.value=row.sortie;e.mortality.value=row.mortality;
     e.prodBtn.textContent='Save audited correction';$('cancelProductionEdit').classList.remove('hidden');preview();e.prodForm.scrollIntoView({behavior:'smooth'});
   });
   preview=()=>{
-    if([e.stock,e.sortie,e.mortality].some(x=>x.value==='')){e.calc.textContent=e.rate.textContent='—';return;}
+    clearTimeout(previewTimer);previewRequest++;previewReady=false;
+    if([e.stock,e.sortie,e.mortality].some(x=>x.value==='')){e.calc.textContent=e.rate.textContent='—';e.remaining.textContent='Enter Stock, Sortie and mortality to check saved records.';controls();return;}
+    if(native){
+      const values=[e.stock,e.sortie,e.mortality].map(x=>Number(x.value));
+      if(!state.cloud||!e.date.value||!values.every(x=>Number.isInteger(x)&&x>=0&&x<=2147483647)){e.calc.textContent=e.rate.textContent='—';e.remaining.textContent='Enter valid whole numbers between 0 and 2147483647.';controls();return;}
+      e.calc.textContent=e.rate.textContent='—';e.remaining.textContent='Checking saved records…';controls();
+      const input={date:e.date.value,stock:values[0],sortie:values[1],mortality:values[2],request_id:String(previewRequest)};
+      if(editing)input.id=editing.id;
+      previewTimer=setTimeout(()=>call('production_preview',input),350);return;
+    }
     const earlier=state.rows.filter(r=>r.production_date<e.date.value).sort((a,b)=>b.production_date.localeCompare(a.production_date))[0];
     const following=state.rows.filter(r=>r.production_date>e.date.value).sort((a,b)=>a.production_date.localeCompare(b.production_date))[0];
     const base=editing?+editing.chicken_count+ +editing.mortality:following?+following.chicken_count+ +following.mortality:state.flock;
@@ -69,9 +113,9 @@
   };
   [e.stock,e.sortie,e.mortality].forEach(x=>x.oninput=preview);e.date.onchange=preview;
   e.prodForm.onsubmit=event=>{
-    event.preventDefault();if(!canEdit()||!state.cloud)return;
+    event.preventDefault();if(!canEdit()||!state.cloud||(native&&!previewReady))return;
     const values=[e.stock,e.sortie,e.mortality].map(x=>x.value===''?NaN:Number(x.value));
-    if(!e.date.value||e.date.value>businessDate()||!values.every(x=>Number.isSafeInteger(x)&&x>=0)){e.prodMsg.textContent='Enter valid nonnegative whole numbers and a date no later than today (GMT+1).';return;}
+    if(!e.date.value||e.date.value>businessDate()||!values.every(x=>Number.isInteger(x)&&x>=0&&x<=2147483647)){e.prodMsg.textContent='Enter valid nonnegative whole numbers and a date no later than today (GMT+1).';return;}
     const input={date:e.date.value,stock:values[0],sortie:values[1],mortality:values[2]};productionBusy=true;e.prodBtn.disabled=true;
     if(editing){input.id=editing.id;call('edit',input);}else if(native)window.ElMajdNative.publishProduction(JSON.stringify(input));
   };
@@ -92,6 +136,9 @@
   $('alarmList').onclick=event=>{const b=event.target.closest('[data-ack]');if(!b)return;b.disabled=true;call('ack',{id:b.dataset.ack});};
   function featureData(data){
     role=data.role;house=data.house_id;const cartons=data.cartons?.[0];referenceDay=cartons?.reference_date||null;
+    const categories={reference:'Count reference',initial:'Initial flock',received:'Birds received',transfer_in:'Transfer in',transfer_out:'Transfer out',correction:'Count correction'};
+    $('flockHistory').innerHTML=(data.flock_adjustments||[]).map(a=>`<article class="carton-entry"><strong>${escape(a.effective_date)} · ${I18n.text(categories[a.category]||a.category)}</strong><p>${escape(a.previous_count)} → ${escape(a.new_count)} (${Number(a.delta)>0?'+':''}${escape(a.delta)})</p><p data-user-content>${escape(a.note)}</p></article>`).join('')||I18n.text('No flock movements recorded.');
+    if(data.channels)$('channelStatus').textContent=`${I18n.text(data.channels.push_configured?'Push sender configured':'Not configured')} · ${I18n.text(data.channels.gmail_configured?'Gmail configured':'Gmail authorization required')}`;
     $('cartonsReceived').textContent=cartons?.received??0;$('cartonsConsumed').textContent=cartons?.consumed??0;$('cartonsBalance').textContent=cartons?.balance??0;
     $('overviewCartonCount').textContent=Number(cartons?.balance??0).toLocaleString(I18n.locale());$('overviewCartons').classList.toggle('available',Number(cartons?.balance)>0);
     $('overviewCartons').setAttribute('aria-label',`${cartons?.balance??0} cartons available. Open packaging inventory.`);
@@ -102,22 +149,44 @@
     if(state.rows.length)renderRows(JSON.stringify(state.rows));
     const cfg=data.settings?.[0];if(cfg){warningC=+cfg.warning_c;criticalC=+cfg.critical_c;if(document.activeElement!==$('warningThreshold')&&document.activeElement!==$('criticalThreshold')){$('warningThreshold').value=cfg.warning_c;$('criticalThreshold').value=cfg.critical_c;}}
     const alarms=[...(data.alarms||[])].sort((a,b)=>Number(!!a.resolved_at)-Number(!!b.resolved_at));
-    $('alarmList').innerHTML=alarms.map(a=>`<article class="alarm-item ${escape(a.severity)}"><strong>${escape(a.code.replaceAll('_',' '))}</strong><small>${a.resolved_at?'Recovered':a.acknowledged_at?'Active · acknowledged':'Active · acknowledgement needed'} · ${escape(new Date(a.activated_at).toLocaleString(I18n.locale()))}</small>${!a.resolved_at&&!a.acknowledged_at?`<div class="p5-actions"><button data-ack="${escape(a.id)}">Acknowledge</button></div>`:''}</article>`).join('')||'<p>No server alarms recorded.</p>';
+    $('alarmList').innerHTML=alarms.map(a=>`<article class="alarm-item ${escape(a.severity)}"><strong>${escape(a.code.replaceAll('_',' '))}</strong><small>${a.resolved_at?'Recovered':a.acknowledged_at?'Active · acknowledged':'Active · acknowledgement needed'} · ${escape(new Date(a.activated_at).toLocaleString(I18n.locale()))}</small>${a.acknowledged_at?`<small>${I18n.text('Acknowledged at')} ${escape(new Date(a.acknowledged_at).toLocaleString(I18n.locale()))}</small>`:''}${a.resolved_at?`<small>${I18n.text('Recovered at')} ${escape(new Date(a.resolved_at).toLocaleString(I18n.locale()))}</small>`:''}${!a.resolved_at&&!a.acknowledged_at?`<div class="p5-actions"><button data-ack="${escape(a.id)}">Acknowledge</button></div>`:''}</article>`).join('')||'<p>No server alarms recorded.</p>';
     message(`Shared data synchronized • ${role}`);controls();
   }
   const originalEvent=window.elMajdNativeEvent;
   window.elMajdNativeEvent=(type,data)=>{
     originalEvent(type,data);
+    if(type==='production_preview'||type==='production_preview_error'){
+      try {
+        const result=JSON.parse(data);if(result.request_id!==String(previewRequest))return;
+        previewReady=type==='production_preview'&&result.valid===true;
+        if(previewReady){
+          e.calc.textContent=`${Number(result.eggs).toLocaleString(I18n.locale())} eggs`;
+          e.rate.textContent=`${Number(result.production_rate).toLocaleString(I18n.locale(),{minimumFractionDigits:2,maximumFractionDigits:2})}%`;
+          e.remaining.textContent=`${I18n.text(`Preview: ${result.remaining_flock} chickens • ${result.cartons_used} cartons. Server validates all affected dates.`)} ${result.first_record?I18n.text('First record: production is zero.'):`${I18n.text('Previous stock date')}: ${result.previous_date}.`} ${I18n.text('Preview checked against saved records. Final validation occurs when saving.')}`;
+          e.prodMsg.textContent='';
+        } else {
+          const errors={flock_missing:'Configure the flock first.',flock_not_started:'Production date precedes the initial flock date.',date_exists:'A record already exists on this date. Use Edit.',mortality_exceeds_flock:'Mortality exceeds available flock.',negative_production:'Values exceed the available flock or produce a negative result',production_exceeds_flock:'Values exceed the available flock or produce a negative result',dependent_record_invalid:'These values would invalidate a later record.',historical_incomplete:'Historical records need complete Stock, Sortie and flock values.'};
+          e.calc.textContent=e.rate.textContent='—';e.remaining.textContent=I18n.text(errors[result.error]||result.message||'Could not read shared farm data.');
+          if(result.affected_date)e.remaining.textContent+=` (${result.affected_date})`;
+        }
+      }catch{previewReady=false;e.remaining.textContent=I18n.text('Could not read shared farm data.');}
+    }
     if(type==='phase5_data'){try{featureData(JSON.parse(data));}catch{message('Could not read shared farm data.');}}
     if(type==='phase5_saved'){busy=false;if(data==='edit'){productionBusy=false;cancelEdit();e.prodMsg.textContent='Correction saved; dependent production and flock recalculated.';}if(['receipt','receipt_edit','receipt_delete'].includes(data)){requestId=uid();cancelReceipt();}message('Saved to the shared database.');controls();}
-    if(type==='phase5_error'){busy=false;productionBusy=false;e.prodBtn.disabled=!state.cloud||!canEdit();message(data);e.prodMsg.textContent=data;$('alarmList').querySelectorAll('[data-ack]').forEach(b=>b.disabled=false);controls();}
+    if(type==='phase5_saved'&&data==='flock_adjust'){flockBusy=false;flockRequestId=uid();$('flockReason').value='';e.configMsg.textContent='Flock adjustment saved with audit history.';}
+    if(type==='phase5_error'){busy=false;productionBusy=false;if(flockBusy){flockBusy=false;e.configMsg.textContent=data;}e.prodBtn.disabled=!state.cloud||!canEdit();message(data);e.prodMsg.textContent=data;$('alarmList').querySelectorAll('[data-ack]').forEach(b=>b.disabled=false);controls();}
     if(type==='production_saved'||type==='production_deleted'){productionBusy=false;cancelEdit();if(state.cloud)call('refresh');}
     if(type==='production_error')productionBusy=false;
-    if(type==='cloud_connection'){controls();if(data==='online')call('refresh');}
+    if(type==='cloud_connection'){if(data!=='online'){clearTimeout(previewTimer);previewRequest++;previewReady=false;}controls();if(data==='online')call('refresh');}
     if(type==='production_history')controls();
     if(type==='push_status')$('pushStatus').textContent=data;
     if(type==='open_alarms')document.querySelector('[data-nav="alarms"]').click();
-    if(type==='configuration')$('overviewFlock').textContent=Number.isInteger(state.flock)?state.flock.toLocaleString(I18n.locale()):'Not configured';
+    if(type==='configuration'){
+      $('overviewFlock').textContent=Number.isInteger(state.flock)?state.flock.toLocaleString(I18n.locale()):'Not configured';
+      const initialized=Number.isInteger(state.flock);$('flockCategory').querySelector('[value="initial"]').disabled=initialized;
+      if(!initialized)$('flockCategory').value='initial';else if($('flockCategory').value==='initial')$('flockCategory').value='correction';
+      $('flockReason').required=$('flockCategory').value==='correction';
+    }
     if(type==='telemetry'){
       const p=JSON.parse(data),source=p.captured_at||p.received_at;
       e.updated.textContent=`Measured: ${source?new Date(source).toLocaleString(I18n.locale()):'time unavailable'} • received: ${p.received_at?new Date(p.received_at).toLocaleTimeString():'—'}`;
