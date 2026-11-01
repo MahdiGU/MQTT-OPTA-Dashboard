@@ -1,0 +1,2 @@
+# Preserve generated specification PDFs byte-for-byte and suppress text diffs.
+docs/specification/*.pdf binary
