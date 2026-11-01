@@ -1,5 +1,7 @@
 # French interface, account management and Gmail fallback
 
+Historical 1.10.0 snapshot. Gmail is now active and owner-confirmed, and Android 1.11.0 is built. See the [current delivery record](../delivery/phase-3-5-completion.md) for verified status and remaining acceptance items.
+
 Branch: `French_Account_Gmail`. Android version: **1.10.0 (22)**. No branches merged.
 
 ## Interface and phone notifications

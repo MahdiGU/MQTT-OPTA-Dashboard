@@ -1,5 +1,7 @@
 # Phase 3 Task Reports
 
+Current update: FCM self-test receipt and Gmail fallback receipt (in spam) are confirmed by the owner. See the [2026-11-01 delivery record](../delivery/phase-3-5-completion.md) and prepared ClickUp synchronization queue. The original 2026-10-31 snapshot below is retained as history.
+
 Report date: 2026-10-31
 
 ## Implement server-side alarm persistence and evaluation

@@ -1,5 +1,7 @@
 # Phase 3 - Alarm and Notification Services
 
+Current 1.11.0 status: [delivery and acceptance record](../delivery/phase-3-5-completion.md). FCM phone receipt and Gmail worker delivery are confirmed; Gmail arrived in spam. Remaining device scenarios and OAuth publishing status are listed there. The implementation snapshot below describes the earlier phase baseline.
+
 Branch: `Phase_3_Alarm_Notifications`  
 Base: `Phase_2_Cloud_Ingestion`, commit `1242030`  
 Started: 2026-10-31  

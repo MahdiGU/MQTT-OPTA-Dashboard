@@ -1,4 +1,6 @@
 .gradle/
+.firebase/
+firebase-debug.log
 .idea/
 local.properties
 **/build/

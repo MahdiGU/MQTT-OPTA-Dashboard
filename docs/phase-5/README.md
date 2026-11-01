@@ -1,5 +1,7 @@
 # Phase 5 - Android Application
 
+Current Android version: **1.11.0 (23)** on `French_Account_Gmail`. See the [current delivery/acceptance record](../delivery/phase-3-5-completion.md) for paging, server previews, dated flock movements, French/account features, active Gmail, accessibility and release-signing checks. Earlier pending statements below belong to the 1.9.0 snapshot.
+
 Branch: `Phase_5_Android_App`, based on `Phase_4_Production_Packaging`. Started 2026-10-31. Version: 1.9.0 (code 19).
 
 Pilot feedback is implemented in [version 1.9.1](02-version-1.9.1-refinements.md) on `Phase_5_App_Refinements`: dedicated Alarms tab, expanded Overview, interactive carton card, opening-stock reference, carton edits/deletion and manager account provisioning.

@@ -1,5 +1,7 @@
 # Phase 4 - Production and Packaging
 
+Current 1.11.0 update: [dated flock movements, historical previews and acceptance](../delivery/phase-3-5-completion.md). The categorized/date-effective ledger is deployed; flock configuration now requires 1.11.0. The historical phase snapshot below is retained for provenance.
+
 Branch: `Phase_4_Production_Packaging`, based on Phase 3. Started 2026-10-31.
 
 **Superseding rule in Android 1.9.1:** [Opening-reference refinement](../phase-5/02-version-1.9.1-refinements.md) replaces the original negative carton-balance policy below. Inventory now starts after the first carton-entry date and available stock is floored at zero; uncovered usage is tracked separately.
