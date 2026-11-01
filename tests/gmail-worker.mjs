@@ -10,7 +10,7 @@ globalThis.fetch=async(url,options)=>{
 };
 const {sendGmail}=await import('../supabase/functions/_shared/gmail.ts');
 assert.deepEqual(await sendGmail(config,'owner@example.invalid','Alarme température','Température critique à 33 °C.','delivery-test'),{status:'sent',provider_message_id:'gmail-provider-id'});
-assert.match(messages[0],/Message-ID: <delivery-test@elmajd-automation>/);
+assert.match(messages[0],/Message-ID: <delivery-test@example.invalid>/);assert.match(messages[0],/Date: .+ GMT\r\n/);
 assert.match(Buffer.from(messages[0].split('\r\n\r\n')[1].replaceAll('\r\n',''),'base64').toString(),/Température critique/);
 mode='retry';assert.equal((await sendGmail(config,'owner@example.invalid','Test','Test','test')).status,'retry');
 mode='failed';assert.equal((await sendGmail(config,'owner@example.invalid','Test','Test','test')).status,'failed');assert.equal(refreshes,1);

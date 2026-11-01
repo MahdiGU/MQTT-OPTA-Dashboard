@@ -13,8 +13,9 @@ function base64(value:string){return btoa(String.fromCharCode(...new TextEncoder
 function address(value:string){if(!/^[^\s<>@\r\n]+@[^\s<>@\r\n]+\.[^\s<>@\r\n]+$/.test(value))throw new Error('INVALID_MAIL_ADDRESS');return value;}
 export async function sendGmail(config:GmailConfig,to:string,subject:string,text:string,id:string):Promise<MailResult>{
   if(/[\r\n]/.test(subject)||!/^[a-zA-Z0-9-]{1,100}$/.test(id))throw new Error('INVALID_MAIL_HEADER');
-  const raw=[`From: ElMAJD Automation <${address(config.sender_email)}>`,`To: ${address(to)}`,
-    `Subject: =?UTF-8?B?${base64(subject)}?=`,`Message-ID: <${id}@elmajd-automation>`,
+  const sender=address(config.sender_email);
+  const raw=[`From: ElMAJD Automation <${sender}>`,`To: ${address(to)}`,`Date: ${new Date().toUTCString()}`,
+    `Subject: =?UTF-8?B?${base64(subject)}?=`,`Message-ID: <${id}@${sender.split('@')[1]}>`,
     'MIME-Version: 1.0','Content-Type: text/plain; charset=UTF-8','Content-Transfer-Encoding: base64','',base64(text).match(/.{1,76}/g)?.join('\r\n')||''].join('\r\n');
   try{
     const token=await gmailAccessToken(config);

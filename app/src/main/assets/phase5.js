@@ -4,7 +4,7 @@
   const escape = value => String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const uid = () => '10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(+c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>+c/4).toString(16));
   let role='viewer', house='', editing=null, requestId=uid(), busy=false, productionBusy=false, warningC=30, criticalC=33, receiptEditing=null, receiptRows=[], referenceDay=null;
-  let previewReady=false,previewRequest=0,previewTimer,flockBusy=false,flockRequestId=uid();
+  let previewReady=false,previewRequest=0,previewTimer,flockBusy=false,flockRequestId=uid(),lastSharedData;
   const canEdit=()=>['owner','manager'].includes(role);
   const call=(action,input={})=>{if(native&&state.cloud)window.ElMajdNative.phase5Action(action,JSON.stringify(input));else message('Cloud sign-in is required.');};
   const message=text=>{$('phase5Message').textContent=text;};
@@ -32,6 +32,7 @@
     'The flock is already initialized. Use a dated adjustment.':'L’effectif est déjà initialisé. Utilisez un mouvement daté.',
     'Adjustment makes a historical flock count invalid.':'Ce mouvement rend un effectif historique invalide.',
     'Production date precedes the initial flock date.':'La date de production précède l’arrivée de l’effectif initial.',
+    'Allow notifications in Android settings. Gmail fallback follows the server alarm policy. Force-stopping the app prevents messages until it is reopened.':'Autorisez les notifications dans Android. Le secours Gmail suit la politique d’alarme du serveur. Un arrêt forcé bloque les messages jusqu’à la réouverture.',
   });
   e.configBtn.insertAdjacentHTML('beforebegin',`<label class="field"><span>Effective date</span><input id="flockDate" type="date" required></label><label class="field"><span>Adjustment category</span><select id="flockCategory"><option value="correction">Count correction</option><option value="received">Birds received</option><option value="transfer_in">Transfer in</option><option value="transfer_out">Transfer out</option><option value="initial">Initial flock</option></select></label><label class="field"><span>Reason / reference</span><input id="flockReason" maxlength="500" required></label><p class="p5-section-note">Enter the actual flock after this adjustment. Mortality is recorded in Production. Backdated changes recalculate later rates.</p>`);
   e.configForm.insertAdjacentHTML('beforeend','<h3>Flock movement history</h3><div id="flockHistory"></div>');
@@ -59,7 +60,7 @@
   document.querySelector('[data-screen="status"]').insertAdjacentHTML('afterend',`<section class="screen" data-screen="alarms"><div class="hero"><div><div class="eyebrow">Server monitoring</div><h2>Alarms & history</h2><p>Active conditions, acknowledgements and recovery</p></div></div><section class="panel"><div class="panel-head"><h3>Alarm history</h3><button class="p5-small" id="alarmRefresh">Refresh</button></div><p class="p5-section-note">Acknowledgement stops reminders; recovery clears the condition. Phone push delivery is still being connected.</p><div id="alarmList">Sign in to load alarms.</div></section></section>`);
   document.querySelector('[data-nav="status"]').insertAdjacentHTML('afterend','<button data-nav="alarms"><span class="nav-icon">!</span>Alarms</button>');
   document.querySelectorAll('[data-nav]').forEach(button=>button.onclick=()=>{document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b===button));document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===button.dataset.nav));scrollTo({top:0,behavior:'smooth'});if(button.dataset.nav==='overview')requestAnimationFrame(drawWeek);});
-  document.querySelector('[data-screen="connection"]').insertAdjacentHTML('afterbegin',`<section class="panel"><div class="eyebrow">Phone notifications</div><h3>Firebase push</h3><p id="pushStatus" class="message">Sign in to register this phone.</p><div class="p5-actions"><button id="retryPush">Register / retry</button><button id="testPush">Send me a test notification</button></div><p class="p5-section-note">Allow notifications in Android settings. Gmail fallback is still pending. Force-stopping the app in Android settings prevents messages until the app is reopened.</p></section>`);
+  document.querySelector('[data-screen="connection"]').insertAdjacentHTML('afterbegin',`<section class="panel"><div class="eyebrow">Phone notifications</div><h3>Firebase push</h3><p id="pushStatus" class="message">Sign in to register this phone.</p><div class="p5-actions"><button id="retryPush">Register / retry</button><button id="testPush">Send me a test notification</button></div><p class="p5-section-note">Allow notifications in Android settings. Gmail fallback follows the server alarm policy. Force-stopping the app prevents messages until it is reopened.</p></section>`);
   $('retryPush').onclick=()=>call('push_sync');$('testPush').onclick=()=>{message('Requesting a push test...');call('push_test');};
   $('pushStatus').insertAdjacentHTML('afterend','<p id="channelStatus" class="p5-section-note"></p>');
   document.querySelector('[data-screen="alarms"] .p5-section-note').textContent='Acknowledgement stops reminders; recovery clears the condition. Check Connection for this phone’s push registration status.';
@@ -135,6 +136,7 @@
   document.querySelectorAll('[data-nav]').forEach(button=>button.addEventListener('click',()=>{if(state.cloud)call('refresh');}));
   $('alarmList').onclick=event=>{const b=event.target.closest('[data-ack]');if(!b)return;b.disabled=true;call('ack',{id:b.dataset.ack});};
   function featureData(data){
+    lastSharedData=data;
     role=data.role;house=data.house_id;const cartons=data.cartons?.[0];referenceDay=cartons?.reference_date||null;
     const categories={reference:'Count reference',initial:'Initial flock',received:'Birds received',transfer_in:'Transfer in',transfer_out:'Transfer out',correction:'Count correction'};
     $('flockHistory').innerHTML=(data.flock_adjustments||[]).map(a=>`<article class="carton-entry"><strong>${escape(a.effective_date)} · ${I18n.text(categories[a.category]||a.category)}</strong><p>${escape(a.previous_count)} → ${escape(a.new_count)} (${Number(a.delta)>0?'+':''}${escape(a.delta)})</p><p data-user-content>${escape(a.note)}</p></article>`).join('')||I18n.text('No flock movements recorded.');
@@ -152,6 +154,7 @@
     $('alarmList').innerHTML=alarms.map(a=>`<article class="alarm-item ${escape(a.severity)}"><strong>${escape(a.code.replaceAll('_',' '))}</strong><small>${a.resolved_at?'Recovered':a.acknowledged_at?'Active · acknowledged':'Active · acknowledgement needed'} · ${escape(new Date(a.activated_at).toLocaleString(I18n.locale()))}</small>${a.acknowledged_at?`<small>${I18n.text('Acknowledged at')} ${escape(new Date(a.acknowledged_at).toLocaleString(I18n.locale()))}</small>`:''}${a.resolved_at?`<small>${I18n.text('Recovered at')} ${escape(new Date(a.resolved_at).toLocaleString(I18n.locale()))}</small>`:''}${!a.resolved_at&&!a.acknowledged_at?`<div class="p5-actions"><button data-ack="${escape(a.id)}">Acknowledge</button></div>`:''}</article>`).join('')||'<p>No server alarms recorded.</p>';
     message(`Shared data synchronized • ${role}`);controls();
   }
+  addEventListener('elmajd-language',()=>{if(lastSharedData)featureData(lastSharedData);});
   const originalEvent=window.elMajdNativeEvent;
   window.elMajdNativeEvent=(type,data)=>{
     originalEvent(type,data);
