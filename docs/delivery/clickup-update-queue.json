@@ -1,367 +1,826 @@
 {
   "prepared_on": "2026-11-01",
-  "state": "pending_connector_daily_limit",
-  "instructions": "Use valid ClickUp list statuses for complete/in_progress. Read current task/comment state before applying to avoid duplicates. Do not modify dates or assignees. Each applied item must retain its returned comment ID and status result.",
+  "state": "applied_verified",
+  "instructions": "Task identities/current statuses checked against the complete 58-task live list. Fresh Gmail and Phase 3 parent comments checked (none). Preserve returned comment IDs/status results; on retry check comments for the dated synchronization marker before any repost. Dates, assignees and original task descriptions stay unchanged.",
   "tasks": [
     {
       "task_id": "1ampw4tn0ud",
       "name": "Approve pilot alarm and notification policy",
       "url": "https://app.clickup.com/t/1ampw4tn0ud",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nPilot alarm policy approved; two-stage defaults, delays/hysteresis, 24/7 recipients, FCM and Gmail channel choices recorded.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/project-baseline/08-owner-decisions-2026-10-31.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nPilot alarm policy approved; two-stage defaults, delays/hysteresis, 24/7 recipients, FCM and Gmail channel choices recorded.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/project-baseline/08-owner-decisions-2026-10-31.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "en cours",
+      "comment_id": "1500520000057177",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0ud",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0ud"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:57:26.903Z"
     },
     {
       "task_id": "1ampw4tn0uh",
       "name": "MILESTONE M0 - Requirements baseline approved",
       "url": "https://app.clickup.com/t/1ampw4tn0uh",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nM0 remains open for final hardware documentation, technical accountability and credential-risk treatment. Software policy approval alone does not close the gate.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/project-baseline/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nM0 remains open for final hardware documentation, technical accountability and credential-risk treatment. Software policy approval alone does not close the gate.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/project-baseline/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057178",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0uh",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0uh"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:57:29.518Z"
     },
     {
       "task_id": "1ampw4tn0ue",
       "name": "Collect final firmware, libraries, transmitter documents and I/O schedule",
       "url": "https://app.clickup.com/t/1ampw4tn0ue",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nAuthoritative v3.3 source and pinned Opta toolchain compiled and recorded; approved 0–10 V mapping preserved. Final cabinet terminals/electrical schematic and field comparison remain pending.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/project-baseline/02-engineering-evidence-register.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nAuthoritative v3.3 source and pinned Opta toolchain compiled and recorded; approved 0–10 V mapping preserved. Final cabinet terminals/electrical schematic and field comparison remain pending.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/project-baseline/02-engineering-evidence-register.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "en cours",
+      "comment_id": "1500520000057179",
+      "status_result": {
+        "success": true,
+        "unchanged": true,
+        "task_id": "1ampw4tn0ue"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:57:30.544Z"
     },
     {
       "task_id": "1ampw4tn0ug",
       "name": "Freeze acceptance criteria, owners, risks and change process",
       "url": "https://app.clickup.com/t/1ampw4tn0ug",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nAcceptance criteria, RACI, risk register and change process documented. Owner and manager named; accountable technical owners/dates and exposed-credential rotation remain open.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/project-baseline/07-phase-0-task-reports.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nAcceptance criteria, RACI, risk register and change process documented. Owner and manager named; accountable technical owners/dates and exposed-credential rotation remain open.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/project-baseline/07-phase-0-task-reports.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057180",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0ug",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0ug"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:57:33.511Z"
     },
     {
       "task_id": "1ampw4tn0u0",
       "name": "Phase 0 - Project baseline and governance",
       "url": "https://app.clickup.com/t/1ampw4tn0u0",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nPhase 0 software/governance documentation is available; outstanding external hardware/ownership/security evidence is explicitly retained.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/project-baseline/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nPhase 0 software/governance documentation is available; outstanding external hardware/ownership/security evidence is explicitly retained.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/project-baseline/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057181",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0u0",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0u0"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:57:36.009Z"
     },
     {
       "task_id": "1ampw4tn0w2",
       "name": "Complete English and French localization",
       "url": "https://app.clickup.com/t/1ampw4tn0w2",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nFrench-default/English-switchable UI, dates/charts, validation, native notifications and per-phone server notifications implemented. MQTT strings and user notes preserved; browser tests pass at 320/390 pixels.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/06-french-account-gmail.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nFrench-default/English-switchable UI, dates/charts, validation, native notifications and per-phone server notifications implemented. MQTT strings and user notes preserved; browser tests pass at 320/390 pixels.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/06-french-account-gmail.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057182",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0w2",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0w2"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:57:38.284Z"
     },
     {
       "task_id": "1ampw4tn0v8",
       "name": "Implement server-side alarm evaluator and state transitions",
       "url": "https://app.clickup.com/t/1ampw4tn0v8",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nTemperature/sensor/levels/cooling/offline lifecycle deployed; delay/hysteresis, replay exclusion, activation/recovery and recurrence tests pass.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/02-verification.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nTemperature/sensor/levels/cooling/offline lifecycle deployed; delay/hysteresis, replay exclusion, activation/recovery and recurrence tests pass.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/02-verification.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057183",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0v8",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0v8"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:57:40.714Z"
     },
     {
       "task_id": "1ampw4tn0u4",
       "name": "Phase 2 - Cloud ingestion and data foundation",
       "url": "https://app.clickup.com/t/1ampw4tn0u4",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nIngestion, scoped registry, aggregate history and alarm persistence deployed; operational retention/restore and field acceptance remain outstanding.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nIngestion, scoped registry, aggregate history and alarm persistence deployed; operational retention/restore and field acceptance remain outstanding.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057184",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0u4",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0u4"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:57:42.948Z"
     },
     {
       "task_id": "1ampw4tn0ur",
       "name": "Validate I2-I7 mapping and pilot fan control-status semantics",
       "url": "https://app.clickup.com/t/1ampw4tn0ur",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nI2–I6 binary levels, I7 auxiliary cooling feedback and relay/LED control-only fan semantics implemented. Per-terminal physical stimulation evidence remains pending.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/01-io-terminal-schedule.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nI2–I6 binary levels, I7 auxiliary cooling feedback and relay/LED control-only fan semantics implemented. Per-terminal physical stimulation evidence remains pending.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/01-io-terminal-schedule.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057185",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0ur",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0ur"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:57:45.720Z"
     },
     {
       "task_id": "1ampw4tn0ut",
       "name": "Finalize terminal schedule and conceptual wiring update",
       "url": "https://app.clickup.com/t/1ampw4tn0ut",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nLogical schedule and conceptual wiring documented; installation-ready terminal/supply/protection/grounding approval remains pending.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/01-io-terminal-schedule.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nLogical schedule and conceptual wiring documented; installation-ready terminal/supply/protection/grounding approval remains pending.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/01-io-terminal-schedule.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057186",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0ut",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0ut"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:57:49.524Z"
     },
     {
       "task_id": "1ampw4tn0un",
       "name": "Implement local buffering and replay-safe sequence behavior",
       "url": "https://app.clickup.com/t/1ampw4tn0un",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\n120-frame RAM buffer and oldest-first replay implemented; deduplication is tested in cloud simulations. Installed-device outage/reconnect/overflow acceptance remains pending; RAM does not survive power loss.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/04-phase-1-task-reports.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\n120-frame RAM buffer and oldest-first replay implemented; deduplication is tested in cloud simulations. Installed-device outage/reconnect/overflow acceptance remains pending; RAM does not survive power loss.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/04-phase-1-task-reports.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057190",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0un",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0un"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:57:57.992Z"
     },
     {
       "task_id": "1ampw4tn0uw",
       "name": "Register farm, house and device identities with scoped MQTT topics",
       "url": "https://app.clickup.com/t/1ampw4tn0uw",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nPilot farm/house/controller and scoped topics registered; owner confirmed identity mismatch fixed.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/01-cloud-ingestion-architecture.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nPilot farm/house/controller and scoped topics registered; owner confirmed identity mismatch fixed.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/01-cloud-ingestion-architecture.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057191",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0uw",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0uw"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:58:00.764Z"
     },
     {
       "task_id": "1ampw4tn0u5",
       "name": "Phase 3 - Alarm and notification services",
       "url": "https://app.clickup.com/t/1ampw4tn0u5",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nAlarm engine, FCM, Gmail worker, acknowledgement/history and thresholds deployed. Finish the documented device and inbox acceptance items before closing M3.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nAlarm engine, FCM, Gmail worker, acknowledgement/history and thresholds deployed. Finish the documented device and inbox acceptance items before closing M3.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057193",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0u5",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0u5"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:58:03.240Z"
     },
     {
       "task_id": "1ampw4tn0u1",
       "name": "Phase 1 - Opta firmware and field validation",
       "url": "https://app.clickup.com/t/1ampw4tn0u1",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nFirmware software baseline compiled and live identity/NTP fixes accepted by owner; field acceptance remains open.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nFirmware software baseline compiled and live identity/NTP fixes accepted by owner; field acceptance remains open.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057195",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0u1",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0u1"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:58:05.703Z"
     },
     {
       "task_id": "1ampw4tn0u7",
       "name": "Phase 4 - Production and packaging workflow",
       "url": "https://app.clickup.com/t/1ampw4tn0u7",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nPhase 4 software implemented, including the previously missing dated/category flock ledger. M4 business-owner acceptance remains open.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nPhase 4 software implemented, including the previously missing dated/category flock ledger. M4 business-owner acceptance remains open.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057196",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0u7",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0u7"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:58:08.637Z"
     },
     {
       "task_id": "1ampw4tn0w4",
       "name": "MILESTONE M5 - Android pilot beta approved",
       "url": "https://app.clickup.com/t/1ampw4tn0w4",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nM5 remains open for owner/manager installation and UAT, TalkBack/background/restart tests and production signing handover. Android 1.11.0 (23) passed debug/unsigned-release compilation and pilot signer checks in Actions run 41288156791; packaged web assets match tested source b95007e. Use the named ElMajd-Automation-1.11.0.apk.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nM5 remains open for owner/manager installation and UAT, TalkBack/background/restart tests and production signing handover. Android 1.11.0 (23) passed debug/unsigned-release compilation and pilot signer checks in Actions run 41288156791; packaged web assets match tested source b95007e. Use the named ElMajd-Automation-1.11.0.apk.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057198",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0w4",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0w4"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:58:11.230Z"
     },
     {
       "task_id": "1ampw4tn0w3",
       "name": "Configure signing, secure sessions, release build and upgrade test",
       "url": "https://app.clickup.com/t/1ampw4tn0w3",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nEncrypted saved credentials and current-password verification/in-app recovery implemented; WebView limited to bundled assets, network/file access restricted. Private-key environment release signing and unsigned release compile checks configured. Production key handover and actual phone upgrade acceptance remain pending.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nEncrypted saved credentials and current-password verification/in-app recovery implemented; WebView limited to bundled assets, network/file access restricted. Private-key environment release signing and unsigned release compile checks configured. Production key handover and actual phone upgrade acceptance remain pending.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057199",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0w3",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0w3"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:58:13.968Z"
     },
     {
       "task_id": "1ampw4tn0w1",
       "name": "Add packaging stock, shortage and audited production editing UI",
       "url": "https://app.clickup.com/t/1ampw4tn0w1",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nInteractive Overview carton tray, reference/balance/shortfall, audited production/carton edits and owner deletion implemented. History paging preserves latest Overview values; stale/invalid previews cannot enable saving.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nInteractive Overview carton tray, reference/balance/shortfall, audited production/carton edits and owner deletion implemented. History paging preserves latest Overview values; stale/invalid previews cannot enable saving.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057200",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0w1",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0w1"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:58:16.349Z"
     },
     {
       "task_id": "1ampw4tn0w0",
       "name": "Add flock adjustment and carton receipt configuration UI",
       "url": "https://app.clickup.com/t/1ampw4tn0w0",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nFlock movements by effective date/category/reason and dated carton receipts implemented in Configuration. Shared Realtime refresh, idempotent submissions and role controls tested.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nFlock movements by effective date/category/reason and dated carton receipts implemented in Configuration. Shared Realtime refresh, idempotent submissions and role controls tested.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057201",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0w0",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0w0"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:58:18.888Z"
     },
     {
       "task_id": "1ampw4tn0vy",
       "name": "Add threshold configuration UI with role controls",
       "url": "https://app.clickup.com/t/1ampw4tn0vy",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nOwner/manager temperature configuration UI, input bounds and audited threshold API implemented; viewer controls disabled and backend denial tested.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-5/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nOwner/manager temperature configuration UI, input bounds and audited threshold API implemented; viewer controls disabled and backend denial tested.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-5/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057203",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0vy",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0vy"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:58:21.151Z"
     },
     {
       "task_id": "1ampw4tn0vw",
       "name": "Add alarm center, push token registration, acknowledgement and history",
       "url": "https://app.clickup.com/t/1ampw4tn0vw",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nDedicated alarm/history tab, acknowledgement/recovery times, native push registration/status and notification navigation implemented. Provider self-test received; installed-device/background/two-phone acceptance remains documented.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nDedicated alarm/history tab, acknowledgement/recovery times, native push registration/status and notification navigation implemented. Provider self-test received; installed-device/background/two-phone acceptance remains documented.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057204",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0vw",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0vw"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:58:28.872Z"
     },
     {
       "task_id": "1ampw4tn0vv",
       "name": "Extend sensor charts to 24 hours using five-minute aggregates",
       "url": "https://app.clickup.com/t/1ampw4tn0vv",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\n24-hour five-minute cloud charts, adaptive scale, gaps for missing/invalid values and accessible measurement/range summaries implemented and browser-tested.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\n24-hour five-minute cloud charts, adaptive scale, gaps for missing/invalid values and accessible measurement/range summaries implemented and browser-tested.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057205",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0vv",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0vv"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:58:32.191Z"
     },
     {
       "task_id": "1ampw4tn0vt",
       "name": "MILESTONE M4 - Production and packaging calculations accepted",
       "url": "https://app.clickup.com/t/1ampw4tn0vt",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nM4 software calculations and authorization tests pass. Owner validation using real production/packaging reconciliation and multi-phone acceptance remains pending.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nM4 software calculations and authorization tests pass. Owner validation using real production/packaging reconciliation and multi-phone acceptance remains pending.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057206",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0vt",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0vt"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:58:35.006Z"
     },
     {
       "task_id": "1ampw4tn0vp",
       "name": "Validate production formulas, missing-day behavior and fixed GMT+1",
       "url": "https://app.clickup.com/t/1ampw4tn0vp",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nStock + Sortie − latest earlier Stock, first-entry zero, missing-day behavior and mortality/rate rules verified. Fixed GMT+1 UI dates/grouping tested across both Berlin DST transitions. Server previews read full saved history.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nStock + Sortie − latest earlier Stock, first-entry zero, missing-day behavior and mortality/rate rules verified. Fixed GMT+1 UI dates/grouping tested across both Berlin DST transitions. Server previews read full saved history.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057207",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0vp",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0vp"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:58:37.327Z"
     },
     {
       "task_id": "1ampw4tn0vn",
       "name": "Make production entries editable with audit history and admin-only deletion",
       "url": "https://app.clickup.com/t/1ampw4tn0vn",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nAudited historical edits, transactional dependent recalculation and owner-only deletion implemented. Manager edits and denied deletion, rollback, mortality restoration and audit verified.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-4/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nAudited historical edits, transactional dependent recalculation and owner-only deletion implemented. Manager edits and denied deletion, rollback, mortality restoration and audit verified.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-4/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057208",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0vn",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0vn"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:58:40.272Z"
     },
     {
       "task_id": "1ampw4tn0vm",
       "name": "Implement carton consumption, allowance, shortage and stock warning",
       "url": "https://app.clickup.com/t/1ampw4tn0vm",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\n30 eggs/carton plus rounded-up 10% allowance, opening-reference exclusion, zero floor and separate shortfall implemented and tested. Later deliveries do not repay past uncovered consumption.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-5/02-version-1.9.1-refinements.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\n30 eggs/carton plus rounded-up 10% allowance, opening-reference exclusion, zero floor and separate shortfall implemented and tested. Later deliveries do not repay past uncovered consumption.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-5/02-version-1.9.1-refinements.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057209",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0vm",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0vm"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:58:42.676Z"
     },
     {
       "task_id": "1ampw4tn0vj",
       "name": "Add carton receipt configuration and additive stock ledger",
       "url": "https://app.clickup.com/t/1ampw4tn0vj",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nDated carton receipt ledger with actor/note, idempotent additions, manager adjustments and owner-only deletion deployed and tested.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-5/02-version-1.9.1-refinements.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nDated carton receipt ledger with actor/note, idempotent additions, manager adjustments and owner-only deletion deployed and tested.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-5/02-version-1.9.1-refinements.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057210",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0vj",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0vj"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:58:45.165Z"
     },
     {
       "task_id": "1ampw4tn0vh",
       "name": "Implement pilot roles and authorization matrix",
       "url": "https://app.clickup.com/t/1ampw4tn0vh",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nOwner/admin and manager memberships enforced server-side; manager create/edit, owner-only production/carton delete, viewer denial and cross-farm checks verified.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-4/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nOwner/admin and manager memberships enforced server-side; manager create/edit, owner-only production/carton delete, viewer denial and cross-farm checks verified.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-4/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057211",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0vh",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0vh"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:58:47.739Z"
     },
     {
       "task_id": "1ampw4tn0vg",
       "name": "Add dated flock adjustments with categories and audit history",
       "url": "https://app.clickup.com/t/1ampw4tn0vg",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nDated immutable flock movement ledger and configuration UI implemented: initialization, receipts, transfers and reasoned corrections. Idempotent owner/manager RPC updates later flock snapshots/rates transactionally. Historical production insertion excludes future movements. Regression, rollback and role-denial tests pass.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nDated immutable flock movement ledger and configuration UI implemented: initialization, receipts, transfers and reasoned corrections. Idempotent owner/manager RPC updates later flock snapshots/rates transactionally. Historical production insertion excludes future movements. Regression, rollback and role-denial tests pass.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057212",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0vg",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0vg"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:58:49.958Z"
     },
     {
       "task_id": "1ampw4tn0ve",
       "name": "MILESTONE M3 - Critical alarm delivered end to end",
       "url": "https://app.clickup.com/t/1ampw4tn0ve",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nOwner confirmed FCM self-test arrival and controlled Gmail fallback receipt in spam. Production-mode Gmail consent/credential replacement is complete. M3 remains open for controlled critical-condition push with app closed, normal inbox placement and two-phone/permission/sign-out acceptance; provider acceptance is distinguished from human receipt.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nOwner confirmed FCM self-test arrival and controlled Gmail fallback receipt in spam. Production-mode Gmail consent/credential replacement is complete. M3 remains open for controlled critical-condition push with app closed, normal inbox placement and two-phone/permission/sign-out acceptance; provider acceptance is distinguished from human receipt.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057213",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0ve",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0ve"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:58:52.055Z"
     },
     {
       "task_id": "1ampw4tn0vc",
       "name": "Implement acknowledgement, automatic recovery, repetition and history",
       "url": "https://app.clickup.com/t/1ampw4tn0vc",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nMember acknowledgement, automatic recovery, repeat cancellation, policy reminders, audit and Android history implemented. Idempotency, cross-farm denial and queue cancellation tests pass.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/02-verification.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nMember acknowledgement, automatic recovery, repeat cancellation, policy reminders, audit and Android history implemented. Idempotency, cross-farm denial and queue cancellation tests pass.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/02-verification.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057214",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0vc",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0vc"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:59:00.226Z"
     },
     {
       "task_id": "1ampw4tn0vb",
       "name": "Integrate email fallback and escalation timers",
       "url": "https://app.clickup.com/t/1ampw4tn0vb",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nGmail sender authorized in Vault. Real scheduled worker delivered a clearly labelled controlled TEST to the owner; provider acceptance/audit verified, fixture removed, and owner confirmed receipt in spam. Approved sender/privacy/terms pages are live; Google OAuth shows En production. Fresh consent after publication was sender/scope verified, provider-tested and installed, replacing the Test-mode grant. Temporary setup endpoint/RPC and local refresh-credential copy retired. Google verification is separate and incomplete; normal inbox placement remains an acceptance item.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nGmail sender authorized in Vault. Real scheduled worker delivered a clearly labelled controlled TEST to the owner; provider acceptance/audit verified, fixture removed, and owner confirmed receipt in spam. Approved sender/privacy/terms pages are live; Google OAuth shows En production. Fresh consent after publication was sender/scope verified, provider-tested and installed, replacing the Test-mode grant. Temporary setup endpoint/RPC and local refresh-credential copy retired. Google verification is separate and incomplete; normal inbox placement remains an acceptance item.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057215",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0vb",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0vb"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:59:04.345Z"
     },
     {
       "task_id": "1ampw4tn0va",
       "name": "Integrate Firebase Cloud Messaging push notifications",
       "url": "https://app.clickup.com/t/1ampw4tn0va",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nFCM registration/rotation, native receiver, per-phone language, permission status, self-test, leases and retries implemented. Owner confirmed actual notification arrival. Closed-app/OEM/two-phone acceptance remains in the milestone checklist.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/05-fcm-delivery.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nFCM registration/rotation, native receiver, per-phone language, permission status, self-test, leases and retries implemented. Owner confirmed actual notification arrival. Closed-app/OEM/two-phone acceptance remains in the milestone checklist.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/05-fcm-delivery.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057216",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0va",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0va"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:59:06.869Z"
     },
     {
       "task_id": "1ampw4tn0v9",
       "name": "Implement farm and house threshold configuration API",
       "url": "https://app.clickup.com/t/1ampw4tn0v9",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nRole-checked farm/house temperature threshold API and before/after audit deployed; anonymous/cross-farm denial tested.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/02-verification.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nRole-checked farm/house temperature threshold API and before/after audit deployed; anonymous/cross-farm denial tested.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/02-verification.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057217",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0v9",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0v9"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:59:09.306Z"
     },
     {
       "task_id": "1ampw4tn0v5",
       "name": "MILESTONE M2 - Cloud telemetry foundation ready",
       "url": "https://app.clickup.com/t/1ampw4tn0v5",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nM2 ingestion software checks pass; physical outage/replay and approved backup/restore evidence remain open.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nM2 ingestion software checks pass; physical outage/replay and approved backup/restore evidence remain open.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057218",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0v5",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0v5"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:59:12.001Z"
     },
     {
       "task_id": "1ampw4tn0v4",
       "name": "Define retention, backup and restore; tune indexes and database security",
       "url": "https://app.clickup.com/t/1ampw4tn0v4",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nIndexes, RLS and security advisors reviewed. Destructive retention policy, backup objectives and actual restore drill remain unapproved/unverified.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/03-phase-2-task-reports.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nIndexes, RLS and security advisors reviewed. Destructive retention policy, backup objectives and actual restore drill remain unapproved/unverified.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/03-phase-2-task-reports.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057219",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0v4",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0v4"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:59:14.179Z"
     },
     {
       "task_id": "1ampw4tn0v3",
       "name": "Add alarm, acknowledgement, notification-delivery and audit tables",
       "url": "https://app.clickup.com/t/1ampw4tn0v3",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nAlarm events, acknowledgement/configuration audit and durable push/email delivery records deployed with tenant restrictions; regression tests pass.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/02-verification.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nAlarm events, acknowledgement/configuration audit and durable push/email delivery records deployed with tenant restrictions; regression tests pass.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/02-verification.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057220",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0v3",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0v3"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:59:16.296Z"
     },
     {
       "task_id": "1ampw4tn0v1",
       "name": "Implement authoritative five-minute offline detection and recovery",
       "url": "https://app.clickup.com/t/1ampw4tn0v1",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nAuthoritative fresh-measurement offline evaluator and minute scheduler deployed. Simulated five-minute activation/recovery passes; physical outage acceptance remains a commissioning test.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/02-verification.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nAuthoritative fresh-measurement offline evaluator and minute scheduler deployed. Simulated five-minute activation/recovery passes; physical outage acceptance remains a commissioning test.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-3/02-verification.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057221",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0v1",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0v1"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:59:18.840Z"
     },
     {
       "task_id": "1ampw4tn0uz",
       "name": "Implement five-minute aggregates with min, max, average, last and sample count",
       "url": "https://app.clickup.com/t/1ampw4tn0uz",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nFive-minute source-time aggregate storage deployed and Android charts consume it; raw/aggregate and member-read validation documented.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/02-verification-results.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nFive-minute source-time aggregate storage deployed and Android charts consume it; raw/aggregate and member-read validation documented.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/02-verification-results.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057222",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0uz",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0uz"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:59:22.432Z"
     },
     {
       "task_id": "1ampw4tn0uy",
       "name": "Harden EMQX webhook ingestion for validation and idempotency",
       "url": "https://app.clickup.com/t/1ampw4tn0uy",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nAuthenticated known-device/topic webhook validation, replay-safe sequence deduplication and conditional latest-state writes deployed and negatively tested.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/02-verification-results.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nAuthenticated known-device/topic webhook validation, replay-safe sequence deduplication and conditional latest-state writes deployed and negatively tested.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/02-verification-results.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057223",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0uy",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0uy"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:59:25.006Z"
     },
     {
       "task_id": "1ampw4tn0uu",
       "name": "MILESTONE M1 - Field telemetry baseline accepted",
       "url": "https://app.clickup.com/t/1ampw4tn0uu",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nM1 remains open for physical outage/replay, input stimulation, calibration and final electrical evidence; NTP and identity progress are recorded.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nM1 remains open for physical outage/replay, input stimulation, calibration and final electrical evidence; NTP and identity progress are recorded.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/README.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057224",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0uu",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0uu"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:59:37.614Z"
     },
     {
       "task_id": "1ampw4tn0uq",
       "name": "Calibrate PT100 0-10 V chain and document transfer function",
       "url": "https://app.clickup.com/t/1ampw4tn0uq",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nApproved transfer function and reference-test record documented. Installed-chain ±0.5 °C calibration evidence remains pending.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/02-pt100-calibration-and-field-validation.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nApproved transfer function and reference-test record documented. Installed-chain ±0.5 °C calibration evidence remains pending.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/02-pt100-calibration-and-field-validation.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057225",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0uq",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0uq"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:59:40.148Z"
     },
     {
       "task_id": "1ampw4tn0uk",
       "name": "Add device timestamps, firmware version, buffer state and scoped identity fields",
       "url": "https://app.clickup.com/t/1ampw4tn0uk",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nScoped identity, boot/sequence, firmware/schema, UTC capture and replay diagnostics implemented. Identity fixed by owner; NTP send-result bug corrected in 4.0.2 and successful synchronization confirmed by owner.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/03-phase-2-task-reports.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nScoped identity, boot/sequence, firmware/schema, UTC capture and replay diagnostics implemented. Identity fixed by owner; NTP send-result bug corrected in 4.0.2 and successful synchronization confirmed by owner.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-2/03-phase-2-task-reports.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057226",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0uk",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0uk"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:59:42.488Z"
     },
     {
       "task_id": "1ampw4tn0uj",
       "name": "Refactor Opta firmware into sensor, MQTT, buffer and diagnostics modules",
       "url": "https://app.clickup.com/t/1ampw4tn0uj",
       "status_intent": "complete",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nOpta firmware modularization implemented and compiled: configuration, types, I/O, time, buffer, JSON codec and networking/commands.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/04-phase-1-task-reports.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nOpta firmware modularization implemented and compiled: configuration, types, I/O, time, buffer, JSON codec and networking/commands.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/phase-1/04-phase-1-task-reports.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057227",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0uj",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0uj"
+      },
+      "applied_status": "achevé",
+      "applied_at": "2026-11-01T08:59:44.839Z"
     },
     {
       "task_id": "1ampw4tn0u8",
       "name": "Phase 5 - Android application implementation",
       "url": "https://app.clickup.com/t/1ampw4tn0u8",
       "status_intent": "in_progress",
-      "applied": false,
-      "comment_text": "Implementation synchronization — 2026-11-01\n\nAndroid software work extended through 1.11.0: six tabs, shared farm/production/packaging, historical previews/paging, French/English, account recovery and push/Gmail status. Installed-device and release-key acceptance remain open.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones."
+      "applied": true,
+      "comment_text": "Implementation synchronization — 2026-11-01\n\nAndroid software work extended through 1.11.0: six tabs, shared farm/production/packaging, historical previews/paging, French/English, account recovery and push/Gmail status. Installed-device and release-key acceptance remain open.\n\nEvidence: [project report](https://github.com/MahdiGU/MQTT-OPTA-Dashboard/blob/French_Account_Gmail/docs/delivery/phase-3-5-completion.md). Branch: French_Account_Gmail. No merge performed.\n\nSoftware completion does not close physical, business-owner or go-live acceptance milestones.",
+      "previous_status": "à faire",
+      "comment_id": "1500520000057228",
+      "status_result": {
+        "success": true,
+        "task_id": "1ampw4tn0u8",
+        "custom_id": null,
+        "task_url": "https://app.clickup.com/t/1ampw4tn0u8"
+      },
+      "applied_status": "en cours",
+      "applied_at": "2026-11-01T08:59:47.754Z"
     }
-  ]
+  ],
+  "verified_at": "2026-11-01T08:59:49.490Z",
+  "verification": {
+    "task_count": 58,
+    "report_count": 45,
+    "status_counts": {
+      "achevé": 25,
+      "en cours": 20
+    },
+    "unrelated_tasks_unchanged": 13
+  }
 }
