@@ -34,6 +34,22 @@ Auth also returned database-related 500/504 errors. These observations show broa
 3. Identify whether time is spent in ingestion triggers, Realtime, background maintenance, lock waits or platform resource scheduling. Do not label elapsed query time as measured CPU time.
 4. Apply only the correction supported by those measurements, then compare under the same one-device load. Confirm fresh telemetry, successful login and command authorization, and stable Realtime with no recurring timeouts.
 
-At the last management check, the full project restart was still `RESTARTING`. Live database profiling and phone command acceptance remain pending. No additional restart or paid compute upgrade should be treated as the root-cause fix.
+## Post-restart observations
+
+The database started at 19:02:34 UTC and the management API reported healthy by 19:03:09. The owner confirmed sign-in works in Android 1.11.2. Auth health returned 200, and the anonymous authorization-RPC probe correctly returned permission denied rather than a schema-cache failure.
+
+At 19:03:20 UTC, the first eight ingestion calls averaged 152.2 ms. Realtime's replication slot was active with only 56 bytes retained; there was no connection pile-up or lock wait in the captured activity snapshot.
+
+At 19:04:50 UTC:
+
+- The latest OPTA capture was 19:04:44, received at 19:04:44.818.
+- The 26 ingestion calls averaged 68.3 ms, maximum 362.3 ms.
+- Realtime polling averaged 16.1 ms across 285 calls, maximum 417.9 ms.
+- All 11 other client connections in the snapshot were idle, waiting on their clients.
+- Database counters showed zero deadlocks and no temporary-file spill. These counters were reset during recovery and do not describe the pre-restart incident.
+
+Between the two snapshots, 18 additional ingests used approximately 558.3 ms total (31.0 ms/call), and 192 Realtime polls used approximately 1880.2 ms total (9.8 ms/call). These are elapsed database execution times, not direct CPU measurements. They establish initial recovery under the current pilot load, not long-term stability or a conclusive explanation of the later recurrence.
+
+Do not credit the restart as a root-cause correction. The confirmed query-scan defect and unnecessary raw Realtime stream have been corrected; the remaining explanation requires correlated CPU/resource and query-wait evidence if latency returns. No additional restart or paid compute upgrade was selected after the owner's request to prioritize diagnosis. Phone command acceptance remains pending.
 
 Official metric reference: https://supabase.com/docs/guides/platform/compute-and-disk
