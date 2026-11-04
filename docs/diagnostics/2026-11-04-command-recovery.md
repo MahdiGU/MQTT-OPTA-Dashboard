@@ -17,5 +17,12 @@
 
 - SQL checks with simulated JWT claims allowed the pilot owner and manager, denied an unrelated user, and confirmed the function grant is authenticated only.
 - A mocked Edge Function test verified owner/manager authorization flow, audit creation, `D0 ON` payload, topic, QoS 0, retain off, and denial of invalid commands. It did not publish to the physical OPTA.
-- The Android inline JavaScript parsed successfully. The signed APK build and phone acceptance are tracked separately.
+- The Android inline JavaScript parsed successfully. GitHub Actions run `41889249622` passed debug assembly, release compilation, and pilot signature verification for commit `d9be6ef`.
+- Downloaded `artifacts/ElMajd-Automation-1.11.2.apk` (5,997,920 bytes). APK SHA-256: `d96577a9f5108f9ee129efaaf6ecabc49afc16f3862f0f9f792e1a1ae3f07cbe`. The artifact ZIP hash matched GitHub's recorded digest. Phone acceptance remains pending.
 - Supabase's database and PostgREST relapsed during rollout. `PGRST002` and Auth timeouts mean this change alone cannot guarantee command delivery while the project is overloaded. Do not infer physical equipment action from an EMQX publish acknowledgement; compare a subsequent OPTA telemetry frame or physical indication.
+
+## Service recovery during rollout
+
+- Postgres logs showed slow schema introspection and statement timeouts; Auth also logged connection/request timeouts. The dashboard's Query Performance page itself timed out. These observations indicate database pressure, but do not conclusively identify a single resource bottleneck.
+- Migration `20261104184100_postgrest_schema_recovery.sql` increases the authenticator statement timeout from 30 to 60 seconds and requests a PostgREST config/schema reload. The public REST probe still returned `503 PGRST002` after this change.
+- Used the dashboard's **Fast database reboot** option at approximately 18:52 UTC to recover stalled connections. No paid compute upgrade was selected. Service recovery must be checked before treating command delivery as restored.
