@@ -10,7 +10,7 @@ The subsequent intermittent service failure is not yet conclusively explained. R
 
 ## Owner's screenshot
 
-`Screenshot_20261104-183805.png` shows CPU/compute at 95%, memory at 76% in the card (69% at the selected chart point), disk I/O balance at 84%, and disk storage at 23%. The chart spans 28 October–4 November. It supports CPU pressure at the selected point; it does not identify the responsible process or prove that CPU remained at 95% throughout the incident. The I/O balance is remaining burst budget, not disk utilization. This snapshot does not establish exhausted I/O budget or a full disk.
+`Screenshot_20261104-183805.png` shows CPU/compute at 95%, memory at 76% in the card (69% at the selected chart point), disk I/O balance at 84%, and disk storage at 23%. The chart spans 28 October–4 November. Subsequent inspection of Supabase Studio's source confirmed that this card displays the **peak CPU over the rolling last seven days**, with daily maximum CPU points. It is not an instantaneous CPU measurement. The header's memory value is also a period peak, while disk I/O balance is the minimum sampled remaining budget. The earlier 95% can therefore remain displayed after the service recovers. This screenshot cannot establish ongoing CPU saturation, exhausted I/O budget or a full disk.
 
 ## Logs before the later failure (UTC)
 
@@ -53,3 +53,13 @@ Between the two snapshots, 18 additional ingests used approximately 558.3 ms tot
 Do not credit the restart as a root-cause correction. The confirmed query-scan defect and unnecessary raw Realtime stream have been corrected; the remaining explanation requires correlated CPU/resource and query-wait evidence if latency returns. No additional restart or paid compute upgrade was selected after the owner's request to prioritize diagnosis. The owner subsequently tested ON/OFF commands at 19:04:55–19:05:00 UTC; command audits and changing OPTA D0/L0 telemetry verified the full path. See the command recovery report for exact evidence.
 
 Official metric reference: https://supabase.com/docs/guides/platform/compute-and-disk
+
+## Follow-up: 95% card after recovery
+
+At 19:31:58 UTC (20:31:58 Europe/Berlin), telemetry capture age was approximately four seconds, with the latest frame received 1.424 seconds after capture. Since the 19:02:34 restart, 353 ingest RPC calls averaged 9.5 ms (maximum 362.3 ms). The snapshot showed 12 other client connections idle, waiting for their clients. Realtime polling averaged 6.7 ms across 3815 calls. These are database timings and wait states, not host CPU measurements, but do not show recurrence of the earlier broad slowdown.
+
+Verified the card's definition in Supabase's official source: `ComputeAndDiskUsageCharts.tsx` requests `max_cpu_usage` over a rolling seven-day window at interval `1d`; `getComputeUsageSummary` takes the maximum of those CPU points. Consequently, its unchanged 95% header is not evidence of a new or continuing 95% CPU incident. Use the Observability database CPU chart over a short recent window to assess present CPU load.
+
+Source: https://github.com/supabase/supabase/blob/master/apps/studio/components/interfaces/DiskManagement/ComputeAndDiskUsageCharts.tsx
+
+Aggregation: https://github.com/supabase/supabase/blob/master/apps/studio/components/interfaces/DiskManagement/ComputeAndDiskUsageCharts.utils.ts
