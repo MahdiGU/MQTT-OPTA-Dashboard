@@ -1,4 +1,4 @@
--- Isolated fixture, including every aggregate-changing edge case. No providers
+-- Latest-value history fixture, including ordering and fault edge cases. No providers
 -- or equipment are invoked, and every simulated row is rolled back.
 begin;
 set local statement_timeout = '120s';
@@ -41,8 +41,8 @@ begin
   if (r->>'history_inserted')::boolean then raise exception 'Duplicate frame inserted'; end if;
 
   select * into a from public.telemetry_five_minute where farm_id=f and device_id=d and bucket_start=base;
-  if a.sample_count is distinct from 6 or a.temp_min is distinct from 5::float8
-      or a.temp_max is distinct from 30::float8 or abs(a.temp_avg-18)>0.000001
+  if a.sample_count is distinct from 6 or a.temp_min is not null
+      or a.temp_max is not null or a.temp_avg is not null
       or a.temp_last is distinct from 30::float8 or a.volts_last is distinct from 3::float8
       or a.i2_last is distinct from true then raise exception 'Bucket values incorrect: %',row_to_json(a); end if;
   if a.first_captured_at is distinct from base+interval '1 second'
@@ -53,6 +53,35 @@ begin
   if (select count(*) from public.telemetry where farm_id=f)<>7 then raise exception 'Raw sample count incorrect'; end if;
   if not exists(select 1 from public.device_latest where farm_id=f and seq=5 and temp_c=40) then
     raise exception 'Out-of-order replay replaced latest state'; end if;
+
+  -- A newer faulty sample must retain null, rather than a stale valid temperature.
+  perform public.ingest_device_telemetry(f,d,jsonb_build_object('boot_id','bounds-test','seq',7,
+    'captured_at',base+interval '299.5 seconds','received_at',base+interval '400 seconds',
+    'replay',true,'temp_c',null,'volts',null,'sensor_fault',true,'i2',false));
+  select * into a from public.telemetry_five_minute where farm_id=f and device_id=d and bucket_start=base;
+  if a.temp_last is not null or a.volts_last is not null or a.i2_last is distinct from false
+      or a.last_recorded_at is distinct from base+interval '299.5 seconds' then
+    raise exception 'Latest fault was masked by an older valid sample'; end if;
+  -- Equal source timestamps use receipt time consistently.
+  perform public.ingest_device_telemetry(f,d,jsonb_build_object('boot_id','bounds-test','seq',8,
+    'captured_at',base+interval '299.5 seconds','received_at',base+interval '401 seconds',
+    'replay',true,'temp_c',31,'volts',3.1,'i2',true));
+  perform public.ingest_device_telemetry(f,d,jsonb_build_object('boot_id','bounds-test','seq',9,
+    'captured_at',base+interval '299.5 seconds','received_at',base+interval '399 seconds',
+    'replay',true,'temp_c',99,'volts',9,'i2',false));
+  select * into a from public.telemetry_five_minute where farm_id=f and device_id=d and bucket_start=base;
+  if a.temp_last is distinct from 31::float8 or a.i2_last is distinct from true
+      or a.sample_count<>9 then raise exception 'Equal-time ordering/count incorrect'; end if;
+  -- Receipt-time fallback must also advance and protect the retained point.
+  perform public.ingest_device_telemetry(f,d,jsonb_build_object('boot_id','bounds-test','seq',10,
+    'received_at',base+interval '590 seconds','replay',true,'temp_c',45,'i2',true));
+  perform public.ingest_device_telemetry(f,d,jsonb_build_object('boot_id','bounds-test','seq',11,
+    'captured_at',base+interval '580 seconds','received_at',base+interval '700 seconds',
+    'replay',true,'temp_c',99,'i2',false));
+  if not exists(select 1 from public.telemetry_five_minute where farm_id=f and device_id=d
+      and bucket_start=base+interval '5 minutes' and temp_last=45 and i2_last
+      and last_recorded_at=base+interval '590 seconds') then
+    raise exception 'Receipt-time fallback was replaced by older captured sample'; end if;
 end $$;
 rollback;
-select 'PASS: bucket edges, replay ordering, null temperature, receipt-time fallback, legacy, deduplication' as result;
+select 'PASS: latest-value intervals, replay ordering, null faults, equal-time ordering, receipt-time fallback, legacy, deduplication' as result;

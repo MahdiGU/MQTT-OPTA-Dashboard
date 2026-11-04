@@ -4,6 +4,8 @@ This branch begins the move to a cloud-centered architecture. The Arduino Opta
 continues to use MQTT, while the Android app will ultimately communicate only
 with Supabase.
 
+Current history behavior (04 November 2026): raw frames are retained in `telemetry`; `telemetry_five_minute` keeps the latest measurement per interval without average/minimum/maximum calculations. The current Android app already reads these latest-value fields. See [the deployed change](diagnostics/2026-11-04-five-minute-latest-values.md). The first-stage notes below describe the original bridge rollout.
+
 ```text
 Arduino Opta -- MQTT --> EMQX -- HTTPS webhook --> Supabase
 Arduino Opta <-- MQTT -- EMQX <-- HTTPS Publish API -- Supabase Edge Function

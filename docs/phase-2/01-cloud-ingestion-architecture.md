@@ -47,7 +47,7 @@ An enabled registry row must match both the webhook MQTT client ID and topic. Un
 
 ## Five-minute history
 
-Every accepted raw insert refreshes its corresponding UTC five-minute bucket. Each aggregate contains sample count, temperature minimum/maximum/average/latest, latest voltage, latest I2-I8 state, and first/last device capture time. Raw telemetry remains the evidence source; the aggregate exists for efficient application charts.
+Since 04 November 2026, every accepted raw insert updates its corresponding UTC five-minute history row directly from the incoming measurement. Each row retains the latest temperature (including null for a faulty/missing reading), voltage and I2-I8 states. Source time determines ordering, with receipt time breaking equal-source-time ties. Older replayed frames increase the lightweight sample count without replacing newer values. No per-interval minimum, maximum or average is calculated, and the trigger does not read raw history. Raw telemetry remains the evidence source. See [deployment and verification](../diagnostics/2026-11-04-five-minute-latest-values.md).
 
 ## Compatibility
 
