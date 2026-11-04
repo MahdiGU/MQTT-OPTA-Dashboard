@@ -26,6 +26,8 @@ final class SupabaseRealtimeClient {
 
     private static final String TOPIC = "realtime:elmajd-dashboard";
     private static final long HEARTBEAT_SECONDS = 20L;
+    private static final long JOIN_TIMEOUT_SECONDS = 25L;
+    private static final long HEARTBEAT_TIMEOUT_SECONDS = 60L;
 
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
         .connectTimeout(15L, TimeUnit.SECONDS)
@@ -37,6 +39,8 @@ final class SupabaseRealtimeClient {
 
     private volatile WebSocket socket;
     private volatile ScheduledFuture<?> heartbeat;
+    private volatile ScheduledFuture<?> joinDeadline;
+    private volatile long lastHeartbeatAckNanos;
     private volatile String accessToken;
     private volatile String joinReference;
     private volatile boolean closing;
@@ -86,6 +90,7 @@ final class SupabaseRealtimeClient {
         closing = true;
         subscribed = false;
         cancelHeartbeat();
+        cancelJoinDeadline();
         WebSocket current = socket;
         socket = null;
         if (current != null) {
@@ -98,11 +103,34 @@ final class SupabaseRealtimeClient {
 
     private synchronized void startHeartbeat(WebSocket target) {
         cancelHeartbeat();
+        lastHeartbeatAckNanos = System.nanoTime();
         heartbeat = scheduler.scheduleAtFixedRate(() -> {
             if (target != socket || closing) return;
+            if (subscribed && System.nanoTime() - lastHeartbeatAckNanos
+                > TimeUnit.SECONDS.toNanos(HEARTBEAT_TIMEOUT_SECONDS)) {
+                listener.onError("Realtime heartbeat timed out");
+                target.cancel();
+                return;
+            }
             String reference = nextReference();
-            target.send(message("phoenix", "heartbeat", new JSONObject(), reference, null));
+            if (!target.send(message("phoenix", "heartbeat", new JSONObject(), reference, null))) {
+                target.cancel();
+            }
         }, HEARTBEAT_SECONDS, HEARTBEAT_SECONDS, TimeUnit.SECONDS);
+    }
+
+    private synchronized void startJoinDeadline(WebSocket target) {
+        cancelJoinDeadline();
+        joinDeadline = scheduler.schedule(() -> {
+            if (target != socket || closing || subscribed) return;
+            listener.onError("Realtime subscription timed out; reconnecting");
+            target.cancel();
+        }, JOIN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    }
+
+    private synchronized void cancelJoinDeadline() {
+        if (joinDeadline != null) joinDeadline.cancel(false);
+        joinDeadline = null;
     }
 
     private synchronized void cancelHeartbeat() {
@@ -178,6 +206,7 @@ final class SupabaseRealtimeClient {
                     .put("access_token", accessToken);
                 webSocket.send(message(TOPIC, "phx_join", payload, expectedJoinReference, expectedJoinReference));
                 startHeartbeat(webSocket);
+                startJoinDeadline(webSocket);
             } catch (Exception error) {
                 listener.onError("Could not join Realtime: " + friendly(error));
                 webSocket.cancel();
@@ -191,6 +220,12 @@ final class SupabaseRealtimeClient {
                 JSONObject envelope = new JSONObject(text);
                 String event = envelope.optString("event");
                 JSONObject payload = envelope.optJSONObject("payload");
+                if ("phx_reply".equals(event) && "phoenix".equals(envelope.optString("topic"))) {
+                    if (payload != null && "ok".equals(payload.optString("status"))) {
+                        lastHeartbeatAckNanos = System.nanoTime();
+                    }
+                    return;
+                }
                 if ("phx_reply".equals(event)
                     && expectedJoinReference.equals(envelope.optString("ref"))) {
                     String status = payload == null ? "" : payload.optString("status");
@@ -247,6 +282,7 @@ final class SupabaseRealtimeClient {
         private void markSubscribed() {
             if (subscribed) return;
             subscribed = true;
+            cancelJoinDeadline();
             listener.onSubscribed();
         }
 
@@ -256,6 +292,7 @@ final class SupabaseRealtimeClient {
                 socket = null;
                 subscribed = false;
                 cancelHeartbeat();
+                cancelJoinDeadline();
                 if (closing) return;
             }
             if (error != null) listener.onError("Realtime connection failed: " + friendly(error));

@@ -49,6 +49,7 @@ public final class CloudForegroundService extends Service {
     private static final int TEMPERATURE_NOTIFICATION_ID = 3301;
     private static final long RECONCILE_INTERVAL_MS = 5L * 60L * 1000L;
     private static final long MAX_RECONNECT_DELAY_MS = 30_000L;
+    private static final long REST_FALLBACK_INTERVAL_MS = 10_000L;
     private static final long STALE_AFTER_MS = 20_000L;
     private static final long ALERT_COOLDOWN_MS = 30L * 60L * 1000L;
     private static final long PRODUCTION_REFRESH_DEBOUNCE_MS = 350L;
@@ -64,10 +65,13 @@ public final class CloudForegroundService extends Service {
     private volatile boolean signedIn;
     private volatile boolean realtimeConnected;
     private volatile boolean realtimeConnecting;
+    private volatile boolean fallbackInProgress;
+    private volatile long cloudAttempt;
     private boolean reconcileInProgress;
     private boolean hot;
     private String latestSignature = "";
     private long reconnectDelayMs = 1_000L;
+    private long signInRetryDelayMs = 1_000L;
 
     @Override
     public void onCreate() {
@@ -85,6 +89,7 @@ public final class CloudForegroundService extends Service {
                 broadcast("connection", "online");
                 broadcast("cloud_connection", "online");
                 updateMonitorNotification("Live Supabase updates active");
+                handler.removeCallbacks(restFallbackRunnable);
                 scheduleReconcile(0L);
             }
 
@@ -115,6 +120,7 @@ public final class CloudForegroundService extends Service {
                 if (!stopping && signedIn) {
                     broadcast("connection", "reconnecting");
                     updateMonitorNotification("Restoring live Supabase updates...");
+                    scheduleRestFallback(0L);
                     scheduleReconnect();
                 }
             }
@@ -197,6 +203,7 @@ public final class CloudForegroundService extends Service {
         else {
             broadcast("cloud_connection", "online");
             ensureRealtimeConnection();
+            scheduleRestFallback(REST_FALLBACK_INTERVAL_MS);
             requestProductionHistory();
             requestConfiguration();
             scheduleReconcile(0L);
@@ -209,9 +216,12 @@ public final class CloudForegroundService extends Service {
     }
 
     private void connectCloud() {
+        long attempt = ++cloudAttempt;
         PushRegistration.deactivate(this);
         handler.removeCallbacks(reconcileRunnable);
         handler.removeCallbacks(reconnectRunnable);
+        handler.removeCallbacks(signInRetryRunnable);
+        handler.removeCallbacks(restFallbackRunnable);
         realtimeClient.disconnect();
         realtimeConnected = false;
         realtimeConnecting = false;
@@ -223,24 +233,73 @@ public final class CloudForegroundService extends Service {
         cloudExecutor.execute(() -> {
             try {
                 supabaseClient.signIn(credentials.supabaseEmail, credentials.supabasePassword);
-                signedIn = true;
-                PushRegistration.activate(CloudForegroundService.this);
-                syncPush();
-                broadcast("cloud_connection", "online");
-                broadcast("connection", "online");
-                updateMonitorNotification("Starting live Supabase updates...");
-                requestProductionHistory();
-                requestConfiguration();
-                openRealtimeConnection();
             } catch (Exception error) {
+                if (stopping || attempt != cloudAttempt) return;
                 signedIn = false;
                 broadcast("cloud_connection", "offline");
                 broadcast("cloud_error", friendlyError(error));
-                broadcast("connection", "offline");
-                updateMonitorNotification("Supabase connection failed");
+                if (SupabaseClient.isTemporaryFailure(error)) {
+                    broadcast("connection", "reconnecting");
+                    updateMonitorNotification("Retrying Supabase sign-in...");
+                    scheduleSignInRetry();
+                } else {
+                    broadcast("connection", "offline");
+                    updateMonitorNotification("Supabase sign-in failed");
+                }
+                broadcast("realtime_error", "Supabase sign-in: " + friendlyError(error));
+                return;
+            }
+            if (stopping || attempt != cloudAttempt) return;
+            signedIn = true;
+            signInRetryDelayMs = 1_000L;
+            PushRegistration.activate(CloudForegroundService.this);
+            try { syncPush(); }
+            catch (Exception error) { broadcast("push_status", friendlyError(error)); }
+            broadcast("cloud_connection", "online");
+            broadcast("connection", "connecting");
+            updateMonitorNotification("Starting live Supabase updates...");
+            scheduleRestFallback(REST_FALLBACK_INTERVAL_MS);
+            scheduleReconcile(0L);
+            requestProductionHistory();
+            requestConfiguration();
+            try { openRealtimeConnection(); }
+            catch (Exception error) {
+                realtimeConnecting = false;
+                broadcast("realtime_error", friendlyError(error));
+                scheduleReconnect();
             }
         });
     }
+
+    private void scheduleSignInRetry() {
+        if (stopping || signedIn || activeCredentials == null) return;
+        handler.removeCallbacks(signInRetryRunnable);
+        handler.postDelayed(signInRetryRunnable, signInRetryDelayMs);
+        signInRetryDelayMs = Math.min(MAX_RECONNECT_DELAY_MS, signInRetryDelayMs * 2L);
+    }
+
+    private final Runnable signInRetryRunnable = () -> {
+        if (!stopping && !signedIn && activeCredentials != null) connectCloud();
+    };
+
+    private void scheduleRestFallback(long delayMs) {
+        if (stopping || !signedIn) return;
+        handler.removeCallbacks(restFallbackRunnable);
+        handler.postDelayed(restFallbackRunnable, delayMs);
+    }
+
+    private final Runnable restFallbackRunnable = () -> {
+        if (stopping || !signedIn || realtimeConnected) return;
+        if (!fallbackInProgress) {
+            fallbackInProgress = true;
+            cloudExecutor.execute(() -> {
+                try { handleLatest(supabaseClient.readLatest()); }
+                catch (Exception error) { broadcast("realtime_error", "Latest reading unavailable: " + friendlyError(error)); }
+                finally { fallbackInProgress = false; }
+            });
+        }
+        scheduleRestFallback(REST_FALLBACK_INTERVAL_MS);
+    };
 
     private void scheduleReconcile(long delayMs) {
         if (stopping || !signedIn) return;
@@ -513,6 +572,7 @@ public final class CloudForegroundService extends Service {
         boolean unregister=signedIn;
         PushRegistration.deactivate(this);
         stopping = true;
+        cloudAttempt++;
         signedIn = false;
         realtimeConnected = false;
         realtimeConnecting = false;
@@ -634,6 +694,7 @@ public final class CloudForegroundService extends Service {
     @Override
     public void onDestroy() {
         stopping = true;
+        cloudAttempt++;
         signedIn = false;
         realtimeConnected = false;
         realtimeConnecting = false;

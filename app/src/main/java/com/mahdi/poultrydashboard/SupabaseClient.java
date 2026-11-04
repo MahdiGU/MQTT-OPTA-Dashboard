@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -25,6 +26,23 @@ final class SupabaseClient {
     private String userId;
     private String farmId;
     private long expiresAtMs;
+
+    static boolean isTemporaryFailure(Exception error) {
+        if (error instanceof CloudRequestException) {
+            int status = ((CloudRequestException) error).status;
+            return status == 408 || status == 429 || status >= 500;
+        }
+        return error instanceof IOException;
+    }
+
+    private static final class CloudRequestException extends IOException {
+        final int status;
+
+        CloudRequestException(int status, String message) {
+            super(message);
+            this.status = status;
+        }
+    }
 
     void signIn(String email, String password) throws Exception {
         this.email = email;
@@ -429,7 +447,7 @@ final class SupabaseClient {
             } catch (Exception ignored) {
                 // Keep the server response as the diagnostic message.
             }
-            throw new IllegalStateException("Cloud request failed (" + status + "): " + message);
+            throw new CloudRequestException(status, "Cloud request failed (" + status + "): " + message);
         }
         return response == null || response.isEmpty() ? "{}" : response;
     }

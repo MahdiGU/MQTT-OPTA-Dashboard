@@ -12,6 +12,7 @@ on:
       - Phase_5_App_Refinements
       - Phase_3_FCM_Delivery
       - French_Account_Gmail
+      - Fix_Supabase_Telemetry_2026_11_04
   workflow_dispatch:
 
 permissions:
@@ -47,7 +48,7 @@ jobs:
           "$signer" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk
 
       - name: Create named install package
-        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ElMajd-Automation-1.11.0.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ElMajd-Automation-1.11.1.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -55,6 +56,6 @@ jobs:
           name: ElMajd-Automation-debug-apk
           path: |
             app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/apk/debug/ElMajd-Automation-1.11.0.apk
+            app/build/outputs/apk/debug/ElMajd-Automation-1.11.1.apk
           if-no-files-found: error
           retention-days: 30
