@@ -38,12 +38,6 @@ Deno.serve(async (request) => {
       "content-type": "application/json",
     };
 
-    const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      headers: { apikey: serviceRoleKey, authorization },
-    });
-    const user = await readJson(userResponse) as JsonObject;
-    if (!userResponse.ok || !user?.id) return jsonResponse({ error: "Invalid session" }, 401);
-
     const body = await request.json() as JsonObject;
     const payload = String(body.payload || "").trim().replace(/\s+/g, " ").toUpperCase();
     if (!COMMAND_PATTERN.test(payload)) {
@@ -52,30 +46,37 @@ Deno.serve(async (request) => {
       }, 400);
     }
 
-    const farmResponse = await fetch(
-      `${supabaseUrl}/rest/v1/farms?slug=eq.${encodeURIComponent(FARM_SLUG)}&select=id&limit=1`,
-      { headers: serviceHeaders },
+    const clientApiKey = request.headers.get("apikey");
+    if (!clientApiKey) return jsonResponse({ error: "API key required" }, 401);
+    const permissionResponse = await fetch(
+      `${supabaseUrl}/rest/v1/rpc/authorize_mqtt_command`,
+      {
+        method: "POST",
+        headers: {
+          apikey: clientApiKey,
+          authorization,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ target_farm_slug: FARM_SLUG }),
+      },
     );
-    const farms = await readJson(farmResponse);
-    if (!farmResponse.ok || !Array.isArray(farms) || !farms[0]?.id) {
-      throw new Error("Configured farm was not found");
+    const permission = await readJson(permissionResponse) as JsonObject;
+    if (permissionResponse.status === 401) return jsonResponse({ error: "Invalid session" }, 401);
+    if (!permissionResponse.ok) {
+      return jsonResponse({ error: "Command authorization temporarily unavailable" }, 503);
     }
-    const farmId = String(farms[0].id);
-    const membershipResponse = await fetch(
-      `${supabaseUrl}/rest/v1/farm_members?farm_id=eq.${farmId}&user_id=eq.${user.id}&role=in.(owner,manager,worker)&select=role&limit=1`,
-      { headers: serviceHeaders },
-    );
-    const memberships = await readJson(membershipResponse);
-    if (!membershipResponse.ok || !Array.isArray(memberships) || memberships.length === 0) {
+    if (permission?.allowed !== true || !permission.farm_id || !permission.user_id) {
       return jsonResponse({ error: "You do not have permission to control this farm" }, 403);
     }
+    const farmId = String(permission.farm_id);
+    const userId = String(permission.user_id);
 
     const createResponse = await fetch(`${supabaseUrl}/rest/v1/device_commands`, {
       method: "POST",
       headers: { ...serviceHeaders, prefer: "return=representation" },
       body: JSON.stringify({
         farm_id: farmId,
-        requested_by: user.id,
+        requested_by: userId,
         topic: DEFAULT_TOPIC,
         payload,
         qos: 0,

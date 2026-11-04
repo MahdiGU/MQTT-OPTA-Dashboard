@@ -389,7 +389,11 @@ final class SupabaseClient {
                 null,
                 null
             )));
-        } catch (Exception ignored) {
+        } catch (Exception refreshError) {
+            if (isTemporaryFailure(refreshError)
+                && System.currentTimeMillis() < expiresAtMs - 30_000L) {
+                return;
+            }
             signIn(email, password);
         }
     }
