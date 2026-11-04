@@ -6,6 +6,20 @@ import {
 } from "../_shared/http.ts";
 
 const FARM_SLUG = Deno.env.get("FARM_SLUG")?.trim() || "elmajd-poultry";
+const DEVICE_CACHE_MS = 30_000;
+
+type RegisteredDevice = {
+  farmId: string;
+  statusTopic: string;
+  telemetryTopic: string;
+};
+
+class UnknownDeviceError extends Error {}
+
+const deviceCache = new Map<string, {
+  expiresAt: number;
+  value: Promise<RegisteredDevice>;
+}>();
 
 type JsonObject = Record<string, unknown>;
 
@@ -66,6 +80,53 @@ function parsePayload(value: unknown): unknown {
   }
 }
 
+async function registeredDevice(
+  supabaseUrl: string,
+  restHeaders: Record<string, string>,
+  deviceId: string,
+): Promise<RegisteredDevice> {
+  const now = Date.now();
+  const cached = deviceCache.get(deviceId);
+  if (cached && cached.expiresAt > now) return cached.value;
+
+  const value = (async () => {
+    const farmResponse = await fetch(
+      `${supabaseUrl}/rest/v1/farms?slug=eq.${encodeURIComponent(FARM_SLUG)}&select=id&limit=1`,
+      { headers: restHeaders },
+    );
+    const farms = await readJson(farmResponse);
+    if (!farmResponse.ok || !Array.isArray(farms) || !farms[0]?.id) {
+      throw new Error("Configured farm was not found");
+    }
+    const farmId = String(farms[0].id);
+    const deviceResponse = await fetch(
+      `${supabaseUrl}/rest/v1/devices?farm_id=eq.${farmId}` +
+        `&mqtt_client_id=eq.${encodeURIComponent(deviceId)}` +
+        "&enabled=eq.true&select=telemetry_topic,status_topic&limit=1",
+      { headers: restHeaders },
+    );
+    const devices = await readJson(deviceResponse);
+    if (!deviceResponse.ok) throw new Error("Could not look up MQTT device");
+    if (!Array.isArray(devices) || !devices[0]) {
+      throw new UnknownDeviceError("Unknown or disabled MQTT device");
+    }
+    const device = object(devices[0]);
+    return {
+      farmId,
+      statusTopic: String(device.status_topic || "opta/status"),
+      telemetryTopic: String(device.telemetry_topic || "opta/outputs"),
+    };
+  })();
+
+  deviceCache.set(deviceId, { expiresAt: now + DEVICE_CACHE_MS, value });
+  try {
+    return await value;
+  } catch (error) {
+    if (deviceCache.get(deviceId)?.value === value) deviceCache.delete(deviceId);
+    throw error;
+  }
+}
+
 Deno.serve(async (request) => {
   if (request.method !== "POST") {
     return jsonResponse({ error: "Method not allowed" }, 405);
@@ -94,29 +155,11 @@ Deno.serve(async (request) => {
       "content-type": "application/json",
     };
 
-    const farmResponse = await fetch(
-      `${supabaseUrl}/rest/v1/farms?slug=eq.${encodeURIComponent(FARM_SLUG)}&select=id&limit=1`,
-      { headers: restHeaders },
+    const { farmId, statusTopic, telemetryTopic } = await registeredDevice(
+      supabaseUrl,
+      restHeaders,
+      deviceId,
     );
-    const farms = await readJson(farmResponse);
-    if (!farmResponse.ok || !Array.isArray(farms) || !farms[0]?.id) {
-      throw new Error("Configured farm was not found");
-    }
-    const farmId = String(farms[0].id);
-
-    const deviceResponse = await fetch(
-      `${supabaseUrl}/rest/v1/devices?farm_id=eq.${farmId}` +
-        `&mqtt_client_id=eq.${encodeURIComponent(deviceId)}` +
-        "&enabled=eq.true&select=telemetry_topic,status_topic,command_topic&limit=1",
-      { headers: restHeaders },
-    );
-    const devices = await readJson(deviceResponse);
-    if (!deviceResponse.ok || !Array.isArray(devices) || !devices[0]) {
-      return jsonResponse({ error: "Unknown or disabled MQTT device" }, 403);
-    }
-    const registeredDevice = object(devices[0]);
-    const statusTopic = String(registeredDevice.status_topic || "opta/status");
-    const telemetryTopic = String(registeredDevice.telemetry_topic || "opta/outputs");
 
     if (topic === statusTopic) {
       const statusText = typeof payload === "string"
@@ -204,6 +247,9 @@ Deno.serve(async (request) => {
 
     return jsonResponse({ accepted: true, kind: "telemetry", result: ingestResult });
   } catch (error) {
+    if (error instanceof UnknownDeviceError) {
+      return jsonResponse({ error: error.message }, 403);
+    }
     console.error(error);
     return jsonResponse({ error: "MQTT ingestion failed" }, 500);
   }
