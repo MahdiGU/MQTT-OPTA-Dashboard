@@ -28,3 +28,9 @@
 - Used the dashboard's **Fast database reboot** option at approximately 18:52 UTC to recover stalled connections. No paid compute upgrade was selected. Service recovery must be checked before treating command delivery as restored.
 - The fast reboot did not restore reachability. Started a full project restart at approximately 18:57 UTC. At 19:00 UTC the management API still reported `RESTARTING`; the phone's sign-in attempt failed during this window. APK installation alone does not resolve this service outage.
 - The database started at 19:02:34 UTC and was healthy by 19:03:09. Auth health returned 200; the anonymous RPC probe correctly denied access. The owner subsequently confirmed sign-in works in 1.11.2. Fresh telemetry and low ingestion latency were observed after recovery; command execution on the phone still needs confirmation. See `2026-11-04-database-root-cause.md` for the evidence and unresolved recurrence question.
+
+## Phone command acceptance confirmed
+
+The owner tested the command controls after signing in with 1.11.2. The audit recorded `D0 ON` at 19:04:55.562 UTC, sent at 19:04:56.060, followed by `D0 OFF` at 19:04:59.678, sent at 19:05:00.111. Both records have status `sent`, broker message IDs, and no recorded error.
+
+Indexed telemetry inspection confirmed controller-reported execution: sequence 72960 at 19:04:54 had D0/L0 false, sequence 72961 at 19:04:55 had both true, and sequence 72962 at 19:04:59 had both false. This confirms the app → Supabase → EMQX → OPTA → telemetry path; telemetry is control-state evidence, not independent mechanical feedback. The command defect is verified resolved under the recovered service conditions. Sustained database stability remains a separate unresolved investigation.

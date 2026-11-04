@@ -50,6 +50,6 @@ At 19:04:50 UTC:
 
 Between the two snapshots, 18 additional ingests used approximately 558.3 ms total (31.0 ms/call), and 192 Realtime polls used approximately 1880.2 ms total (9.8 ms/call). These are elapsed database execution times, not direct CPU measurements. They establish initial recovery under the current pilot load, not long-term stability or a conclusive explanation of the later recurrence.
 
-Do not credit the restart as a root-cause correction. The confirmed query-scan defect and unnecessary raw Realtime stream have been corrected; the remaining explanation requires correlated CPU/resource and query-wait evidence if latency returns. No additional restart or paid compute upgrade was selected after the owner's request to prioritize diagnosis. Phone command acceptance remains pending.
+Do not credit the restart as a root-cause correction. The confirmed query-scan defect and unnecessary raw Realtime stream have been corrected; the remaining explanation requires correlated CPU/resource and query-wait evidence if latency returns. No additional restart or paid compute upgrade was selected after the owner's request to prioritize diagnosis. The owner subsequently tested ON/OFF commands at 19:04:55–19:05:00 UTC; command audits and changing OPTA D0/L0 telemetry verified the full path. See the command recovery report for exact evidence.
 
 Official metric reference: https://supabase.com/docs/guides/platform/compute-and-disk
