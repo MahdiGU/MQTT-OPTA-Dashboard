@@ -1,28 +1,23 @@
 # Current system specification
 
-**Version 0.4, issued 01 November 2026.** Reconciled against the owner's decisions, specification v0.3 and development evidence through `94b6f40` on `French_Account_Gmail`. No merge performed.
+**Version 0.5, issued 06 November 2026.** Based on implementation commit `e0c3a9f` on `Opta_Feed_Chain_Expansion`.
 
-- [Review PDF](ElMAJD_Automation_System_Specification_v0.4.pdf)
-- [Readable/editable Markdown](ElMAJD_Automation_System_Specification_v0.4.md)
-- [Structured authoring source](specification-v0.4.json)
+- [Review PDF](ElMAJD_Automation_System_Specification_v0.5.pdf)
+- [Editable Markdown](ElMAJD_Automation_System_Specification_v0.5.md)
+- [Structured source](specification-v0.5.json)
 - [PDF renderer](build_specification_v04.py)
+- [Previous edition](ElMAJD_Automation_System_Specification_v0.4.pdf)
 
-The 25-page book replaces old proposed/pending statements with the current Opta 4.0.2, EMQX, Supabase and Android 1.11.0 architecture and contracts. It includes the approved alarm matrix, active FCM/Gmail delivery, password/account flows, six-tab Android UI, production/mortality rules, dated flock changes, carton opening reference and zero-floor inventory, verification evidence and remaining phase gates.
-
-Implemented behavior is distinguished from approved requirements and unfinished acceptance. In particular, hardware calibration/electrical approval, device acceptance, protected production signing, operational retention/restore, secured web delivery and production command safety are not declared complete.
-
-Two source discrepancies are recorded explicitly: the current firmware uses onboard inputs rather than an initialized A0602 expansion driver; the command endpoint still allows the legacy `worker` role beyond the approved owner/manager scope. This documentation update does not change runtime behavior or permissions.
+The 26-page book specifies the AFX00005 terminal mapping, Opta 4.1.0 firmware, Supabase ingestion and Android 1.12.0 display for the 12 feed chains. It records the latest-value five-minute history behavior, command authorization and recovery evidence. ACC-FCH defines the physical input tests required for commissioning.
 
 ## Rebuild
 
 Requires Python with `reportlab` and `pypdf`, the repository app icon, and Arial fonts from `C:/Windows/Fonts`.
 
 ```text
-python docs/specification/build_specification_v04.py
+python docs/specification/build_specification_v04.py 0.5
 ```
 
-The renderer writes the PDF to `output/pdf/` and regenerates the Markdown here. After visual review, copy the PDF into this directory for repository distribution. No credentials or cloud access are needed to rebuild.
+The renderer writes the PDF to `output/pdf/` and regenerates the companion Markdown. After review, copy the PDF into this directory for repository distribution.
 
-Quality review: 25 planned/actual pages, all headings present, no out-of-margin words or replacement glyphs; all pages rendered and visually inspected. Final changed pages were rendered again after wording correction. No app/database tests were rerun for this documentation-only change; historical implementation test results are attributed to their delivery evidence.
-
-Original v0.1-v0.3 PDFs remain unchanged in the owner's specification folder. The new version is a controlled working baseline, not an inferred owner sign-off or go-live approval.
+The PDF was rendered and reviewed across all 26 pages. Text checks confirmed the page numbering, headings, terminal mapping, MQTT example and acceptance references.

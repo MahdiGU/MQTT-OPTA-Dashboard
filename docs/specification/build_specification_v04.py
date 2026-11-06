@@ -1,9 +1,11 @@
-"""Rebuild the reviewed 2026-11-01 specification from versioned content.
+"""Rebuild a versioned specification. Defaults to the original v0.4 edition.
 
 Requires reportlab and pypdf. Run from any directory; outputs are repo-relative.
 The source snapshot is documentation-only and does not query or modify services.
 """
 from pathlib import Path
+from datetime import date
+import argparse
 import json
 import re
 from xml.sax.saxutils import escape
@@ -19,8 +21,15 @@ from pypdf import PdfReader
 
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
-OUT = ROOT / 'output/pdf/ElMAJD_Automation_System_Specification_v0.4.pdf'
-SOURCE = HERE / 'specification-v0.4.json'
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('version', nargs='?', default='0.4', choices=('0.4', '0.5'))
+version = parser.parse_args().version
+SOURCE = HERE / f'specification-v{version}.json'
+data = json.loads(SOURCE.read_text(encoding='utf-8'))
+issued = date.fromisoformat(data['issued'])
+issue_label = issued.strftime('%d %B %Y')
+stem = f'ElMAJD_Automation_System_Specification_v{version}'
+OUT = ROOT / f'output/pdf/{stem}.pdf'
 W, H = A4
 CW = W - 96
 GREEN = HexColor('#13745E')
@@ -77,8 +86,9 @@ def note(text):
     ]));t.spaceBefore=6;t.spaceAfter=10;return t
 
 class Diagram(Flowable):
-    def __init__(self, kind):
+    def __init__(self, kind, field_lines=None):
         Flowable.__init__(self);self.kind=kind;self.width=CW;self.height=300 if kind=='system' else 220
+        self.field_lines = field_lines or ['0-10 V temperature', '24 V binary inputs', 'Relays + LED state']
     def draw(self):
         c=self.canv
         def box(x,y,w,h,title,lines,color=PALE):
@@ -94,7 +104,7 @@ class Diagram(Flowable):
             if label:
                 c.setFillColor(MUTED);c.setFont('Body',7.5);c.drawCentredString((x1+x2)/2,(y1+y2)/2+8,label)
         if self.kind=='system':
-            box(0,213,140,77,'FIELD / OPTA',['0-10 V temperature','24 V binary inputs','Relays + LED state'])
+            box(0,213,140,77,'FIELD / OPTA',self.field_lines)
             box(183,213,133,77,'EMQX',['MQTT authentication','Topic authorization','Rules + Publish API'])
             box(359,213,140,77,'SUPABASE',['HTTPS ingestion','PostgreSQL + Auth','RLS + Realtime'])
             arrow(140,249,183,249,'MQTTS')
@@ -128,7 +138,7 @@ class NumberedCanvas(canvas.Canvas):
         for state in self.states:
             self.__dict__.update(state)
             self.setFillColor(MUTED);self.setFont('Body',7.5)
-            self.drawString(48,27,'ELMAJD AUTOMATION  |  Controlled working baseline v0.4')
+            self.drawString(48,27,f'ELMAJD AUTOMATION  |  Controlled working baseline v{version}')
             self.drawRightString(W-48,27,f'{self._pageNumber} / {total}')
             canvas.Canvas.showPage(self)
         canvas.Canvas.save(self)
@@ -137,11 +147,10 @@ def header(c,doc):
     if doc.page==1:return
     c.setStrokeColor(LINE);c.setLineWidth(.6);c.line(48,H-39,W-48,H-39)
     c.setFillColor(GREEN);c.setFont('Bold',8);c.drawString(48,H-28,'ELMAJD AUTOMATION')
-    c.setFont('Body',8);c.setFillColor(MUTED);c.drawRightString(W-48,H-28,'System specification  |  01 November 2026')
+    c.setFont('Body',8);c.setFillColor(MUTED);c.drawRightString(W-48,H-28,f'System specification  |  {issue_label}')
 
-data=json.loads(SOURCE.read_text(encoding='utf-8'))
 story=[]
-markdown=['# ElMAJD Automation - System Specification v0.4','', 'Issue: 2026-11-01. Controlled working baseline; operational acceptance pending.','']
+markdown=[f'# ElMAJD Automation - System Specification v{version}', '', f'Issued {issued.isoformat()}. Controlled working baseline. Operational acceptance pending.', '']
 for index,page in enumerate(data['pages']):
     if index:story.append(PageBreak())
     if index==0:
@@ -162,7 +171,7 @@ for index,page in enumerate(data['pages']):
             story.append(tab(block['headers'],block['rows'],block.get('widths')))
             markdown.append('| '+' | '.join(block['headers'])+' |')
             markdown.append('| '+' | '.join(['---']*len(block['headers']))+' |')
-            markdown.extend('| '+' | '.join(row)+' |' for row in block['rows']);markdown.append('')
+            markdown.extend('| '+' | '.join(cell.replace('\n', '<br>') for cell in row)+' |' for row in block['rows']);markdown.append('')
         elif kind=='bullets':
             for item in block['items']:story.append(para('- '+item))
             markdown.extend('- '+item for item in block['items']);markdown.append('')
@@ -170,7 +179,7 @@ for index,page in enumerate(data['pages']):
             text=block['text'];story.append(note('Illustrative frame; not a live measurement.') if block.get('example') else Spacer(1,2))
             for line in text.splitlines():story.append(para(line.replace(' ','\u00a0'),'mono'))
             markdown.extend(['```json',text,'```',''])
-        elif kind=='diagram':story.append(Diagram(block['kind']));markdown.extend(['[Vector diagram included in the PDF.]',''])
+        elif kind=='diagram':story.append(Diagram(block['kind'], block.get('field_lines')));markdown.extend(['[Vector diagram included in the PDF.]',''])
         elif kind=='links':
             for label,url in block['items']:
                 story.append(Paragraph(f'<link href="{escape(url)}" color="#13745E"><b>{escape(label)}</b></link>',STYLES['small']))
@@ -179,10 +188,10 @@ for index,page in enumerate(data['pages']):
         else:raise ValueError(kind)
 OUT.parent.mkdir(parents=True,exist_ok=True)
 doc=SimpleDocTemplate(str(OUT),pagesize=A4,leftMargin=48,rightMargin=48,topMargin=60,bottomMargin=49,
-    title='ElMAJD Automation - System Specification v0.4',author='ElMAJD Automation',
-    subject='Reconciled pilot requirements, implementation and pending acceptance - 2026-11-01')
+    title=f'ElMAJD Automation - System Specification v{version}',author='ElMAJD Automation',
+    subject=f'Reconciled pilot requirements, implementation and pending acceptance - {issued.isoformat()}')
 doc.build(story,onFirstPage=header,onLaterPages=header,canvasmaker=NumberedCanvas)
-(HERE/'ElMAJD_Automation_System_Specification_v0.4.md').write_text('\n'.join(markdown),encoding='utf-8')
+(HERE/f'{stem}.md').write_text('\n'.join(markdown),encoding='utf-8')
 reader=PdfReader(OUT)
 for i,page in enumerate(reader.pages):
     if not page.extract_text().strip():raise RuntimeError(f'Blank page {i+1}')
