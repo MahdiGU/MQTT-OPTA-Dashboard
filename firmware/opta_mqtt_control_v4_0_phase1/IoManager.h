@@ -6,6 +6,7 @@
 class IoManager {
  public:
   void begin();
+  void updateExpansion();
   void capture(TelemetryFrame& frame) const;
   void setOutput(uint8_t index, bool on);
   void setLed(uint8_t index, bool on);
@@ -15,6 +16,7 @@ class IoManager {
   void restoreLeds() const;
 
  private:
+  void captureFeedChains(TelemetryFrame& frame) const;
   float readRtdVolts() const;
   TemperatureReading readTemperature() const;
 

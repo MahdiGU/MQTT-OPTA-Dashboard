@@ -40,6 +40,7 @@ function post(clientid, topic, payload, secret = 'test-secret') {
 assert.equal((await post('opta-control-01', 'opta/outputs', { seq: 8 })).status, 200);
 assert.equal(requests[0].target_farm_slug, 'elmajd-poultry');
 assert.equal(requests[0].normalized.seq, 8);
+assert.equal(Object.hasOwn(requests[0].normalized.raw_payload, 'feed_chains'), false);
 assert.equal((await post('opta-control-01', 'opta/status', 'online')).status, 200);
 assert.equal(requests[1].target_status, 'online');
 assert.equal(requests[1].normalized, null);
@@ -49,4 +50,14 @@ assert.equal((await post('opta-control-01', 'opta/outputs', 'bad')).status, 400)
 const before = requests.length;
 assert.equal((await post('opta-control-01', 'opta/outputs', { seq: 9 }, 'wrong')).status, 401);
 assert.equal(requests.length, before);
+for (const [input, expected] of [[0, 0], [2081, 2081], [4095, 4095], [null, null],
+  [-1, null], [4096, null], [1.5, null], ['7', null], [{ value: 7 }, null]]) {
+  const response = await post('opta-control-01', 'opta/outputs', {
+    seq: 10, i1: { temp_c: 22 }, feed_chains: input,
+  });
+  assert.equal(response.status, 200);
+  assert.equal(requests.at(-1).normalized.temp_c, 22);
+  assert.equal(requests.at(-1).normalized.raw_payload.feed_chains, expected);
+  assert.equal(requests.at(-1).normalized.raw_payload.feed_chains_received_at, requests.at(-1).normalized.received_at);
+}
 console.log('single-request MQTT webhook checks passed');

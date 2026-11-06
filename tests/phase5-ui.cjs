@@ -24,6 +24,26 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
     const data={role:'manager',house_id:'test-house',settings:[{warning_c:30,critical_c:33}],cartons:[{received:100,consumed:20,balance:80,reference_date:'2026-10-20',shortfall:0}],receipts:[{id:'receipt1',receipt_date:'2026-10-20',quantity:100,note:'Opening reference'}],alarms:[{id:'test-alarm',code:'temperature_critical',severity:'critical',activated_at:new Date().toISOString(),resolved_at:null,acknowledged_at:null}]};
     await page.evaluate(data=>{showApp();elMajdNativeEvent('cloud_connection','online');elMajdNativeEvent('phase5_data',JSON.stringify(data));elMajdNativeEvent('production_history',JSON.stringify([{id:1,production_date:'2026-10-20',stock:1000,sortie:0,mortality:2,eggs:0,chicken_count:998,production_rate:0,cartons_used:0}]));},data);
     await page.evaluate(()=>elMajdNativeEvent('configuration','{"chicken_count":995}'));
+    await page.click('[data-nav="status"]');
+    const feedPanel=page.locator('#feedChainPanel'), feedTile=input=>feedPanel.locator(`[data-input="${input}"]`);
+    assert.match(await feedPanel.innerText(),/Chaînes d’aliment/);
+    assert.equal(await feedPanel.locator('.feed-chain-row').count(),4);
+    assert.equal(await feedPanel.locator('.feed-chain-tile').count(),12);
+    assert.match(await feedTile(1).innerText(),/Indisponible/);
+    const sendFeed=(mask,age=0)=>page.evaluate(({mask,age})=>elMajdNativeEvent('telemetry',
+      JSON.stringify({...sample,feed_chains:mask,captured_at:new Date(Date.now()-age).toISOString(),mqtt_status:'online'})),{mask,age});
+    await sendFeed(2081); // I1, I6, I12
+    for (const input of [1,6,12]) assert.match(await feedTile(input).innerText(),/En marche/);
+    assert.match(await feedTile(2).innerText(),/À l’arrêt/);
+    await sendFeed(0);
+    assert.equal(await feedPanel.locator('[data-state="stopped"]').count(),12);
+    await sendFeed(2081,21_000);
+    assert.equal(await feedPanel.locator('[data-state="unavailable"]').count(),12);
+    await sendFeed(null);
+    assert.match(await feedTile(12).innerText(),/Indisponible/);
+    await sendFeed(2081);
+    await page.evaluate(()=>elMajdNativeEvent('device_status','offline'));
+    assert.equal(await feedPanel.locator('[data-state="unavailable"]').count(),12);
     await page.click('[data-nav="connection"]');await page.click('#retryPush');await page.click('#testPush');
     assert.equal(await page.evaluate(()=>testCalls.some(([a])=>a==='push_sync')&&testCalls.some(([a])=>a==='push_test')),true);
     await page.evaluate(()=>{elMajdNativeEvent('push_status','Registered — notifications enabled');elMajdNativeEvent('open_alarms','');});

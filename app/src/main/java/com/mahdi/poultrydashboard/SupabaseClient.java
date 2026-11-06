@@ -96,6 +96,7 @@ final class SupabaseClient {
     String readLatest() throws Exception {
         ensureSession();
         String path = "/rest/v1/device_latest?select=device_id,mqtt_status,received_at,captured_at,firmware_version,replay,buffer_pending,seq,up_s,rssi,volts,temp_c,sensor_fault,d0,d1,d2,d3,l0,l1,l2,l3,i2,i3,i4,i5,i6,i7,i8"
+            + ",feed_chains:raw_payload-%3Efeed_chains,feed_chains_received_at:raw_payload-%3E%3Efeed_chains_received_at"
             + "&farm_id=eq." + farmId + "&order=received_at.desc&limit=1";
         JSONArray rows = new JSONArray(request("GET", path, null, null, accessToken));
         if (rows.length() == 0) return "{}";
@@ -108,12 +109,16 @@ final class SupabaseClient {
     }
 
     static String payloadFromLatestRow(JSONObject row) throws Exception {
+        JSONObject rawPayload = row.optJSONObject("raw_payload");
+        JSONObject feedSource = rawPayload == null ? row : rawPayload;
         return new JSONObject()
             .put("device_id", row.optString("device_id", "arduino-opta"))
             .put("mqtt_status", row.optString("mqtt_status", "unknown"))
             .put("received_at", row.optString("received_at", ""))
             .put("captured_at", row.opt("captured_at"))
             .put("firmware", row.opt("firmware_version"))
+            .put("feed_chains", feedSource.opt("feed_chains"))
+            .put("feed_chains_received_at", feedSource.opt("feed_chains_received_at"))
             .put("replay", row.optBoolean("replay"))
             .put("seq", row.optLong("seq"))
             .put("up_s", row.optLong("up_s"))

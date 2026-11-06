@@ -27,6 +27,12 @@ bool TelemetryCodec::encode(const TelemetryFrame& frame,
   char epochText[16];
   char tempText[16];
   char voltsText[16];
+  char feedChainText[6];
+  if (frame.feedChainsAvailable) {
+    snprintf(feedChainText, sizeof(feedChainText), "%u", static_cast<unsigned int>(frame.feedChainMask));
+  } else {
+    snprintf(feedChainText, sizeof(feedChainText), "null");
+  }
   if (frame.capturedEpoch == 0) snprintf(epochText, sizeof(epochText), "null");
   else snprintf(epochText, sizeof(epochText), "%lu", static_cast<unsigned long>(frame.capturedEpoch));
   formatFixed(voltsText, sizeof(voltsText), lroundf(frame.temperature.volts * 100.0f), 2);
@@ -45,7 +51,8 @@ bool TelemetryCodec::encode(const TelemetryFrame& frame,
       "\"outputs\":{\"D0\":%d,\"D1\":%d,\"D2\":%d,\"D3\":%d},"
       "\"leds\":{\"L0\":%d,\"L1\":%d,\"L2\":%d,\"L3\":%d},"
       "\"i1\":{\"volts\":%s,\"temp_c\":%s,\"fault\":%d},"
-      "\"inputs\":{\"I2\":%d,\"I3\":%d,\"I4\":%d,\"I5\":%d,\"I6\":%d,\"I7\":%d,\"I8\":%d}}",
+      "\"inputs\":{\"I2\":%d,\"I3\":%d,\"I4\":%d,\"I5\":%d,\"I6\":%d,\"I7\":%d,\"I8\":%d},"
+      "\"feed_chains\":%s}",
       Config::TELEMETRY_SCHEMA, Config::FIRMWARE_VERSION, Config::FARM_ID,
       Config::HOUSE_ID, Config::DEVICE_ID, bootId,
       static_cast<unsigned long>(frame.sequence), epochText,
@@ -55,6 +62,6 @@ bool TelemetryCodec::encode(const TelemetryFrame& frame,
       frame.leds[0], frame.leds[1], frame.leds[2], frame.leds[3],
       voltsText, tempText, frame.temperature.fault ? 1 : 0,
       frame.inputs[0], frame.inputs[1], frame.inputs[2], frame.inputs[3],
-      frame.inputs[4], frame.inputs[5], frame.inputs[6]);
+      frame.inputs[4], frame.inputs[5], frame.inputs[6], feedChainText);
   return written > 0 && static_cast<size_t>(written) < outputSize;
 }

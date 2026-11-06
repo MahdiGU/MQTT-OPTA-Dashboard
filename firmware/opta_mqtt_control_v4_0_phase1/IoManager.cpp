@@ -1,6 +1,7 @@
 #include "IoManager.h"
 
 #include <math.h>
+#include <OptaBlue.h>
 #include "Config.h"
 
 namespace {
@@ -21,6 +22,11 @@ void IoManager::begin() {
   }
   analogReadResolution(12);
   analogRead(RTD_PIN);
+  OptaController.begin();
+}
+
+void IoManager::updateExpansion() {
+  OptaController.update();
 }
 
 void IoManager::capture(TelemetryFrame& frame) const {
@@ -32,6 +38,30 @@ void IoManager::capture(TelemetryFrame& frame) const {
     frame.inputs[i] = digitalRead(DIGITAL_INPUT_PINS[i]) == HIGH;
   }
   frame.temperature = readTemperature();
+  captureFeedChains(frame);
+}
+
+void IoManager::captureFeedChains(TelemetryFrame& frame) const {
+  frame.feedChainsAvailable = false;
+  frame.feedChainMask = 0;
+  const uint8_t slot = Config::FEED_CHAIN_EXPANSION_SLOT;
+  if (slot >= OptaController.getExpansionNum() ||
+      OptaController.getExpansionType(slot) != EXPANSION_OPTA_DIGITAL_MEC) {
+    return;
+  }
+
+  auto* expansion = static_cast<Opta::DigitalExpansion*>(OptaController.getExpansionPtr(slot));
+  // Read all inputs once and use the cached bits only after a successful bus transaction.
+  if (!expansion || expansion->execute(GET_DIGITAL_INPUT) != EXECUTE_OK) {
+    return;
+  }
+
+  for (uint8_t chain = 0; chain < sizeof(Config::FEED_CHAIN_INPUTS); ++chain) {
+    if (expansion->digitalRead(Config::FEED_CHAIN_INPUTS[chain], false) == HIGH) {
+      frame.feedChainMask |= 1u << chain;
+    }
+  }
+  frame.feedChainsAvailable = true;
 }
 
 void IoManager::setOutput(uint8_t index, bool on) {

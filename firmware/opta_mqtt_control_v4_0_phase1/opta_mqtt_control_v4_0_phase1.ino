@@ -243,6 +243,7 @@ void setup() {
 }
 
 void loop() {
+  io.updateExpansion();
   handleWifi();
   handleMqtt();
   timeSync.tick(wifiWasConnected);

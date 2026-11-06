@@ -4,8 +4,11 @@
 
 namespace Config {
 
-constexpr char FIRMWARE_VERSION[] = "4.0.2-phase2-ntpfix";
+constexpr char FIRMWARE_VERSION[] = "4.1.0-feed-chains";
 constexpr uint16_t TELEMETRY_SCHEMA = 2;
+constexpr uint8_t FEED_CHAIN_EXPANSION_SLOT = 0;
+// Zero-based expansion inputs in row/level order, corresponding to I1–I12.
+constexpr uint8_t FEED_CHAIN_INPUTS[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 
 // Public/scoped device identity. Adjust only when commissioning a different controller.
 constexpr char FARM_ID[] = "elmajd-poultry";

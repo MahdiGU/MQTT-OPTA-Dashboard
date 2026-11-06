@@ -100,6 +100,14 @@ Deno.serve(async (request) => {
     const i1 = object(telemetry.i1);
     const inputs = object(telemetry.inputs);
     const buffer = object(telemetry.buffer);
+    const feedChains = telemetry.feed_chains;
+    // Older firmware omits the field. Keep other telemetry usable if this optional reading is invalid.
+    const rawPayload = feedChains === undefined ? telemetry : {
+      ...telemetry,
+      feed_chains: typeof feedChains === "number" && Number.isInteger(feedChains)
+          && feedChains >= 0 && feedChains <= 0xfff ? feedChains : null,
+      feed_chains_received_at: receivedAt,
+    };
     const normalized = {
       received_at: receivedAt,
       captured_at: capturedAt(telemetry.captured_at),
@@ -133,7 +141,7 @@ Deno.serve(async (request) => {
       i6: bit(inputs.I6),
       i7: bit(inputs.I7),
       i8: bit(inputs.I8),
-      raw_payload: telemetry,
+      raw_payload: rawPayload,
     };
 
     const statusText = typeof payload === "string"

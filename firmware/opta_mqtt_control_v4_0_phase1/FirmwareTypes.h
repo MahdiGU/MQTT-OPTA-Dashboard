@@ -16,5 +16,7 @@ struct TelemetryFrame {
   bool outputs[4];
   bool leds[4];
   bool inputs[7];  // I2..I8
+  uint16_t feedChainMask;
+  bool feedChainsAvailable;
   TemperatureReading temperature;
 };
