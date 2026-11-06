@@ -29,8 +29,8 @@ android {
         applicationId = "com.mahdi.poultrydashboard"
         minSdk = 26
         targetSdk = 35
-        versionCode = 26
-        versionName = "1.12.0"
+        versionCode = 27
+        versionName = "1.12.1"
     }
 
     signingConfigs {

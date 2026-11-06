@@ -18,18 +18,43 @@
     .feed-chain-tile strong,.feed-chain-tile small{display:block}
     .feed-chain-tile strong{font-size:.72rem}
     .feed-chain-tile small{color:var(--muted);font-size:.63rem}
+    .feed-chain-symbol{display:block;width:54px;max-width:100%;height:25px;margin:0 auto 5px;color:var(--muted)}
+    .feed-chain-track{stroke-dasharray:4 3}
+    .feed-chain-wheel{transform-box:fill-box;transform-origin:center}
     .feed-chain-state{display:block;margin-top:5px;font-weight:750;font-size:.65rem;color:var(--muted)}
     .feed-chain-state::before{content:'';display:inline-block;width:6px;height:6px;margin-right:4px;border-radius:50%;background:currentColor;vertical-align:1px}
     .feed-chain-tile[data-state="running"]{background:#eaf7ef;border-color:#b9dfc9}
     .feed-chain-tile[data-state="running"] .feed-chain-state{color:#08734f}
+    .feed-chain-tile[data-state="running"] .feed-chain-symbol{color:#08734f}
+    .feed-chain-tile[data-state="running"] .feed-chain-track{animation:feed-chain-travel .45s linear infinite}
+    .feed-chain-tile[data-state="running"] .feed-chain-wheel{animation:feed-chain-turn 1.8s linear infinite}
     .feed-chain-tile[data-state="stopped"] .feed-chain-state{color:#a23040}
+    .feed-chain-tile[data-state="stopped"] .feed-chain-symbol{color:#a23040}
+    @keyframes feed-chain-travel{to{stroke-dashoffset:-7}}
+    @keyframes feed-chain-turn{to{transform:rotate(360deg)}}
+    @media(prefers-reduced-motion:reduce){
+      .feed-chain-tile[data-state="running"] .feed-chain-track,
+      .feed-chain-tile[data-state="running"] .feed-chain-wheel{animation:none}
+    }
     .feed-chain-summary{margin:4px 0;color:var(--muted);font-size:.72rem}
   </style>`);
+
+  const symbol = `<svg class="feed-chain-symbol" viewBox="0 0 64 28" aria-hidden="true"
+      focusable="false" fill="none" stroke="currentColor" stroke-linecap="round">
+    <path class="feed-chain-track" stroke-width="2.5" d="M16 3h32a11 11 0 0 1 0 22H16a11 11 0 0 1 0-22Z"/>
+    <g class="feed-chain-wheel" stroke-width="1.6">
+      <circle cx="16" cy="14" r="6.5"/><path d="M12 14h8m-4-4v8"/>
+    </g>
+    <g class="feed-chain-wheel" stroke-width="1.6">
+      <circle cx="48" cy="14" r="6.5"/><path d="M44 14h8m-4-4v8"/>
+    </g>
+  </svg>`;
 
   const rows = Array.from({ length: 4 }, (_, row) => {
     const levels = Array.from({ length: 3 }, (_, level) => {
       const input = row * 3 + level + 1;
       return `<div class="feed-chain-tile" data-input="${input}">
+        ${symbol}
         <strong>Level ${level + 1}</strong><small>I${input}</small>
         <span class="feed-chain-state">Chain status unavailable</span>
       </div>`;

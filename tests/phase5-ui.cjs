@@ -29,16 +29,24 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
     assert.match(await feedPanel.innerText(),/Chaînes d’aliment/);
     assert.equal(await feedPanel.locator('.feed-chain-row').count(),4);
     assert.equal(await feedPanel.locator('.feed-chain-tile').count(),12);
+    assert.equal(await feedPanel.locator('.feed-chain-symbol').count(),12);
     assert.match(await feedTile(1).innerText(),/Indisponible/);
     const sendFeed=(mask,age=0)=>page.evaluate(({mask,age})=>elMajdNativeEvent('telemetry',
       JSON.stringify({...sample,feed_chains:mask,captured_at:new Date(Date.now()-age).toISOString(),mqtt_status:'online'})),{mask,age});
     await sendFeed(2081); // I1, I6, I12
     for (const input of [1,6,12]) assert.match(await feedTile(input).innerText(),/En marche/);
     assert.match(await feedTile(2).innerText(),/À l’arrêt/);
+    const trackAnimation=input=>feedTile(input).locator('.feed-chain-track').evaluate(el=>getComputedStyle(el).animationName);
+    assert.equal(await trackAnimation(1),'feed-chain-travel');
+    assert.equal(await trackAnimation(2),'none');
+    await page.emulateMedia({reducedMotion:'reduce'});
+    assert.equal(await trackAnimation(1),'none');
+    await page.emulateMedia({reducedMotion:'no-preference'});
     await sendFeed(0);
     assert.equal(await feedPanel.locator('[data-state="stopped"]').count(),12);
     await sendFeed(2081,21_000);
     assert.equal(await feedPanel.locator('[data-state="unavailable"]').count(),12);
+    assert.equal(await trackAnimation(1),'none');
     await sendFeed(null);
     assert.match(await feedTile(12).innerText(),/Indisponible/);
     await sendFeed(2081);
