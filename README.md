@@ -2,7 +2,7 @@
 
 MQTT monitoring and control dashboards for an Arduino Opta, with both browser and Android versions. The project progressed from a general-purpose I/O dashboard into the **ElMajd Automation** poultry monitoring app.
 
-Current system specification: [v0.4 PDF](docs/specification/ElMAJD_Automation_System_Specification_v0.4.pdf), issued 01 November 2026, with [editable sources and revision notes](docs/specification/README.md). It reconciles the developed Opta/cloud/Android system with approved requirements and pending acceptance.
+Current system specification: [v0.6 PDF](docs/specification/ElMAJD_Automation_System_Specification_v0.6.pdf), issued 07 November 2026, with [editable sources and revision notes](docs/specification/README.md). It includes the Android 1.13.1 live 3D model, corrected fan layout, feed chains and shared blue cooling pads, alongside the Opta/cloud requirements and pending acceptance.
 
 ## Branch guide
 

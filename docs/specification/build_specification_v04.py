@@ -22,7 +22,7 @@ from pypdf import PdfReader
 ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('version', nargs='?', default='0.4', choices=('0.4', '0.5'))
+parser.add_argument('version', nargs='?', default='0.4', choices=('0.4', '0.5', '0.6'))
 version = parser.parse_args().version
 SOURCE = HERE / f'specification-v{version}.json'
 data = json.loads(SOURCE.read_text(encoding='utf-8'))
@@ -87,7 +87,8 @@ def note(text):
 
 class Diagram(Flowable):
     def __init__(self, kind, field_lines=None):
-        Flowable.__init__(self);self.kind=kind;self.width=CW;self.height=300 if kind=='system' else 220
+        Flowable.__init__(self);self.kind=kind;self.width=CW
+        self.height = {'system': 300, 'fans': 160}.get(kind, 220)
         self.field_lines = field_lines or ['0-10 V temperature', '24 V binary inputs', 'Relays + LED state']
     def draw(self):
         c=self.canv
@@ -118,6 +119,18 @@ class Diagram(Flowable):
             arrow(316,83,359,83,'HTTPS')
             c.setFillColor(MUTED);c.setFont('Body',8)
             c.drawString(0,9,'Command return path: Android -> Supabase -> EMQX HTTPS API -> Opta MQTT.')
+        elif self.kind=='fans':
+            c.setFillColor(HexColor('#F5F8F6'));c.setStrokeColor(LINE)
+            c.roundRect(0,15,CW,140,8,fill=1,stroke=1)
+            positions=[(40,62),(100,62),(218,62),(278,62),(218,119),(278,119),(398,62),(458,62)]
+            signals=['D0','D1','D2','D3','L0','L1','L2','L3']
+            for i,((x,y),signal) in enumerate(zip(positions,signals)):
+                c.setFillColor(colors.white);c.setStrokeColor(GREEN);c.setLineWidth(1.2)
+                c.circle(x,y,15,fill=1,stroke=1)
+                c.setFillColor(DARK);c.setFont('Bold',10);c.drawCentredString(x,y-3,f'V{i+1}')
+                c.setFillColor(MUTED);c.setFont('Body',8);c.drawCentredString(x,y-29,signal)
+            c.setFont('Body',8);c.setFillColor(MUTED)
+            c.drawCentredString(CW/2,1,'Two horizontal fans + central 2 x 2 block + two horizontal fans')
         else:
             box(0,144,140,68,'DETECT',['Fresh samples / timer','Persistence + hysteresis'])
             box(180,144,140,68,'RECORD',['One active event','Recipients + queue'])
@@ -180,6 +193,25 @@ for index,page in enumerate(data['pages']):
             for line in text.splitlines():story.append(para(line.replace(' ','\u00a0'),'mono'))
             markdown.extend(['```json',text,'```',''])
         elif kind=='diagram':story.append(Diagram(block['kind'], block.get('field_lines')));markdown.extend(['[Vector diagram included in the PDF.]',''])
+        elif kind=='images':
+            gap=16
+            width=(CW-gap*(len(block['items'])-1))/len(block['items'])
+            cells=[]
+            column_widths=[]
+            for number,item in enumerate(block['items']):
+                image=Image(str(ROOT/item['path']))
+                height=width*image.imageHeight/image.imageWidth
+                image.drawWidth=width
+                image.drawHeight=height
+                cells.append([image,Spacer(1,8),para(item['caption'],'small')])
+                column_widths.append(width)
+                if number<len(block['items'])-1:
+                    cells.append('')
+                    column_widths.append(gap)
+                markdown.extend([f'![{item["caption"]}]({item["markdown_path"]})',''])
+            figures=Table([cells],colWidths=column_widths,hAlign='LEFT')
+            figures.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('LEFTPADDING',(0,0),(-1,-1),0),('RIGHTPADDING',(0,0),(-1,-1),0),('TOPPADDING',(0,0),(-1,-1),0),('BOTTOMPADDING',(0,0),(-1,-1),0)]))
+            story.append(figures)
         elif kind=='links':
             for label,url in block['items']:
                 story.append(Paragraph(f'<link href="{escape(url)}" color="#13745E"><b>{escape(label)}</b></link>',STYLES['small']))
