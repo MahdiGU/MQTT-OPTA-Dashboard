@@ -12,7 +12,7 @@ const server = http.createServer((request, response) => {
     response.end();
     return;
   }
-  const types = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.png': 'image/png' };
+  const types = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml' };
   response.setHeader('Content-Type', types[path.extname(file)] || 'text/plain');
   response.end(fs.readFileSync(file));
 });

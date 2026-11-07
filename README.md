@@ -6,6 +6,8 @@ Current system specification: [v0.6 PDF](docs/specification/ElMAJD_Automation_Sy
 
 ## Branch guide
 
+`Android_Three_Designs` builds Android 1.15.0 with three selectable interfaces, Émeraude, Atelier and Argile, based on the 1.14.1 app. Use the palette button, Configuration or the login page to choose a design. See [the design guide](docs/phase-5/05-three-app-designs.md).
+
 | Branch | Type | Purpose and features | Recommended use |
 | --- | --- | --- | --- |
 | `main` | Web dashboard | General MQTT I/O monitor. Displays relay outputs D0–D3, front-panel LEDs L0–L3, analog input I1, and digital inputs I2–I8. The broker WebSocket and MQTT topics can be configured in the page. Publishes plain-text commands with QoS 0 and retain disabled. | Use as the stable generic Opta web dashboard. |

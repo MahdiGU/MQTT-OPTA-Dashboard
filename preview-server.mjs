@@ -13,6 +13,7 @@ createServer(async (request, response) => {
     const type = path.endsWith('.html') ? 'text/html; charset=utf-8'
       : path.endsWith('.js') ? 'application/javascript; charset=utf-8'
       : path.endsWith('.css') ? 'text/css; charset=utf-8'
+      : path.endsWith('.svg') ? 'image/svg+xml'
       : path.endsWith('.png') ? 'image/png' : 'application/octet-stream';
     response.writeHead(200, { "Content-Type": type, "Cache-Control": "no-store" });
     response.end(body);
