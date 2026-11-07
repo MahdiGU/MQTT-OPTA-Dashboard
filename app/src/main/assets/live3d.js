@@ -16,6 +16,7 @@
     'Stopped / commanded off': 'À l’arrêt / commande inactive',
     'No recent data': 'Sans données récentes', 'Select equipment': 'Sélectionner un équipement',
     'Equipment details': 'Détails de l’équipement', 'Tap the model or choose an item below.': 'Touchez le modèle ou choisissez un élément ci-dessous.',
+    'Front view · 2 + (2 × 2) + 2': 'Vue de face · 2 + (2 × 2) + 2',
     'Control active': 'Commande active', 'Control inactive': 'Commande inactive',
     'Fan state follows the relay or LED control. Rotation feedback is not installed.': 'L’état du ventilateur suit la commande relais ou LED. Le retour de rotation reste à installer.',
     'Running confirmed': 'Marche confirmée', 'Stopped': 'À l’arrêt',
@@ -91,7 +92,7 @@
           <span class="live3d-model-label">ELMAJD <small>Reference model</small></span>
           <div class="live3d-zoom"><button type="button" id="live3dZoomIn" aria-label="Zoom in">+</button><button type="button" id="live3dZoomOut" aria-label="Zoom out">−</button><button type="button" id="live3dReset" aria-label="Reset view">⌂</button></div>
         </div>
-        <p class="live3d-gesture">Drag to rotate · pinch to zoom · two fingers to pan</p>
+        <p class="live3d-gesture" id="live3dGesture">Drag to rotate · pinch to zoom · two fingers to pan</p>
         <div class="live3d-legend"><span data-state="running">Running / commanded on</span><span data-state="cooling">Cooling active</span><span data-state="stopped">Stopped / commanded off</span><span data-state="unavailable">No recent data</span></div>
       </section>
       <section class="live3d-detail" id="live3dDetail" aria-live="polite" data-state="unavailable">
@@ -146,6 +147,10 @@
   }
   function choose(id, focus = true) {
     if (!tileNodes.has(id)) return;
+    if (focus) {
+      if (id.startsWith('fan-')) screen.querySelector('[data-live3d-view="fans"]').click();
+      else if (stage.dataset.view === 'fans') screen.querySelector('[data-live3d-view="overview"]').click();
+    }
     selected = id;
     tileNodes.forEach((node, key) => node.setAttribute('aria-pressed', String(key === id)));
     details();
@@ -264,6 +269,9 @@
   });
   screen.querySelectorAll('[data-live3d-view]').forEach(button => {
     button.onclick = () => {
+      stage.dataset.view = button.dataset.live3dView;
+      $('live3dGesture').textContent = I18n.text(button.dataset.live3dView === 'fans'
+        ? 'Front view · 2 + (2 × 2) + 2' : 'Drag to rotate · pinch to zoom · two fingers to pan');
       engine?.preset(button.dataset.live3dView);
       screen.querySelectorAll('[data-live3d-view]').forEach(view => view.setAttribute('aria-pressed', String(view === button)));
     };
@@ -275,7 +283,7 @@
   function cameraKey(event) {
     const actions = { ArrowLeft: () => engine?.rotate(-0.15), ArrowRight: () => engine?.rotate(0.15),
       '+': () => engine?.zoom(0.82), '=': () => engine?.zoom(0.82), '-': () => engine?.zoom(1.22),
-      Home: () => engine?.preset('overview') };
+      Home: () => $('live3dReset').click() };
     if (actions[event.key]) { event.preventDefault(); actions[event.key](); }
   }
   $('live3dRetry').onclick = () => {

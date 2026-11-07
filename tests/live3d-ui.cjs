@@ -62,9 +62,15 @@ const server = http.createServer((request, response) => {
     await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
     await page.clock.runFor(100);
     const canvasBounds = await page.locator('#live3dCanvas').boundingBox();
-    await page.mouse.click(canvasBounds.x + canvasBounds.width / 2, canvasBounds.y + canvasBounds.height / 2);
-    await page.waitForFunction(() => document.getElementById('live3dSelectedName').textContent === I18n.text('Fan 3'));
-    assert.match(await page.locator('#live3dSelectedName').textContent(), /Ventilateur 3/);
+    // Every fan in the 2 + (2 x 2) + 2 arrangement must be selectable from the front.
+    const fanPicks = [
+      [1, 0.164, 0.6], [2, 0.283, 0.6], [3, 0.438, 0.6], [4, 0.562, 0.6],
+      [5, 0.438, 0.45], [6, 0.562, 0.45], [7, 0.717, 0.6], [8, 0.836, 0.6],
+    ];
+    for (const [fan, x, y] of fanPicks) {
+      await page.mouse.click(canvasBounds.x + canvasBounds.width * x, canvasBounds.y + canvasBounds.height * y);
+      assert.equal(await page.locator('#live3dSelectedName').textContent(), `Ventilateur ${fan}`);
+    }
     await page.click('[data-live3d-item="feed-5"]');
     await page.click('#live3dZoomIn');
     await page.click('#live3dZoomOut');

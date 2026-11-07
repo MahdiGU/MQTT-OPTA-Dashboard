@@ -68,26 +68,26 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
     });
     return item;
   }
-  function label(text, x, y, z, width = 2.3) {
+  function label(text, x, y, z, width = 2.3, compact = false) {
     const surface = document.createElement('canvas');
-    surface.width = 192;
-    surface.height = 80;
+    surface.width = compact ? 96 : 192;
+    surface.height = compact ? 48 : 80;
     const context = surface.getContext('2d');
     context.fillStyle = '#fcfff9';
-    context.fillRect(0, 0, 192, 80);
+    context.fillRect(0, 0, surface.width, surface.height);
     context.strokeStyle = '#c3d6ca';
     context.lineWidth = 4;
-    context.strokeRect(2, 2, 188, 76);
+    context.strokeRect(2, 2, surface.width - 4, surface.height - 4);
     context.fillStyle = '#244b3b';
     context.font = '700 43px sans-serif';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
-    context.fillText(text, 96, 42);
+    context.fillText(text, surface.width / 2, surface.height / 2 + 2);
     const texture = new THREE.CanvasTexture(surface);
     texture.colorSpace = THREE.SRGBColorSpace;
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, depthTest: false }));
     sprite.position.set(x, y, z);
-    sprite.scale.set(width, width * 80 / 192, 1);
+    sprite.scale.set(width, width * surface.height / surface.width, 1);
     house.add(sprite);
     return sprite;
   }
@@ -97,9 +97,9 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
   box(house, mat.floor, [16, 0.14, 43], [0, -0.08, 0]);
   box(house, mat.wall, [0.28, 1.05, 43], [-8.1, 0.5, 0]);
   box(house, mat.wall, [0.28, 1.05, 43], [8.1, 0.5, 0]);
-  box(house, mat.wall, [16.5, 5.9, 0.28], [0, 2.85, -21.5]);
+  const endWall = box(house, mat.wall, [16.5, 5.9, 0.28], [0, 2.85, -21.5]);
   box(house, mat.wall, [16.5, 0.8, 0.28], [0, 0.35, 21.5]);
-  box(house, mat.edge, [16.9, 0.18, 0.55], [0, 5.9, -21.5]);
+  const endCap = box(house, mat.edge, [16.9, 0.18, 0.55], [0, 5.9, -21.5]);
   const gable = new THREE.Shape();
   gable.moveTo(-8.2, 0);
   gable.lineTo(0, 2.2);
@@ -110,6 +110,7 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
   const gableMesh = new THREE.Mesh(gableGeometry, standard(0xe8ece6, { side: THREE.DoubleSide }));
   gableMesh.position.set(0, 5.86, -21.5);
   house.add(gableMesh);
+  const fanWallObjects = new Set([endWall, endCap, gableMesh]);
   for (let z = -18; z <= 18; z += 6) {
     for (const x of [-8.1, 8.1]) {
       box(house, mat.edge, [0.35, 1.5, 0.35], [x, 0.7, z]);
@@ -124,7 +125,7 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
   box(house, mat.dark, [1.15, 1.7, 0.08], [0, 0.85, 21.3]);
   label('ELMAJD', 0, 1.1, 24, 3.2);
 
-  // Eight end-wall fans: five below and three above, as in the building reference.
+  // Two horizontal fans on either side of a central 2 x 2 group.
   const fanRing = new THREE.TorusGeometry(0.75, 0.065, 6, 24);
   const fanDisk = new THREE.CircleGeometry(0.75, 24);
   const blade = new THREE.Shape();
@@ -134,7 +135,11 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
   blade.closePath();
   const bladeGeometry = new THREE.ShapeGeometry(blade);
   extraGeometries.push(fanRing, fanDisk, bladeGeometry);
-  const fanPositions = [[-6, 2], [-3, 2], [0, 2], [3, 2], [6, 2], [-3, 4.45], [0, 4.45], [3, 4.45]];
+  const fanPositions = [
+    [-6.5, 2], [-4.2, 2],
+    [-1.2, 2], [1.2, 2], [-1.2, 4.55], [1.2, 4.55],
+    [4.2, 2], [6.5, 2],
+  ];
   fanPositions.forEach(([x, y], index) => {
     const group = new THREE.Group();
     group.position.set(x, y, -21.14);
@@ -160,7 +165,9 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
     group.add(rotor);
     const item = register(`fan-${index}`, group, material);
     item.rotor = rotor;
-    label(`V${index + 1}`, x, y + 1.2, -20.8, 1.2);
+    const badge = label(`V${index + 1}`, x, y - 1.2, -20.8, 1.5, true);
+    fanWallObjects.add(group);
+    fanWallObjects.add(badge);
   });
 
   // Cooling pads are physically separate and share the configured I7 auxiliary contact.
@@ -264,6 +271,10 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
   let previousTime = 0;
   let destroyed = false;
   let contextLost = false;
+  let activeView = 'overview';
+  let selectedId;
+  let viewportWidth = 0;
+  let viewportHeight = 0;
   let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const colors = { running: 0x15a77b, stopped: 0xd65c59, unavailable: 0x99a7a1 };
@@ -272,25 +283,42 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
     const width = canvas.clientWidth;
     const height = canvas.clientHeight;
     if (!width || !height) return;
+    if (width === viewportWidth && height === viewportHeight) return;
+    viewportWidth = width;
+    viewportHeight = height;
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    if (activeView === 'fans') fitFanWall();
+    dirty = true;
+  }
+  function fitFanWall() {
+    // Fit the complete wall, including its gable, to the current phone orientation.
+    const halfFov = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    const distance = Math.max(8.8 / (halfFov * camera.aspect), 4.4 / halfFov) * 1.1;
+    camera.position.set(0, 3.65, -21.1 + distance);
+    controls.target.set(0, 3.65, -21.1);
+    controls.update();
     dirty = true;
   }
   function preset(view) {
+    activeView = view;
+    house.children.forEach(object => { object.visible = view !== 'fans' || fanWallObjects.has(object); });
+    selectionBox.visible = !!selectedId && (view !== 'fans' || selectedId.startsWith('fan-'));
+    if (view === 'fans') { fitFanWall(); return; }
     const narrow = canvas.clientWidth < 500;
     const positions = {
       overview: narrow ? [39, 39, 59] : [32, 29, 45],
       top: narrow ? [0, 74, 2] : [0, 61, 2],
-      fans: [0, 7, -5],
       pads: narrow ? [27, 17, 40] : [22, 14, 33],
     };
     camera.position.set(...(positions[view] || positions.overview));
-    controls.target.set(0, 1.6, view === 'fans' ? -21 : view === 'pads' ? 13 : 0);
+    controls.target.set(0, 1.6, view === 'pads' ? 13 : 0);
     controls.update();
     dirty = true;
   }
   function select(id, focus = false) {
+    selectedId = id;
     const item = items.get(id);
     selectionBox.visible = !!item;
     if (item) {
@@ -315,7 +343,15 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
     camera.updateMatrixWorld();
     house.updateMatrixWorld(true);
     raycaster.setFromCamera(pointer, camera);
-    const hit = raycaster.intersectObjects(pickTargets, false)[0];
+    const targets = pickTargets.filter(mesh => {
+      let object = mesh;
+      while (object && object !== house) {
+        if (!object.visible) return false;
+        object = object.parent;
+      }
+      return true;
+    });
+    const hit = raycaster.intersectObjects(targets, false)[0];
     let object = hit?.object;
     while (object && !object.userData.equipment) object = object.parent;
     if (object) onSelect(object.userData.equipment);

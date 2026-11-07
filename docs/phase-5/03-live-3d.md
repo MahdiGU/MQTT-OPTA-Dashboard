@@ -1,6 +1,15 @@
-# Android 1.13.0 live 3D visualisation
+# Android 1.13.1 live 3D visualisation
 
 The new **3D en direct** tab shows an open-roof poultry house based on the owner's exterior model and cage photograph. The schematic includes four cage rows with three levels, eight end-wall fans, two side cooling pads, and an entrance room. Building dimensions and exact equipment positions are indicative until a measured layout is supplied.
+
+The owner corrected the fan arrangement for version 1.13.1 to two horizontal fans on the left, a central 2×2 block, and two horizontal fans on the right. The side pairs align with the lower central row. Fan IDs retain their existing D0–D3 / L0–L3 control mapping.
+
+```text
+          V5 V6
+V1 V2     V3 V4     V7 V8
+```
+
+The **Ventilateurs** camera shows the end wall from directly in front, with the other building objects hidden so cage structures cannot obscure the fans. The camera fits the complete wall to the current viewport and refits after an orientation change. Each fan has a readable V1–V8 label beneath it. Camera controls sit below the wall. Selecting a fan from its status card opens this view and highlights it. Other camera views restore the complete building.
 
 ## Signal mapping
 
