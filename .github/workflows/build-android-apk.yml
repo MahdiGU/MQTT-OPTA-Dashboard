@@ -26,6 +26,20 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      - name: Set up Node for the offline 3D bundle
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify the 3D bundle and phone interface
+        run: |
+          npm install --global pnpm@11.25.0
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm build:3d
+          git diff --exit-code -- app/src/main/assets/live3d-scene.bundle.js app/src/main/assets/THREE-LICENSE.txt
+          pnpm exec playwright install --with-deps chromium
+          pnpm test:ui
+
       - name: Set up Java 17
         uses: actions/setup-java@v5
         with:
@@ -49,7 +63,7 @@ jobs:
           "$signer" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk
 
       - name: Create named install package
-        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ElMajd-Automation-1.12.1.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ElMajd-Automation-1.13.0.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -57,6 +71,6 @@ jobs:
           name: ElMajd-Automation-debug-apk
           path: |
             app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/apk/debug/ElMajd-Automation-1.12.1.apk
+            app/build/outputs/apk/debug/ElMajd-Automation-1.13.0.apk
           if-no-files-found: error
           retention-days: 30

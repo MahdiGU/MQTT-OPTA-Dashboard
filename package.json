@@ -1,0 +1,14 @@
+{
+  "name": "elmajd-automation-android-ui",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "build:3d": "node scripts/build-live3d.cjs",
+    "test:ui": "node tests/phase5-ui.cjs && node tests/live3d-ui.cjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "playwright": "1.56.1",
+    "three": "0.180.0"
+  }
+}

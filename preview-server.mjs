@@ -10,7 +10,11 @@ createServer(async (request, response) => {
     const pathname = new URL(request.url, "http://127.0.0.1").pathname;
     const path = pathname === "/" ? "/index.html" : pathname;
     const body = await readFile(join(root, path));
-    response.writeHead(200, { "Content-Type": path.endsWith(".html") ? "text/html; charset=utf-8" : "application/octet-stream", "Cache-Control": "no-store" });
+    const type = path.endsWith('.html') ? 'text/html; charset=utf-8'
+      : path.endsWith('.js') ? 'application/javascript; charset=utf-8'
+      : path.endsWith('.css') ? 'text/css; charset=utf-8'
+      : path.endsWith('.png') ? 'image/png' : 'application/octet-stream';
+    response.writeHead(200, { "Content-Type": type, "Cache-Control": "no-store" });
     response.end(body);
   } catch {
     response.writeHead(404);

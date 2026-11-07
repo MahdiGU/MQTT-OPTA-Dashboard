@@ -56,7 +56,7 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
     assert.equal(await page.evaluate(()=>testCalls.some(([a])=>a==='push_sync')&&testCalls.some(([a])=>a==='push_test')),true);
     await page.evaluate(()=>{elMajdNativeEvent('push_status','Registered — notifications enabled');elMajdNativeEvent('open_alarms','');});
     assert.equal(await page.locator('[data-screen="alarms"]').isVisible(),true);await page.click('[data-nav="overview"]');
-    assert.equal(await page.locator('[data-nav]').count(),6);
+    assert.equal(await page.locator('[data-nav]').count(),7);
     assert.equal(await page.locator('#overviewFlock').textContent(),'995');
     assert.equal(await page.locator('[data-screen="overview"] .weekly').count(),1);
     assert.equal(await page.locator('[data-screen="status"] .weekly').count(),0);
@@ -120,6 +120,6 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
     assert.match(await page.locator('#historyChart').getAttribute('aria-label'),/Mesures: 4/);await page.click('#closeChart');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
     assert.deepEqual(errors,[]);
-    console.log('PASS: six tabs, localization, account flows, production/carton roles, paging without overview regression, stale/invalid preview rejection, numeric bounds, accessible charts and phone layout');
+    console.log('PASS: seven tabs, localization, account flows, production/carton roles, paging without overview regression, stale/invalid preview rejection, numeric bounds, accessible charts and phone layout');
   }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1;});
