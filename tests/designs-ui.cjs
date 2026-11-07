@@ -36,6 +36,7 @@ const server = http.createServer((request, response) => {
     assert.equal(await page.locator('#username').inputValue(), 'design-test@example.invalid');
     assert.equal(await page.locator('#password').inputValue(), 'ExamplePassword12!');
     await page.reload();
+    if (process.env.DESIGN_TEST_FONT) await page.addStyleTag({ content: `body { font-family: ${JSON.stringify(process.env.DESIGN_TEST_FONT)} !important; }` });
     assert.equal(await page.locator('html').getAttribute('data-design'), 'atelier', 'design persists across a new page load');
     const shared = { role: 'owner', house_id: 'design-test', settings: [{ warning_c: 30, critical_c: 33 }], cartons: [{ received: 100, consumed: 0, balance: 100 }], receipts: [], alarms: [] };
     await page.evaluate(data => {
