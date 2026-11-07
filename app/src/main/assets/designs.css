@@ -85,6 +85,7 @@ html[data-design] .kpi-icon {
   border-radius: var(--control-radius);
 }
 html[data-design] .kpi-icon svg { width: 22px; height: 22px; }
+html[data-design] .carton-overview svg { width: 42px; height: 36px; float: none; display: block; margin: 0 0 4px; }
 html[data-design] .kpi:after { background: var(--accent-soft); }
 html[data-design] .primary {
   background: var(--accent);
@@ -247,6 +248,7 @@ html[data-design="clay"] .kpi:first-child { grid-column: 1/-1; min-height: 145px
 html[data-design="clay"] .kpi:first-child .kpi-icon { float: right; width: 42px; height: 42px; background: #fff9ee; }
 html[data-design="clay"] .kpi:first-child strong { font-size: 2.1rem; }
 html[data-design="clay"] .carton-overview { grid-column: 1/-1; }
+html[data-design="clay"] .carton-overview svg { width: 72px; height: 64px; float: right; margin: -4px -5px 0 4px; }
 html[data-design="clay"] .kpi:after { display: none; }
 html[data-design="clay"] .panel { padding: 19px; }
 html[data-design="clay"] .nav { border-top-width: 2px; }
