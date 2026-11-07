@@ -67,7 +67,10 @@ const server = http.createServer((request, response) => {
         for (const tab of tabs) {
           await page.click(`[data-nav="${tab}"]`);
           assert.equal(await page.locator(`[data-screen="${tab}"]`).isVisible(), true);
-          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${design} ${tab} at ${width}px`);
+          const overflow = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth,
+            elements: [...document.querySelectorAll('.screen.active *')].filter(element => element.clientWidth && element.scrollWidth > element.clientWidth + 1)
+              .map(element => ({ id: element.id, class: element.className, width: element.clientWidth, scroll: element.scrollWidth })).slice(0, 12) }));
+          assert.ok(overflow.scroll <= overflow.width, `${design} ${tab} at ${width}px: ${JSON.stringify(overflow)}`);
           if (tab === 'status' || tab === 'live3d') {
             await page.evaluate(() => elMajdNativeEvent('telemetry', JSON.stringify({ ...sample, feed_chains: 2081, captured_at: new Date().toISOString(), mqtt_status: 'online' })));
           }
@@ -80,6 +83,7 @@ const server = http.createServer((request, response) => {
         }
       }
       await page.click('[data-nav="status"]');
+      await page.evaluate(() => elMajdNativeEvent('telemetry', JSON.stringify({ ...sample, feed_chains: 2081, captured_at: new Date().toISOString(), mqtt_status: 'online' })));
       const colors = await page.evaluate(() => ({
         fan: getComputedStyle(document.querySelector('.fan-card.on .fan')).borderTopColor,
         running: getComputedStyle(document.querySelector('.feed-chain-tile[data-state="running"] .feed-chain-state')).color,

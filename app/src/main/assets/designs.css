@@ -43,6 +43,7 @@ html[data-design], html[data-design] body { background: var(--canvas); }
 html[data-design] body { color: var(--ink); }
 html[data-design] .appbar { gap: 8px; background: var(--canvas); }
 html[data-design] .identity { flex: 1; min-width: 0; }
+html[data-design] .identity>div { min-width: 0; }
 html[data-design] .identity img { width: 36px; height: 36px; border-radius: 0; }
 html[data-design] .identity h1 { font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 html[data-design] .identity .eyebrow { font-size: .55rem; letter-spacing: .1em; white-space: nowrap; }
@@ -58,6 +59,11 @@ html[data-design] dialog {
   box-shadow: var(--shadow);
 }
 html[data-design] .panel-head h3 { color: var(--ink); }
+html[data-design] .panel-head { flex-wrap: wrap; }
+html[data-design] .panel-head>div { min-width: 0; }
+html[data-design] .weekly { min-width: 0; }
+html[data-design] .kpis { grid-template-columns: repeat(2,minmax(0,1fr)); }
+html[data-design] .kpi { min-width: 0; overflow-wrap: anywhere; }
 html[data-design] .hero h2 { font-size: 1.7rem; }
 html[data-design] .hero p { line-height: 1.55; }
 html[data-design] .overview-hero {
@@ -104,6 +110,8 @@ html[data-design] .comm-row,
 html[data-design] .production-row,
 html[data-design] .note { background: var(--surface-soft); }
 html[data-design] .range-toggle { background: var(--surface-soft); }
+html[data-design] .range-toggle { max-width: 100%; grid-template-columns: repeat(2,minmax(0,1fr)); }
+html[data-design] .range-toggle button { min-width: 0; }
 html[data-design] .range-toggle button.active { color: var(--accent); background: var(--surface); }
 html[data-design] .config-info { background: var(--accent-soft); }
 html[data-design] .flock,
