@@ -304,4 +304,5 @@
   addEventListener('pagehide', () => { engine?.setActive(false); clearInterval(previewTimer); });
   addEventListener('pageshow', syncVisibility);
   update();
+  if (preview && location.hash === '#live3d') nav.click();
 })();
