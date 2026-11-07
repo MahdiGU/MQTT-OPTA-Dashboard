@@ -64,7 +64,7 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
     items.set(id, item);
     group.userData.equipment = id;
     group.traverse(object => {
-      if (object.isMesh) pickTargets.push(object);
+      if (object.isMesh && !object.isInstancedMesh) pickTargets.push(object);
     });
     return item;
   }
@@ -166,6 +166,7 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
     const item = register(`fan-${index}`, group, material);
     item.rotor = rotor;
     const badge = label(`V${index + 1}`, x, y - 1.2, -20.8, 1.5, true);
+    badge.userData.view = 'fans';
     fanWallObjects.add(group);
     fanWallObjects.add(badge);
   });
@@ -191,7 +192,141 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
       group.add(drop);
       item.moving.push(drop);
     }
-    label(`PAD ${side + 1}`, x, 3.9, 13.1, 2.7);
+    label(`PAD ${side + 1}`, x, 3.9, 13.1, 2.7).userData.view = 'pads';
+  }
+
+  // Three water cisterns occupy the clear service area inside the front of the house.
+  const tankRing = new THREE.TorusGeometry(0.94, 0.045, 6, 20);
+  extraGeometries.push(tankRing);
+  for (let index = 0; index < 3; index++) {
+    const group = new THREE.Group();
+    group.position.set(-5.6 + index * 2.7, 0, 19.2);
+    house.add(group);
+    const indicator = standard(0x99a7a1);
+    tube(group, standard(0xd9eef3, { transparent: true, opacity: 0.22, depthWrite: false }), 0.92, 2.45, [0, 1.55, 0]);
+    for (const y of [0.35, 2.75]) {
+      const ring = new THREE.Mesh(tankRing, indicator);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = y;
+      group.add(ring);
+    }
+    for (const x of [-0.94, 0.94]) tube(group, indicator, 0.025, 2.4, [x, 1.55, 0]);
+    const contents = tube(group, standard(0x44b8e4, { transparent: true, opacity: 0.85 }), 0.86, 2.15, [0, 1.5, 0]);
+    contents.visible = false;
+    box(group, indicator, [1.9, 0.12, 0.12], [0, 0.25, 0]);
+    tube(group, mat.pipe, 0.065, 1, [0.7, 0.25, 0.65], true);
+    const item = register(`cistern-${index}`, group, indicator);
+    item.contents = contents;
+    label(`C${index + 1}`, group.position.x, 3.4, group.position.z, 1.8, true).userData.view = 'cisterns';
+  }
+
+  // Two exterior silos retain the existing I5/I6 binary level feedback.
+  const siloRoof = new THREE.ConeGeometry(1.32, 1.15, 16);
+  const siloFunnel = new THREE.CylinderGeometry(1.25, 0.18, 1.45, 16);
+  const siloRing = new THREE.TorusGeometry(1.25, 0.035, 6, 20);
+  extraGeometries.push(siloRoof, siloFunnel, siloRing);
+  for (let index = 0; index < 2; index++) {
+    const group = new THREE.Group();
+    group.position.set(11.1, 0, -4 + index * 7);
+    house.add(group);
+    const indicator = standard(0x99a7a1);
+    tube(group, standard(0xe7e4d5, { transparent: true, opacity: 0.27, depthWrite: false }), 1.25, 3.2, [0, 4.4, 0]);
+    for (const y of [2.8, 6]) {
+      const ring = new THREE.Mesh(siloRing, indicator);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = y;
+      group.add(ring);
+    }
+    for (const [x, z] of [[-1.25, 0], [1.25, 0], [0, -1.25], [0, 1.25]]) {
+      box(group, mat.metal, [0.035, 3.2, 0.035], [x, 4.4, z]);
+    }
+    const funnel = new THREE.Mesh(siloFunnel, indicator);
+    funnel.position.y = 2.08;
+    group.add(funnel);
+    const roof = new THREE.Mesh(siloRoof, indicator);
+    roof.position.y = 6.56;
+    group.add(roof);
+    const contents = tube(group, mat.grain, 1.18, 2.95, [0, 4.36, 0]);
+    contents.visible = false;
+    for (const x of [-0.88, 0.88]) {
+      for (const z of [-0.88, 0.88]) box(group, mat.metal, [0.1, 3, 0.1], [x, 1.5, z]);
+    }
+    const item = register(`silo-${index}`, group, indicator);
+    item.contents = contents;
+    label(`S${index + 1}`, group.position.x, 7.8, group.position.z, 1.8, true).userData.view = 'silos';
+  }
+
+  // The open-roof egg depot is an annex beside the entrance.
+  const depot = new THREE.Group();
+  depot.position.set(6.2, 0, 25.2);
+  house.add(depot);
+  const depotIndicator = standard(0x99a7a1);
+  box(depot, mat.floor, [7.5, 0.2, 6.3], [0, 0.04, 0]);
+  box(depot, mat.wall, [7.5, 1.35, 0.2], [0, 0.8, -3.05]);
+  box(depot, mat.wall, [0.2, 1.35, 6.1], [-3.65, 0.8, 0]);
+  box(depot, mat.wall, [0.2, 1.35, 6.1], [3.65, 0.8, 0]);
+  box(depot, depotIndicator, [7.5, 0.14, 0.2], [0, 1.52, -3.05]);
+  box(depot, depotIndicator, [0.2, 0.14, 6.1], [-3.65, 1.52, 0]);
+  box(depot, depotIndicator, [0.2, 0.14, 6.1], [3.65, 1.52, 0]);
+  // A transparent selection volume makes the trays and the room easy to tap.
+  box(depot, new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }), [7.3, 3.2, 6.1], [0, 1.7, 0]);
+  label('OEUFS', 6.2, 1.2, 28.5, 3.1).userData.view = 'depot';
+  for (let pallet = 0; pallet < 12; pallet++) {
+    const x = (pallet % 4 - 1.5) * 1.4;
+    const z = (Math.floor(pallet / 4) - 1) * 1.6;
+    box(depot, mat.grain, [1, 0.13, 1.25], [x, 0.2, z]);
+  }
+  const maxDisplayTrays = 96;
+  const trays = new THREE.InstancedMesh(unitBox, standard(0xb99569), maxDisplayTrays);
+  const rims = new THREE.InstancedMesh(unitBox, standard(0xd4b48b), maxDisplayTrays * 4);
+  const eggs = new THREE.InstancedMesh(sphere, standard(0xffe8bf, { roughness: 0.9, metalness: 0 }), maxDisplayTrays * 30);
+  for (const mesh of [trays, rims, eggs]) {
+    mesh.count = 0;
+    mesh.frustumCulled = false;
+    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    depot.add(mesh);
+  }
+  register('egg-depot', depot, depotIndicator);
+  const inventoryTransform = new THREE.Object3D();
+  function instance(mesh, index, position, scale) {
+    inventoryTransform.position.set(...position);
+    inventoryTransform.scale.set(...scale);
+    inventoryTransform.updateMatrix();
+    mesh.setMatrixAt(index, inventoryTransform.matrix);
+  }
+  function updateInventory(reading) {
+    const item = items.get('egg-depot');
+    item.state = reading.status;
+    const color = { stored: 0xc69a48, empty: 0x7fa995, overflow: 0xdc7c35, unavailable: 0x99a7a1 };
+    item.material.color.setHex(color[reading.status] ?? color.unavailable);
+    let visibleTrays = 0;
+    if (reading.available && reading.stock > 0) {
+      const slots = Math.min(maxDisplayTrays, Math.max(1, reading.capacityTrays));
+      visibleTrays = Math.min(maxDisplayTrays, reading.trays, Math.max(1, Math.ceil(reading.fill * slots)));
+    }
+    let eggCount = 0;
+    for (let tray = 0; tray < visibleTrays; tray++) {
+      const pallet = tray % 12;
+      const layer = Math.floor(tray / 12);
+      const x = (pallet % 4 - 1.5) * 1.4;
+      const z = (Math.floor(pallet / 4) - 1) * 1.6;
+      const y = 0.36 + layer * 0.31;
+      instance(trays, tray, [x, y, z], [0.88, 0.08, 1.08]);
+      instance(rims, tray * 4, [x - 0.43, y + 0.07, z], [0.045, 0.12, 1.08]);
+      instance(rims, tray * 4 + 1, [x + 0.43, y + 0.07, z], [0.045, 0.12, 1.08]);
+      instance(rims, tray * 4 + 2, [x, y + 0.07, z - 0.52], [0.88, 0.12, 0.045]);
+      instance(rims, tray * 4 + 3, [x, y + 0.07, z + 0.52], [0.88, 0.12, 0.045]);
+      const actualPartialTray = visibleTrays === reading.trays && tray === visibleTrays - 1 && reading.stock % 30 !== 0;
+      const contents = actualPartialTray ? reading.stock % 30 : 30;
+      for (let egg = 0; egg < contents; egg++) {
+        instance(eggs, eggCount++, [x + (egg % 5 - 2) * 0.15, y + 0.14, z + (Math.floor(egg / 5) - 2.5) * 0.16], [0.061, 0.093, 0.061]);
+      }
+    }
+    trays.count = visibleTrays;
+    rims.count = visibleTrays * 4;
+    eggs.count = eggCount;
+    for (const mesh of [trays, rims, eggs]) mesh.instanceMatrix.needsUpdate = true;
+    dirty = true;
   }
 
   const wireSurface = document.createElement('canvas');
@@ -303,7 +438,11 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
   }
   function preset(view) {
     activeView = view;
-    house.children.forEach(object => { object.visible = view !== 'fans' || fanWallObjects.has(object); });
+    const focusedLabels = ['pads', 'cisterns', 'silos', 'depot'].includes(view);
+    house.children.forEach(object => {
+      object.visible = view !== 'fans' || fanWallObjects.has(object);
+      if (focusedLabels && object.isSprite) object.visible = object.userData.view === view;
+    });
     selectionBox.visible = !!selectedId && (view !== 'fans' || selectedId.startsWith('fan-'));
     if (view === 'fans') { fitFanWall(); return; }
     const narrow = canvas.clientWidth < 500;
@@ -311,9 +450,14 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
       overview: narrow ? [39, 39, 59] : [32, 29, 45],
       top: narrow ? [0, 74, 2] : [0, 61, 2],
       pads: narrow ? [27, 17, 40] : [22, 14, 33],
+      cisterns: [-9, 10, 33],
+      silos: [29, 16, 15],
+      depot: [17, 12, 39],
     };
+    const targets = { overview: [0, 1.6, 0], top: [0, 1.6, 0], pads: [0, 1.6, 13],
+      cisterns: [-2.9, 1.3, 19.2], silos: [11.1, 3, -0.5], depot: [6.2, 1.3, 25.2] };
     camera.position.set(...(positions[view] || positions.overview));
-    controls.target.set(0, 1.6, view === 'pads' ? 13 : 0);
+    controls.target.set(...(targets[view] || targets.overview));
     controls.update();
     dirty = true;
   }
@@ -330,6 +474,9 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
         controls.target.copy(center);
         if (id.startsWith('fan')) camera.position.copy(center).add(new THREE.Vector3(1, 2, 9));
         else if (id.startsWith('pad')) camera.position.copy(center).add(new THREE.Vector3(id === 'pad-0' ? -10 : 10, 7, 12));
+        else if (id.startsWith('cistern')) camera.position.copy(center).add(new THREE.Vector3(5, 4, 6));
+        else if (id.startsWith('silo')) camera.position.copy(center).add(new THREE.Vector3(7, 6, 9));
+        else if (id === 'egg-depot') camera.position.copy(center).add(new THREE.Vector3(9, 8, 11));
         else camera.position.copy(center).add(new THREE.Vector3(13, 12, 23));
         controls.update();
       }
@@ -384,7 +531,7 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
     let moving = false;
     if (!reducedMotion) {
       for (const item of items.values()) {
-        if (item.state !== 'running') continue;
+        if (item.state !== 'running' || (!item.rotor && !item.moving.length)) continue;
         moving = true;
         if (item.rotor) item.rotor.rotation.z -= delta * 4;
         item.moving.forEach((part, index) => {
@@ -411,18 +558,20 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
     update(statuses) {
       for (const [id, status] of Object.entries(statuses)) {
         const item = items.get(id);
-        if (!item) continue;
+        if (!item || id === 'egg-depot') continue;
         item.state = status;
         const coolingActive = id.startsWith('pad') && status === 'running';
         item.material.color.setHex(coolingActive ? 0x299ed1 : colors[status] ?? colors.unavailable);
         item.material.emissive.setHex(status === 'running' ? coolingActive ? 0x073d5c : 0x064632 : 0x000000);
         item.material.emissiveIntensity = 0.2;
         if (id.startsWith('pad')) item.moving.forEach(part => { part.visible = status === 'running'; });
+        if (item.contents) item.contents.visible = status === 'running';
       }
       dirty = true;
     },
     preset,
     select,
+    updateInventory,
     zoom(factor) {
       const offset = camera.position.clone().sub(controls.target);
       offset.setLength(THREE.MathUtils.clamp(offset.length() * factor, controls.minDistance, controls.maxDistance));

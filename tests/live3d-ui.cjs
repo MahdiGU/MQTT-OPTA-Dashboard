@@ -34,15 +34,24 @@ const server = http.createServer((request, response) => {
       if (request.url().startsWith('http') && !request.url().startsWith('http://127.0.0.1:')) external.push(request.url());
     });
     await page.addInitScript(() => {
-      window.ElMajdNative = { hasSavedLogin: () => false, phase5Action: () => {} };
+      window.ElMajdNative = { hasSavedLogin: () => false, phase5Action: () => {}, requestCloudHistory: () => {}, signOut: () => {} };
     });
     await page.goto(`http://127.0.0.1:${server.address().port}/`);
     assert.equal(await page.locator('script[src="live3d-scene.bundle.js"]').count(), 0, '3D loads only when its tab opens');
     await page.evaluate(() => { showApp(); elMajdNativeEvent('cloud_connection', 'online'); });
     await page.click('[data-nav="live3d"]');
     await page.waitForFunction(() => document.getElementById('live3dViewport').dataset.renderer === 'ready', { timeout: 30000 });
-    assert.equal(await page.locator('[data-live3d-item]').count(), 22);
-    assert.equal(await page.locator('[data-live3d-item][data-state="unavailable"]').count(), 22);
+    assert.equal(await page.locator('[data-live3d-item]').count(), 28);
+    assert.equal(await page.locator('[data-live3d-item][data-state="unavailable"]').count(), 28);
+    const inventory = page.locator('[data-live3d-item="egg-depot"]');
+    const records = rows => page.evaluate(rows => elMajdNativeEvent('production_history', JSON.stringify(rows)), rows);
+    const record = stock => ({ id: 2, production_date: '2026-01-02', stock, sortie: 50, eggs: 100, mortality: 0, chicken_count: 100, production_rate: 100 });
+    await page.evaluate(() => elMajdNativeEvent('configuration', '{"chicken_count":100}'));
+    await records([record(350)]);
+    assert.equal(await page.locator('#live3dEggStock').textContent(), '350');
+    assert.equal(await page.locator('#live3dStockCapacity').textContent(), '700');
+    assert.equal(await page.locator('#live3dStockTrays').textContent(), '12');
+    assert.equal(await page.locator('#live3dStockMeter').getAttribute('aria-valuenow'), '50');
     const send = (reading, age = 0) => page.evaluate(({ reading, age }) => elMajdNativeEvent('telemetry', JSON.stringify({
       ...sample, captured_at: new Date(Date.now() - age).toISOString(), mqtt_status: 'online', ...reading,
     })), { reading, age });
@@ -54,6 +63,53 @@ const server = http.createServer((request, response) => {
       assert.equal(await page.locator(`[data-live3d-item="${id}"]`).getAttribute('data-state'), 'running');
     }
     assert.equal(await page.locator('[data-live3d-item="feed-1"]').getAttribute('data-state'), 'stopped');
+    await send({ feed_chains: 2081, inputs: { I2: 1, I3: 0, I4: 1, I5: 1, I6: 0, I7: 1, I8: 0 } });
+    for (const id of ['cistern-0', 'cistern-2', 'silo-0']) {
+      assert.equal(await page.locator(`[data-live3d-item="${id}"]`).getAttribute('data-state'), 'running');
+    }
+    for (const id of ['cistern-1', 'silo-1']) {
+      assert.equal(await page.locator(`[data-live3d-item="${id}"]`).getAttribute('data-state'), 'stopped');
+    }
+    await page.click('[data-live3d-item="cistern-2"]');
+    assert.match(await page.locator('#live3dSelectedSource').textContent(), /I4/);
+    await page.click('#live3dLevelHistory');
+    assert.equal(await page.locator('#historyDialog').getAttribute('data-sensor'), 'I4');
+    await page.click('#closeChart');
+    await page.click('[data-live3d-item="silo-1"]');
+    assert.match(await page.locator('#live3dSelectedSource').textContent(), /I6/);
+    await inventory.click();
+    assert.match(await page.locator('#live3dSelectedName').textContent(), /Dépôt/);
+    assert.equal(await page.locator('[data-live3d-view="depot"]').getAttribute('aria-pressed'), 'true');
+    await page.click('#live3dOpenProduction');
+    assert.equal(await page.locator('[data-screen="production"]').isVisible(), true);
+    await page.click('[data-nav="live3d"]');
+    await records([record(700)]);
+    assert.equal(await page.locator('#live3dStockMeter').getAttribute('aria-valuenow'), '100');
+    await records([record(701)]);
+    assert.equal(await inventory.getAttribute('data-state'), 'overflow');
+    await records([record(0)]);
+    assert.equal(await inventory.getAttribute('data-state'), 'empty');
+    assert.equal(await page.locator('#live3dStockMeter').getAttribute('aria-valuenow'), '0');
+    await records([record(null)]);
+    assert.equal(await inventory.getAttribute('data-state'), 'unavailable');
+    await records([record(350)]);
+    await page.evaluate(() => elMajdNativeEvent('configuration', '{}'));
+    assert.equal(await inventory.getAttribute('data-state'), 'unavailable');
+    assert.equal(await page.locator('#live3dStockMeter').getAttribute('aria-valuenow'), null);
+    await page.evaluate(() => elMajdNativeEvent('configuration', '{"chicken_count":0}'));
+    assert.equal(await inventory.getAttribute('data-state'), 'overflow');
+    await page.evaluate(() => elMajdNativeEvent('configuration', '{"chicken_count":200}'));
+    assert.equal((await page.locator('#live3dStockCapacity').textContent()).replace(/\s/g, ''), '1400');
+    assert.equal(await page.locator('#live3dStockMeter').getAttribute('aria-valuenow'), '25');
+    // The latest calendar date wins, even when backend rows arrive in another order.
+    const older = { ...record(10), id: 1, production_date: '2026-01-01' };
+    await records([older, record(350)]);
+    assert.equal(await page.locator('#live3dEggStock').textContent(), '350');
+    await records([older]); // Latest row deleted; the prior saved stock becomes the reference.
+    assert.equal(await page.locator('#live3dEggStock').textContent(), '10');
+    await records([]);
+    assert.equal(await inventory.getAttribute('data-state'), 'unavailable');
+    await records([record(350)]);
     await page.click('[data-live3d-item="feed-5"]');
     assert.match(await page.locator('#live3dSelectedName').textContent(), /Rangée 2.*Étage 3/);
     assert.match(await page.locator('#live3dSelectedSource').textContent(), /I6/);
@@ -87,25 +143,34 @@ const server = http.createServer((request, response) => {
     if (process.env.UI_SCREENSHOT) await page.screenshot({ path: process.env.UI_SCREENSHOT, fullPage: true });
     // A subsequent frame replaces the bitmask; zeros must never inherit earlier running states.
     await send({ feed_chains: 0, outputs: { D0: 0, D1: 0, D2: 0, D3: 0 }, leds: { L0: 0, L1: 0, L2: 0, L3: 0 }, inputs: { ...await page.evaluate(() => sample.inputs), I7: 0 } });
-    assert.equal(await page.locator('[data-live3d-item][data-state="stopped"]').count(), 22);
+    assert.equal(await page.locator('[data-live3d-item][data-state="stopped"]').count(), 27);
     await send({ feed_chains: 4096 });
     assert.equal(await page.locator('[data-live3d-item^="feed-"][data-state="unavailable"]').count(), 12);
     await send({ feed_chains: null });
     assert.equal(await page.locator('#live3dFeedCount').textContent(), '— / 12');
     await send({ feed_chains: 2081 }, 21000);
-    assert.equal(await page.locator('[data-live3d-item][data-state="unavailable"]').count(), 22);
+    assert.equal(await page.locator('[data-live3d-item][data-state="unavailable"]').count(), 27);
     await send({ feed_chains: 2081 });
     await page.click('[data-nav="overview"]');
     await page.waitForFunction(() => document.getElementById('live3dViewport').dataset.active === 'false');
     await page.clock.fastForward(21000);
-    assert.equal(await page.locator('[data-live3d-item][data-state="unavailable"]').count(), 22, 'running feedback expires without another message');
+    assert.equal(await page.locator('[data-live3d-item][data-state="unavailable"]').count(), 27, 'running feedback expires without another message');
     await send({ feed_chains: 2081 });
     await page.evaluate(() => elMajdNativeEvent('cloud_error', 'Offline'));
-    assert.equal(await page.locator('[data-live3d-item][data-state="unavailable"]').count(), 22);
+    assert.equal(await page.locator('[data-live3d-item][data-state="unavailable"]').count(), 27);
+    assert.equal(await page.locator('#live3dEggStock').textContent(), '350', 'saved inventory remains visible with offline context');
     await page.evaluate(() => elMajdNativeEvent('cloud_connection', 'online'));
     await send({ feed_chains: 2081 });
     await page.evaluate(() => elMajdNativeEvent('device_status', 'offline'));
-    assert.equal(await page.locator('[data-live3d-item][data-state="unavailable"]').count(), 22);
+    assert.equal(await page.locator('[data-live3d-item][data-state="unavailable"]').count(), 27);
+    await page.evaluate(() => { window.productionPageRows = [{ stock: 9999, production_date: '2025-12-01' }]; });
+    await page.evaluate(() => I18n.set('en'));
+    assert.equal(await page.locator('#live3dEggStock').textContent(), '350', 'history browsing cannot replace latest stock');
+    await page.evaluate(() => { e.app.classList.add('hidden'); });
+    await page.waitForFunction(() => document.getElementById('live3dEggStock').textContent === '—');
+    await page.evaluate(() => elMajdNativeEvent('configuration', '{"chicken_count":999}'));
+    await records([record(999)]);
+    assert.equal(await page.locator('#live3dEggStock').textContent(), '—', 'late events after logout must not repopulate inventory');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     assert.deepEqual(errors, []);
     assert.deepEqual(external, []);
@@ -134,9 +199,9 @@ const server = http.createServer((request, response) => {
     await fallback.goto(`http://127.0.0.1:${server.address().port}/?preview`);
     await fallback.click('[data-nav="live3d"]');
     await fallback.waitForSelector('#live3dFallback:not(.hidden)');
-    assert.equal(await fallback.locator('[data-live3d-item]').count(), 22, 'equipment remains accessible without WebGL');
+    assert.equal(await fallback.locator('[data-live3d-item]').count(), 28, 'equipment remains accessible without WebGL');
     await fallback.close();
-    console.log('PASS: offline 3D engine, 22 live items, exact I/O mapping, zero/invalid/stale readings, shared pads, selection, camera, localization, lifecycle, file URLs and WebGL fallback');
+    console.log('PASS: 28 interactive objects, exact I/O, cistern/silo history, depot stock/flock/edits/deletion/overflow/logout, fan picking, expiry, offline loading and WebGL fallback');
   } finally {
     await browser.close();
     server.close();

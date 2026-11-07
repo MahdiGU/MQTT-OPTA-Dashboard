@@ -46,6 +46,27 @@
 .live3d-fans{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
 .live3d-chains{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 .live3d-pads{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.live3d-cisterns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.live3d-detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.live3d-detail-actions button{min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:11px;background:#f4f8f5;color:var(--g);font-weight:750;font-size:.72rem}
+.live3d-inventory{display:block;width:100%;padding:16px;border:1px solid #e4d4b9;border-radius:16px;text-align:left;color:var(--ink);background:linear-gradient(140deg,#fffdf8,#fbf2e1);cursor:pointer}
+.live3d-inventory>span:first-child{display:block;color:#8c6c3d;font-size:.7rem;font-weight:750}
+.live3d-inventory>strong{display:block;margin:4px 0;font-size:2rem;letter-spacing:-.05em}
+.live3d-inventory .live3d-item-state{display:block;text-align:left;color:#936c2d;font-size:.72rem}
+.live3d-inventory>small{display:block;margin-top:12px;color:var(--muted);font-size:.67rem}
+.live3d-stock-meter{height:11px;margin:13px 0;border-radius:8px;overflow:hidden;background:#e8dfd0}
+.live3d-stock-meter i{display:block;width:0;height:100%;background:#c79a48;border-radius:inherit;transition:width .2s}
+.live3d-stock-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.live3d-stock-stats span{display:block;color:var(--muted);font-size:.65rem}
+.live3d-stock-stats strong{display:block;margin-top:3px;font-size:.95rem}
+.live3d-inventory[data-state=unavailable]{background:#f4f6f3;border-color:var(--line)}
+.live3d-inventory[data-state=unavailable] .live3d-item-state{color:var(--muted)}
+.live3d-inventory[data-state=overflow]{border-color:#db9a67;background:#fff1e4}
+.live3d-inventory[data-state=overflow] .live3d-item-state{color:#b7642e}
+.live3d-inventory[aria-pressed=true]{outline:2px solid #d8a148;outline-offset:2px}
+.live3d-detail[data-kind=depot][data-state=stored]{border-left-color:#c79a48}
+.live3d-detail[data-kind=depot][data-state=overflow]{border-left-color:#d78945}
+.live3d-detail[data-kind=depot]>strong{color:#936c2d}
 .live3d-equipment{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:97px;padding:8px 3px;border:1px solid var(--line);border-radius:12px;background:#f5f8f5;color:#7f9287;cursor:pointer}
 .live3d-equipment svg{width:26px;height:26px;margin-bottom:5px}
 .live3d-equipment strong{font-size:.72rem;color:var(--ink)}
