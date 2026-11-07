@@ -1,6 +1,6 @@
-# Android 1.14.0 cisterns silos and egg depot
+# Android 1.14.1 cisterns silos and egg depot
 
-The live 3D model now includes 28 selectable objects. The three water cisterns stand in the service area inside the front of the house, the two silos stand outside the side wall, and an open-roof egg depot forms an annex beside the entrance. Their positions and dimensions are schematic pending a measured plan.
+The live 3D model now includes 28 selectable objects. The three rectangular IBC water tanks have rounded plastic bodies, metal cages, fill caps, outlet valves and wooden pallets, following the owner's reference picture. They stand in the service area inside the front of the house. The two tall silos have corrugated metal cylinders, shallow roofs, conical discharge hoppers, concrete pads and cross-braced steel supports, following the second reference picture. Both stand on the same exterior side beside the egg-depot annex. Binary level feedback appears in inspection strips and status indicators. Positions and dimensions are schematic pending a measured plan.
 
 ## Level feedback
 

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 // The scene is bundled as a classic script so Android's local WebView needs no network access.
 window.createElMajdScene = (canvas, onSelect, onFailure) => {
@@ -58,6 +59,16 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
     if (horizontal) mesh.rotation.x = Math.PI / 2;
     parent.add(mesh);
     return mesh;
+  }
+  function brace(parent, material, start, end) {
+    const from = new THREE.Vector3(...start);
+    const to = new THREE.Vector3(...end);
+    const direction = to.clone().sub(from);
+    const mesh = new THREE.Mesh(cylinder, material);
+    mesh.scale.set(0.045, direction.length(), 0.045);
+    mesh.position.copy(from).add(to).multiplyScalar(0.5);
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+    parent.add(mesh);
   }
   function register(id, group, material) {
     const item = { id, group, material, state: 'unavailable', moving: [] };
@@ -195,65 +206,121 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
     label(`PAD ${side + 1}`, x, 3.9, 13.1, 2.7).userData.view = 'pads';
   }
 
-  // Three water cisterns occupy the clear service area inside the front of the house.
-  const tankRing = new THREE.TorusGeometry(0.94, 0.045, 6, 20);
-  extraGeometries.push(tankRing);
+  // Rectangular IBC tanks with translucent plastic, steel cages and wooden pallets.
+  const tankShell = new RoundedBoxGeometry(1.94, 2.08, 1.94, 2, 0.1);
+  const tankWater = new RoundedBoxGeometry(1.82, 1.8, 1.82, 2, 0.08);
+  const tankPlastic = standard(0xdde5e0, { transparent: true, opacity: 0.43, depthWrite: false, metalness: 0 });
+  const cageMaterial = standard(0x7e8985, { metalness: 0.65, roughness: 0.5 });
+  extraGeometries.push(tankShell, tankWater);
+  const cageParts = [];
+  for (const face of [-1.03, 1.03]) {
+    for (let column = 0; column < 5; column++) {
+      const cross = -1.03 + column * 0.515;
+      cageParts.push({ size: [0.045, 2.2, 0.045], position: [face, 1.46, cross] });
+      cageParts.push({ size: [0.045, 2.2, 0.045], position: [cross, 1.46, face] });
+    }
+    for (let row = 0; row < 6; row++) {
+      const y = 0.36 + row * 0.44;
+      cageParts.push({ size: [2.1, 0.045, 0.045], position: [0, y, face] });
+      cageParts.push({ size: [0.045, 0.045, 2.1], position: [face, y, 0] });
+    }
+  }
   for (let index = 0; index < 3; index++) {
     const group = new THREE.Group();
     group.position.set(-5.6 + index * 2.7, 0, 19.2);
     house.add(group);
     const indicator = standard(0x99a7a1);
-    tube(group, standard(0xd9eef3, { transparent: true, opacity: 0.22, depthWrite: false }), 0.92, 2.45, [0, 1.55, 0]);
-    for (const y of [0.35, 2.75]) {
-      const ring = new THREE.Mesh(tankRing, indicator);
-      ring.rotation.x = Math.PI / 2;
-      ring.position.y = y;
-      group.add(ring);
-    }
-    for (const x of [-0.94, 0.94]) tube(group, indicator, 0.025, 2.4, [x, 1.55, 0]);
-    const contents = tube(group, standard(0x44b8e4, { transparent: true, opacity: 0.85 }), 0.86, 2.15, [0, 1.5, 0]);
+    const shell = new THREE.Mesh(tankShell, tankPlastic);
+    shell.position.y = 1.42;
+    group.add(shell);
+    const contents = new THREE.Mesh(tankWater, standard(0x4db8dc, { transparent: true, opacity: 0.85, metalness: 0 }));
+    contents.position.y = 1.3;
     contents.visible = false;
-    box(group, indicator, [1.9, 0.12, 0.12], [0, 0.25, 0]);
-    tube(group, mat.pipe, 0.065, 1, [0.7, 0.25, 0.65], true);
+    group.add(contents);
+    const cage = new THREE.InstancedMesh(unitBox, cageMaterial, cageParts.length);
+    const cageTransform = new THREE.Object3D();
+    cageParts.forEach((part, partIndex) => {
+      cageTransform.position.set(...part.position);
+      cageTransform.scale.set(...part.size);
+      cageTransform.updateMatrix();
+      cage.setMatrixAt(partIndex, cageTransform.matrix);
+    });
+    group.add(cage);
+    for (const x of [-0.73, 0, 0.73]) box(group, mat.grain, [0.2, 0.18, 2.16], [x, 0.13, 0]);
+    for (let board = 0; board < 5; board++) box(group, mat.grain, [2.2, 0.12, 0.35], [0, 0.28, -0.84 + board * 0.42]);
+    tube(group, mat.edge, 0.2, 0.1, [0, 2.51, 0]);
+    tube(group, indicator, 0.23, 0.07, [0, 2.6, 0]);
+    box(group, mat.dark, [0.26, 0.17, 0.25], [0, 0.45, 1.07]);
+    box(group, indicator, [0.32, 0.05, 0.08], [0, 0.59, 1.14]);
     const item = register(`cistern-${index}`, group, indicator);
     item.contents = contents;
     label(`C${index + 1}`, group.position.x, 3.4, group.position.z, 1.8, true).userData.view = 'cisterns';
   }
 
-  // Two exterior silos retain the existing I5/I6 binary level feedback.
-  const siloRoof = new THREE.ConeGeometry(1.32, 1.15, 16);
-  const siloFunnel = new THREE.CylinderGeometry(1.25, 0.18, 1.45, 16);
-  const siloRing = new THREE.TorusGeometry(1.25, 0.035, 6, 20);
-  extraGeometries.push(siloRoof, siloFunnel, siloRing);
+  // Tall corrugated metal silos stand together alongside the egg-depot annex.
+  const siloBody = new THREE.CylinderGeometry(1.18, 1.18, 5.2, 32);
+  const siloRoof = new THREE.ConeGeometry(1.21, 0.42, 32);
+  const siloFunnel = new THREE.CylinderGeometry(1.18, 0.16, 2.3, 32);
+  const siloRing = new THREE.TorusGeometry(1.19, 0.035, 6, 32);
+  const corrugationRing = new THREE.TorusGeometry(1.185, 0.015, 4, 32);
+  const siloMetal = standard(0xb7b5a1, { metalness: 0.65, roughness: 0.58 });
+  const corrugationMetal = standard(0x979d8e, { metalness: 0.6, roughness: 0.6 });
+  extraGeometries.push(siloBody, siloRoof, siloFunnel, siloRing, corrugationRing);
   for (let index = 0; index < 2; index++) {
     const group = new THREE.Group();
-    group.position.set(11.1, 0, -4 + index * 7);
+    group.position.set(12.25, 0, 22.6 + index * 4.2);
     house.add(group);
     const indicator = standard(0x99a7a1);
-    tube(group, standard(0xe7e4d5, { transparent: true, opacity: 0.27, depthWrite: false }), 1.25, 3.2, [0, 4.4, 0]);
-    for (const y of [2.8, 6]) {
-      const ring = new THREE.Mesh(siloRing, indicator);
+    box(group, mat.concrete, [3.2, 0.28, 3.2], [0, 0.14, 0]);
+    const body = new THREE.Mesh(siloBody, siloMetal);
+    body.position.y = 5.95;
+    group.add(body);
+    const corrugation = new THREE.InstancedMesh(corrugationRing, corrugationMetal, 36);
+    const ringTransform = new THREE.Object3D();
+    ringTransform.rotation.x = Math.PI / 2;
+    for (let ringIndex = 0; ringIndex < 36; ringIndex++) {
+      ringTransform.position.set(0, 3.42 + ringIndex * 0.144, 0);
+      ringTransform.updateMatrix();
+      corrugation.setMatrixAt(ringIndex, ringTransform.matrix);
+    }
+    group.add(corrugation);
+    for (const y of [3.35, 8.55]) {
+      const ring = new THREE.Mesh(siloRing, mat.metal);
       ring.rotation.x = Math.PI / 2;
       ring.position.y = y;
       group.add(ring);
     }
-    for (const [x, z] of [[-1.25, 0], [1.25, 0], [0, -1.25], [0, 1.25]]) {
-      box(group, mat.metal, [0.035, 3.2, 0.035], [x, 4.4, z]);
-    }
-    const funnel = new THREE.Mesh(siloFunnel, indicator);
-    funnel.position.y = 2.08;
+    const funnel = new THREE.Mesh(siloFunnel, siloMetal);
+    funnel.position.y = 2.2;
     group.add(funnel);
-    const roof = new THREE.Mesh(siloRoof, indicator);
-    roof.position.y = 6.56;
+    const roof = new THREE.Mesh(siloRoof, siloMetal);
+    roof.position.y = 8.76;
     group.add(roof);
-    const contents = tube(group, mat.grain, 1.18, 2.95, [0, 4.36, 0]);
+    tube(group, mat.edge, 0.1, 0.15, [0, 9.02, 0]);
+    tube(group, mat.dark, 0.16, 0.25, [0, 0.97, 0]);
+    const contents = new THREE.Group();
+    box(group, mat.dark, [0.31, 4.4, 0.05], [0, 5.92, 1.19]);
+    box(contents, mat.grain, [0.22, 4.1, 0.035], [0, 5.92, 1.225]);
+    box(group, mat.dark, [0.05, 4.4, 0.31], [1.19, 5.92, 0]);
+    box(contents, mat.grain, [0.035, 4.1, 0.22], [1.225, 5.92, 0]);
     contents.visible = false;
-    for (const x of [-0.88, 0.88]) {
-      for (const z of [-0.88, 0.88]) box(group, mat.metal, [0.1, 3, 0.1], [x, 1.5, z]);
+    group.add(contents);
+    tube(group, indicator, 0.15, 0.07, [0.55, 3.72, 1.07], true);
+    for (const x of [-1.05, 1.05]) {
+      for (const z of [-1.05, 1.05]) {
+        box(group, mat.metal, [0.12, 3.1, 0.12], [x, 1.85, z]);
+        box(group, mat.dark, [0.32, 0.08, 0.32], [x, 0.34, z]);
+      }
+      brace(group, mat.metal, [x, 0.45, -1.05], [x, 3.33, 1.05]);
+      brace(group, mat.metal, [x, 0.45, 1.05], [x, 3.33, -1.05]);
+    }
+    for (const z of [-1.05, 1.05]) {
+      brace(group, mat.metal, [-1.05, 0.45, z], [1.05, 3.33, z]);
+      brace(group, mat.metal, [1.05, 0.45, z], [-1.05, 3.33, z]);
     }
     const item = register(`silo-${index}`, group, indicator);
     item.contents = contents;
-    label(`S${index + 1}`, group.position.x, 7.8, group.position.z, 1.8, true).userData.view = 'silos';
+    label(`S${index + 1}`, group.position.x, 9.7, group.position.z, 1.8, true).userData.view = 'silos';
   }
 
   // The open-roof egg depot is an annex beside the entrance.
@@ -451,11 +518,11 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
       top: narrow ? [0, 74, 2] : [0, 61, 2],
       pads: narrow ? [27, 17, 40] : [22, 14, 33],
       cisterns: [-9, 10, 33],
-      silos: [29, 16, 15],
-      depot: [17, 12, 39],
+      silos: [29, 14, 34],
+      depot: [-5, 11, 39],
     };
     const targets = { overview: [0, 1.6, 0], top: [0, 1.6, 0], pads: [0, 1.6, 13],
-      cisterns: [-2.9, 1.3, 19.2], silos: [11.1, 3, -0.5], depot: [6.2, 1.3, 25.2] };
+      cisterns: [-2.9, 1.3, 19.2], silos: [12.25, 4.5, 24.7], depot: [6.2, 1.3, 25.2] };
     camera.position.set(...(positions[view] || positions.overview));
     controls.target.set(...(targets[view] || targets.overview));
     controls.update();
@@ -476,7 +543,7 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
         else if (id.startsWith('pad')) camera.position.copy(center).add(new THREE.Vector3(id === 'pad-0' ? -10 : 10, 7, 12));
         else if (id.startsWith('cistern')) camera.position.copy(center).add(new THREE.Vector3(5, 4, 6));
         else if (id.startsWith('silo')) camera.position.copy(center).add(new THREE.Vector3(7, 6, 9));
-        else if (id === 'egg-depot') camera.position.copy(center).add(new THREE.Vector3(9, 8, 11));
+        else if (id === 'egg-depot') camera.position.copy(center).add(new THREE.Vector3(-9, 8, 11));
         else camera.position.copy(center).add(new THREE.Vector3(13, 12, 23));
         controls.update();
       }
