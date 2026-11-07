@@ -31,6 +31,7 @@
 .live3d-legend span{display:flex;align-items:center;gap:5px}
 .live3d-legend [data-state=running]:before{background:#14a878}
 .live3d-legend [data-state=stopped]:before{background:#d65c59}
+.live3d-legend [data-state=cooling]:before{background:#299ed1}
 .live3d-detail{position:relative;margin-bottom:14px;min-height:118px;padding:14px 16px;border-radius:17px;background:#fff;border:1px solid var(--line);border-left:4px solid #9aa9a2}
 .live3d-detail[data-state=running]{border-left-color:var(--g2)}
 .live3d-detail[data-state=stopped]{border-left-color:#d65c59}
@@ -50,6 +51,9 @@
 .live3d-item-state{font-size:.58rem;font-weight:700;text-align:center;line-height:1.4}
 .live3d-equipment[data-state=running]{background:#ebf8f0;border-color:#b8ddc9;color:#168360}
 .live3d-equipment[data-state=stopped]{background:#fff5f1;border-color:#eed6cd;color:#bc6555}
+.live3d-equipment[data-live3d-item^="pad-"][data-state=running]{background:#eaf7ff;border-color:#b3d9ee;color:#2189ba}
+.live3d-detail[data-kind=pad][data-state=running]{border-left-color:#299ed1}
+.live3d-detail[data-kind=pad][data-state=running]>strong,.live3d-summary [data-kind=pad][data-state=running] svg{color:#2189ba}
 .live3d-equipment[aria-pressed=true]{outline:2px solid #d8a148;outline-offset:1px}
 .live3d-note{margin:12px 2px 0;color:var(--muted);font-size:.68rem;line-height:1.55}
 [data-screen=live3d]>.live3d-note{margin:12px 5px 20px}

@@ -377,8 +377,9 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
         const item = items.get(id);
         if (!item) continue;
         item.state = status;
-        item.material.color.setHex(colors[status] ?? colors.unavailable);
-        item.material.emissive.setHex(status === 'running' ? 0x064632 : 0x000000);
+        const coolingActive = id.startsWith('pad') && status === 'running';
+        item.material.color.setHex(coolingActive ? 0x299ed1 : colors[status] ?? colors.unavailable);
+        item.material.emissive.setHex(status === 'running' ? coolingActive ? 0x073d5c : 0x064632 : 0x000000);
         item.material.emissiveIntensity = 0.2;
         if (id.startsWith('pad')) item.moving.forEach(part => { part.visible = status === 'running'; });
       }

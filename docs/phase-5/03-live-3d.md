@@ -14,7 +14,7 @@ The new **3D en direct** tab shows an open-roof poultry house based on the owner
 | R4, levels 1–3 | Expansion I10–I12, bits 9–11 | High confirms chain running |
 | Pads 1 and 2 | Base OPTA `inputs.I7` | Shared auxiliary running feedback, approved by the owner |
 
-Green animates a running or commanded-on item. Red represents a stopped or commanded-off item. Grey means missing, invalid, disconnected or older-than-20-second feedback. The timestamp uses `captured_at`, with `received_at` fallback for the base signals and `feed_chains_received_at` fallback for the expansion. An expiry timer clears running states even when no further messages arrive. Fan rotation is a visualisation of control state until physical rotation feedback is installed. Both pads necessarily show the same signal and cannot expose independent faults.
+Green animates a running chain or commanded-on fan. Blue animates active cooling pads. Red represents a stopped or commanded-off item. Grey means missing, invalid, disconnected or older-than-20-second feedback. The timestamp uses `captured_at`, with `received_at` fallback for the base signals and `feed_chains_received_at` fallback for the expansion. An expiry timer clears running states even when no further messages arrive. Fan rotation is a visualisation of control state until physical rotation feedback is installed. Both pads necessarily show the same signal and cannot expose independent faults.
 
 The new view consumes the existing authenticated native telemetry events. It creates no additional cloud queries or subscriptions. The same equipment remains accessible in a text-based selector if the device cannot initialise WebGL 2.
 

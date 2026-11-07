@@ -12,6 +12,7 @@
     'Rotate left': 'Tourner à gauche', 'Rotate right': 'Tourner à droite',
     'Zoom in': 'Agrandir', 'Zoom out': 'Réduire',
     'Running / commanded on': 'En marche / commande active',
+    'Cooling active': 'Refroidissement actif',
     'Stopped / commanded off': 'À l’arrêt / commande inactive',
     'No recent data': 'Sans données récentes', 'Select equipment': 'Sélectionner un équipement',
     'Equipment details': 'Détails de l’équipement', 'Tap the model or choose an item below.': 'Touchez le modèle ou choisissez un élément ci-dessous.',
@@ -74,7 +75,7 @@
       <div class="live3d-summary" aria-label="Equipment status">
         <div>${svg('fan')}<span>Fans</span><strong id="live3dFanCount">— / 8</strong><small>Control status</small></div>
         <div>${svg('feed')}<span>Chains</span><strong id="live3dFeedCount">— / 12</strong><small>Running feedback</small></div>
-        <div>${svg('pad')}<span>Pads</span><strong id="live3dPadCount">— / 2</strong><small>Shared I7 auxiliary feedback</small></div>
+        <div data-kind="pad" id="live3dPadSummary">${svg('pad')}<span>Pads</span><strong id="live3dPadCount">— / 2</strong><small>Shared I7 auxiliary feedback</small></div>
       </div>
       <section class="live3d-model" aria-label="3D house">
         <div class="live3d-viewbar" role="group" aria-label="Camera view">
@@ -91,7 +92,7 @@
           <div class="live3d-zoom"><button type="button" id="live3dZoomIn" aria-label="Zoom in">+</button><button type="button" id="live3dZoomOut" aria-label="Zoom out">−</button><button type="button" id="live3dReset" aria-label="Reset view">⌂</button></div>
         </div>
         <p class="live3d-gesture">Drag to rotate · pinch to zoom · two fingers to pan</p>
-        <div class="live3d-legend"><span data-state="running">Running / commanded on</span><span data-state="stopped">Stopped / commanded off</span><span data-state="unavailable">No recent data</span></div>
+        <div class="live3d-legend"><span data-state="running">Running / commanded on</span><span data-state="cooling">Cooling active</span><span data-state="stopped">Stopped / commanded off</span><span data-state="unavailable">No recent data</span></div>
       </section>
       <section class="live3d-detail" id="live3dDetail" aria-live="polite" data-state="unavailable">
         <div class="eyebrow">Equipment details</div><h3 id="live3dSelectedName">Select equipment</h3>
@@ -136,6 +137,7 @@
     $('live3dSelectedName').textContent = title(item);
     $('live3dSelectedState').textContent = stateLabel(item, statuses[item.id]);
     $('live3dDetail').dataset.state = statuses[item.id];
+    $('live3dDetail').dataset.kind = item.kind;
     const descriptions = {
       fan: 'Fan state follows the relay or LED control. Rotation feedback is not installed.',
       feed: 'Feed-chain running feedback from expansion input', pad: 'Shared I7 auxiliary feedback',
@@ -183,6 +185,7 @@
       $(id).textContent = known ? `${running} / ${count}` : `— / ${count}`;
     }
     $('live3dDataState').dataset.state = available ? 'running' : 'unavailable';
+    $('live3dPadSummary').dataset.state = statuses['pad-0'];
     $('live3dDataState').textContent = I18n.text(preview ? 'Illustrative preview' : available ? 'Live telemetry' : latest ? 'Telemetry delayed' : 'Waiting for live telemetry');
     $('live3dTime').textContent = Number.isFinite(timestamp)
       ? new Date(timestamp).toLocaleTimeString(I18n.locale(), { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
