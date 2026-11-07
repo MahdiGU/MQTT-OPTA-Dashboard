@@ -166,6 +166,7 @@ html[data-design] .design-shortcut {
   background: var(--surface);
 }
 .design-shortcut svg { width: 22px; height: 22px; }
+.design-panel { scroll-margin-top: calc(80px + env(safe-area-inset-top)); }
 .design-panel h2 { margin: 5px 0 15px; font-size: 1.2rem; }
 .design-options { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
 .design-choice { position: relative; min-width: 0; padding: 10px 8px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); color: var(--ink); text-align: left; cursor: pointer; }
