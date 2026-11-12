@@ -174,8 +174,15 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
     hub.scale.set(0.15, 0.15, 0.1);
     rotor.add(hub);
     group.add(rotor);
+    const shutters = new THREE.Group();
+    for (let slat = 0; slat < 7; slat++) {
+      box(shutters, mat.metal, [1.65, 0.23, 0.08], [0, -0.72 + slat * 0.24, 0.34]);
+    }
+    shutters.visible = false;
+    group.add(shutters);
     const item = register(`fan-${index}`, group, material);
     item.rotor = rotor;
+    item.shutters = shutters;
     const badge = label(`V${index + 1}`, x, y - 1.2, -20.8, 1.5, true);
     badge.userData.view = 'fans';
     fanWallObjects.add(group);
@@ -299,10 +306,10 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
     tube(group, mat.edge, 0.1, 0.15, [0, 9.02, 0]);
     tube(group, mat.dark, 0.16, 0.25, [0, 0.97, 0]);
     const contents = new THREE.Group();
-    box(group, mat.dark, [0.31, 4.4, 0.05], [0, 5.92, 1.19]);
-    box(contents, mat.grain, [0.22, 4.1, 0.035], [0, 5.92, 1.225]);
-    box(group, mat.dark, [0.05, 4.4, 0.31], [1.19, 5.92, 0]);
-    box(contents, mat.grain, [0.035, 4.1, 0.22], [1.225, 5.92, 0]);
+    box(group, mat.dark, [0.68, 4.4, 0.05], [0, 5.92, 1.19]);
+    box(contents, mat.grain, [0.58, 4.1, 0.035], [0, 5.92, 1.225]);
+    box(group, mat.dark, [0.05, 4.4, 0.68], [1.19, 5.92, 0]);
+    box(contents, mat.grain, [0.035, 4.1, 0.58], [1.225, 5.92, 0]);
     contents.visible = false;
     group.add(contents);
     tube(group, indicator, 0.15, 0.07, [0.55, 3.72, 1.07], true);
@@ -433,6 +440,7 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
       house.add(group);
       const material = standard(0x91a29c);
       box(group, material, [0.3, 0.17, 33.4], [0, 0, 0]);
+      for (const side of [-1, 1]) box(group, mat.metal, [0.04, 0.14, 33.4], [side * 0.17, 0.08, 0]);
       box(group, mat.grain, [0.18, 0.035, 32.8], [0, 0.09, 0]);
       const item = register(`feed-${row * 3 + level}`, group, material);
       for (let segment = 0; segment < 16; segment++) {
@@ -627,6 +635,10 @@ window.createElMajdScene = (canvas, onSelect, onFailure) => {
         const item = items.get(id);
         if (!item || id === 'egg-depot') continue;
         item.state = status;
+        if (item.shutters) {
+          item.shutters.visible = status === 'stopped';
+          item.rotor.visible = status !== 'stopped';
+        }
         const coolingActive = id.startsWith('pad') && status === 'running';
         item.material.color.setHex(coolingActive ? 0x299ed1 : colors[status] ?? colors.unavailable);
         item.material.emissive.setHex(status === 'running' ? coolingActive ? 0x073d5c : 0x064632 : 0x000000);

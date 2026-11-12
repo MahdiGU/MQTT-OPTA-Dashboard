@@ -170,6 +170,9 @@
   let stockLoaded = false;
   let stockError = false;
   let depotReading;
+  let illustrated = false;
+  let telemetryAvailable = false;
+  const changed = () => window.dispatchEvent(new Event('elmajd-live3d'));
 
   function wholeNumber(value) {
     if (typeof value !== 'number' && typeof value !== 'string') return null;
@@ -218,6 +221,7 @@
     statuses['egg-depot'] = depotReading.status;
     engine?.updateInventory(depotReading);
     details();
+    changed();
   }
 
   const title = item => item.kind === 'feed'
@@ -262,6 +266,7 @@
     tileNodes.forEach((node, key) => node.setAttribute('aria-pressed', String(key === id)));
     details();
     engine?.select(id, focus);
+    changed();
     if (focus) stage.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
   function update() {
@@ -270,6 +275,7 @@
     const age = Date.now() - timestamp;
     const available = !!latest && state.cloud && latest.mqtt_status !== 'offline'
       && Number.isFinite(age) && age >= -60_000 && age < maxAge;
+    telemetryAvailable = available;
     const feedTimestamp = Date.parse(latest?.captured_at || latest?.feed_chains_received_at);
     const feedAge = Date.now() - feedTimestamp;
     const feedAvailable = available && Number.isInteger(latest.feed_chains)
@@ -305,6 +311,7 @@
       ? new Date(timestamp).toLocaleTimeString(I18n.locale(), { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
     engine?.update(statuses);
     details();
+    changed();
     if (available) {
       const expires = feedAvailable ? Math.min(maxAge - age, maxAge - feedAge) : maxAge - age;
       staleTimer = setTimeout(update, Math.max(1, expires) + 1);
@@ -344,12 +351,13 @@
     document.head.appendChild(script);
   }
   function syncVisibility() {
-    const visible = screen.classList.contains('active') && !e.app.classList.contains('hidden') && !document.hidden;
+    const screenVisible = screen.classList.contains('active') && !e.app.classList.contains('hidden') && !document.hidden;
+    const visible = screenVisible && !illustrated;
     if (visible) loadScene();
     engine?.setActive(visible);
     stage.dataset.active = String(visible);
     clearInterval(previewTimer);
-    if (visible && preview) {
+    if (screenVisible && preview) {
       const demo = () => {
         latest = { ...sample, captured_at: new Date().toISOString(), feed_chains: 0xb6d,
           mqtt_status: 'online', inputs: { ...sample.inputs, I2: 1, I3: 0, I4: 1, I5: 1, I6: 0, I7: 1 } };
@@ -383,7 +391,7 @@
   }).observe(e.app, { attributes: true, attributeFilter: ['class'] });
   document.addEventListener('visibilitychange', () => { update(); syncVisibility(); });
   screen.querySelectorAll('[data-live3d-item]').forEach(button => {
-    button.onclick = () => choose(button.dataset.live3dItem);
+    button.onclick = () => choose(button.dataset.live3dItem, !illustrated);
   });
   screen.querySelectorAll('[data-live3d-view]').forEach(button => {
     button.onclick = () => {
@@ -450,6 +458,14 @@
   addEventListener('elmajd-language', () => { update(); renderInventory(); });
   addEventListener('pagehide', () => { engine?.setActive(false); clearInterval(previewTimer); });
   addEventListener('pageshow', syncVisibility);
+  window.ElMajdLive3D = Object.freeze({
+    select: id => choose(id, false),
+    setIllustrated: value => { illustrated = !!value; syncVisibility(); },
+    snapshot: () => ({ statuses: { ...statuses }, selected,
+      equipment: equipment.map(item => ({ ...item })), inventory: depotReading ? { ...depotReading } : null,
+      telemetry: telemetryAvailable && latest ? { i1: { ...latest.i1 }, captured_at: latest.captured_at, received_at: latest.received_at } : null,
+    }),
+  });
   if (preview) {
     flockCount = wholeNumber(state.flock);
     stockRecord = [...state.rows].sort((a, b) => String(b.production_date).localeCompare(String(a.production_date)))[0] || null;

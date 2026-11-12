@@ -1,0 +1,48 @@
+/* Coordinate-matched native state layers; the architectural PNG is unchanged. */
+.flow-model-wrap{position:absolute;width:100%;aspect-ratio:1;left:0;top:50%;transform:translateY(-48%)}
+.flow-model-wrap>img{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:contain}
+.flow-model-state-layer,.flow-model-overlay{position:absolute;inset:0;display:block;width:100%;height:100%}
+.flow-model-overlay{overflow:visible}
+.flow-model-part[role=button]{cursor:pointer;outline:none}
+.flow-model-part[role=button]:focus .flow-chain-selected,.flow-model-part[role=button]:focus .flow-fan-halo{opacity:1;stroke:#1652c4;stroke-width:10}
+.flow-chain-hit{fill:none;stroke:transparent;stroke-width:32;pointer-events:stroke}
+.flow-chain-selected{fill:none;stroke:#77c7ef;stroke-width:21;stroke-linecap:round;opacity:0;pointer-events:none}
+.flow-model-part.is-selected .flow-chain-selected{opacity:.85}
+.flow-chain-rail{fill:none;stroke:#a3b4bc;stroke-width:13;stroke-linecap:round;pointer-events:none}
+.flow-chain-track{fill:none;stroke:#2b7a51;stroke-width:7;stroke-linecap:round;pointer-events:none}
+.flow-chain-links{fill:none;stroke:#d9f4e1;stroke-width:3;stroke-dasharray:5 13;stroke-linecap:round;pointer-events:none}
+.model-kind-chains.is-on .flow-chain-links{animation:flow-chain-travel 1.2s linear infinite}
+.model-kind-chains.is-off .flow-chain-track{stroke:#a74750}
+.model-kind-chains.is-off .flow-chain-links{stroke:#efb9bb;stroke-dasharray:4 9}
+.flow-chain-drive{fill:#e6eef1;stroke:#366c7a;stroke-width:2;pointer-events:none}
+.flow-drive-cross{fill:none;stroke:#476a75;stroke-width:2;pointer-events:none}
+@keyframes flow-chain-travel{to{stroke-dashoffset:-36}}
+.flow-fan-frame{fill:#dce4e8;stroke:#869aa6;stroke-width:2}
+.flow-fan-halo{fill:none;stroke:#3897cb;stroke-width:8;opacity:0}
+.model-kind-fans.is-selected .flow-fan-halo{opacity:1}
+.flow-fan-rotor{transform-box:fill-box;transform-origin:center;animation:flow-fan-turn 3s linear infinite}
+@keyframes flow-fan-turn{to{transform:rotate(360deg)}}
+.flow-fan-led{fill:#44ae7c;stroke:#e8f5ed;stroke-width:1}
+.model-kind-fans.is-off .flow-fan-led{fill:#c8747b;stroke:#f8e9ea}
+.flow-silo-hit{fill:transparent;stroke:transparent;stroke-width:7}
+.model-kind-silos.is-selected .flow-silo-hit,.model-kind-silos:focus .flow-silo-hit{stroke:#328bc5;fill:#d9eff329}
+.flow-silo-window{fill:#eaf0f2;stroke:#6b8793;stroke-width:4}
+.model-kind-silos.is-on .flow-silo-window{stroke:#467b5b}
+.flow-silo-contents{transition:opacity .2s}
+.model-kind-silos.is-off .flow-silo-contents{opacity:0}
+.flow-silo-badge{fill:#e6f5eb;stroke:#8bbca0;stroke-width:2}
+.model-kind-silos.is-off .flow-silo-badge{fill:#faecee;stroke:#d9a7ae}
+.flow-silo-label{font:700 24px Manrope,sans-serif;fill:#226b46}
+.model-kind-silos.is-off .flow-silo-label{fill:#9d4653}
+.flow-water-hit{fill:transparent;stroke:transparent;stroke-width:6}
+.model-kind-water.is-selected .flow-water-hit{stroke:#328bc5;fill:#bce7f02b}
+.flow-water-fill{fill:#4d9fc33b;pointer-events:none}
+.model-kind-water.is-off .flow-water-fill{opacity:0}
+.flow-water-dot{fill:#328365;stroke:#fff;stroke-width:2;pointer-events:none}
+.model-kind-water.is-off .flow-water-dot{fill:#b85b69}
+.flow-pad-hit{fill:transparent;stroke:transparent;stroke-width:8}
+.model-kind-pads.is-selected .flow-pad-hit{stroke:#2b9cce;fill:#85d8ff33}
+
+.flow-live-art{position:relative;height:340px;overflow:hidden;border-radius:24px;background:radial-gradient(ellipse at 50% 60%,#dceff1,transparent 75%);margin-bottom:12px}.flow-model-wrap{position:absolute;width:100%;aspect-ratio:1;left:0;top:50%;transform:translateY(-48%)}.flow-model-wrap>img,.flow-model-state-layer,.flow-model-overlay{position:absolute;inset:0;width:100%;height:100%;display:block}.flow-model-wrap>img{object-fit:contain}.flow-view-modes{display:flex;gap:5px;padding:4px;background:#e5f2f7;border-radius:24px;margin:0 0 12px}.flow-view-modes button{flex:1;min-height:48px;border:0;border-radius:21px;background:transparent;color:#55798c;font:700 12px Manrope,system-ui}.flow-view-modes button[aria-pressed=true]{background:white;color:#1569a1}.flow-model-part.state-unavailable .flow-chain-track{stroke:#879da6}.flow-model-part.state-unavailable .flow-chain-links{stroke:#dce6ea;animation:none}.flow-model-part.state-unavailable .flow-fan-rotor{animation:none;opacity:.5}.flow-model-part.state-unavailable .flow-fan-led{fill:#96a5ad}.flow-model-part.state-unavailable .flow-silo-window{stroke:#96a5ad}.flow-model-part.state-unavailable .flow-silo-contents{opacity:0}.flow-model-part.state-unavailable .flow-silo-badge{fill:#edf2f4;stroke:#a8b8bf}.flow-model-part.state-unavailable .flow-silo-label{fill:#5e7683}.flow-model-part.state-unavailable .flow-water-dot{fill:#96a5ad}.model-kind-pads.is-off .flow-pad-hit{fill:#bccbd0;stroke:#a3b8c0;opacity:.98}.model-kind-pads.is-on .flow-pad-hit{fill:#38b6e650;stroke:#58b3d170}.flow-live-art[data-active=false] .flow-fan-rotor,.flow-live-art[data-active=false] .flow-chain-links{animation:none}.flow-model-part[role=button]:focus{outline:3px solid #1963bb}.flow-live-art[hidden],.live3d-model[hidden]{display:none!important}@media(min-width:620px){.flow-live-art{height:490px}}@media(prefers-reduced-motion:reduce){.flow-fan-rotor,.flow-chain-links{animation:none!important}.flow-silo-contents{transition:none}}
+
+#flowOverviewArt[data-active=false] .flow-fan-rotor,#flowOverviewArt[data-active=false] .flow-chain-links{animation:none}

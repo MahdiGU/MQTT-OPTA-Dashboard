@@ -6,10 +6,13 @@ Current system specification: [v0.6 PDF](docs/specification/ElMAJD_Automation_Sy
 
 ## Branch guide
 
+`Android_FLOW_Design` builds Android **1.16.0** with the approved FLOW interface: five bottom tabs, header access to Configuration/Communication, the Orbit architectural live view plus the rotatable 3D view, a new logo/launcher icon, and real daily/weekly production and mortality charts. See [implementation and test notes](docs/phase-5/06-flow-android.md). No merge has been made.
+
 `Android_Three_Designs` builds Android 1.15.0 with three selectable interfaces, Émeraude, Atelier and Argile, based on the 1.14.1 app. Use the palette button, Configuration or the login page to choose a design. See [the design guide](docs/phase-5/05-three-app-designs.md).
 
 | Branch | Type | Purpose and features | Recommended use |
 | --- | --- | --- | --- |
+| `Android_FLOW_Design` | Android 1.16.0 | Approved FLOW design; local fonts/logo, five bottom tabs and two header routes, live architectural overlays with Free 3D mode, visible silo fill, closed OFF fan shutters, 12-hour sensor charts, daily/weekly production and mortality charts. Existing native/cloud functionality retained. | New pilot design for phone acceptance; unmerged. See [FLOW notes](docs/phase-5/06-flow-android.md). |
 | `main` | Web dashboard | General MQTT I/O monitor. Displays relay outputs D0–D3, front-panel LEDs L0–L3, analog input I1, and digital inputs I2–I8. The broker WebSocket and MQTT topics can be configured in the page. Publishes plain-text commands with QoS 0 and retain disabled. | Use as the stable generic Opta web dashboard. |
 | `Dashboard_Dev` | Web development baseline | Development branch created from the generic dashboard. It currently points to the same revision as `main`, so there are no functional differences at present. | Use as the baseline for future generic dashboard experiments without changing `main`. |
 | `Poultry_Demo` | Poultry web dashboard | Light, responsive poultry-farm presentation. I1 displays voltage and temperature; I2–I4 are animated water cisterns; I5–I6 are animated alveole feed silos. A value of `0` displays an empty vessel and `1` displays a full vessel. | Use for a browser-based poultry demonstration or wall display. |

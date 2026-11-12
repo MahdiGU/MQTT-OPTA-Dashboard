@@ -12,7 +12,7 @@ const server = http.createServer((request, response) => {
     response.end();
     return;
   }
-  const types = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml' };
+  const types = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.ttf': 'font/ttf' };
   response.setHeader('Content-Type', types[path.extname(file)] || 'text/plain');
   response.end(fs.readFileSync(file));
 });
@@ -40,6 +40,7 @@ const server = http.createServer((request, response) => {
     assert.equal(await page.locator('script[src="live3d-scene.bundle.js"]').count(), 0, '3D loads only when its tab opens');
     await page.evaluate(() => { showApp(); elMajdNativeEvent('cloud_connection', 'online'); });
     await page.click('[data-nav="live3d"]');
+    await page.click('[data-flow-mode="free"]');
     await page.waitForFunction(() => document.getElementById('live3dViewport').dataset.renderer === 'ready', { timeout: 30000 });
     assert.equal(await page.locator('[data-live3d-item]').count(), 28);
     assert.equal(await page.locator('[data-live3d-item][data-state="unavailable"]').count(), 28);
@@ -83,6 +84,7 @@ const server = http.createServer((request, response) => {
     await page.click('#live3dOpenProduction');
     assert.equal(await page.locator('[data-screen="production"]').isVisible(), true);
     await page.click('[data-nav="live3d"]');
+    await page.click('[data-flow-mode="free"]');
     await records([record(700)]);
     assert.equal(await page.locator('#live3dStockMeter').getAttribute('aria-valuenow'), '100');
     await records([record(701)]);
@@ -182,6 +184,7 @@ const server = http.createServer((request, response) => {
     local.on('pageerror', error => localErrors.push(error.message));
     await local.goto(require('node:url').pathToFileURL(path.join(assets, 'index.html')).href + '?preview');
     await local.click('[data-nav="live3d"]');
+    await local.click('[data-flow-mode="free"]');
     await local.waitForFunction(() => document.getElementById('live3dViewport').dataset.renderer === 'ready');
     assert.match(await local.locator('#live3dDataState').textContent(), /simulé/);
     await local.waitForTimeout(250);
@@ -198,6 +201,7 @@ const server = http.createServer((request, response) => {
     });
     await fallback.goto(`http://127.0.0.1:${server.address().port}/?preview`);
     await fallback.click('[data-nav="live3d"]');
+    await fallback.click('[data-flow-mode="free"]');
     await fallback.waitForSelector('#live3dFallback:not(.hidden)');
     assert.equal(await fallback.locator('[data-live3d-item]').count(), 28, 'equipment remains accessible without WebGL');
     await fallback.close();
