@@ -1,0 +1,30 @@
+name: Verify FLOW web dashboard
+on:
+  push:
+    branches: [Web_FLOW_Dashboard]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install locked dependencies
+        run: |
+          npm install --global pnpm@11.25.0
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec playwright install --with-deps chromium
+      - name: Build and verify browser dashboard
+        run: |
+          pnpm build:web
+          pnpm test:web
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ElMAJD-FLOW-Web-Dashboard
+          path: web/dist/
+          if-no-files-found: error
+          retention-days: 30

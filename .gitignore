@@ -16,3 +16,5 @@ supabase/.temp/
 artifacts/*.apk
 artifacts/*.zip
 artifacts/*-build/
+
+web/dist/

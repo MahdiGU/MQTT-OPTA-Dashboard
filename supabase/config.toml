@@ -5,3 +5,8 @@ verify_jwt = false
 
 [functions.send-mqtt-command]
 verify_jwt = true
+
+# Recovery is public and rate-limited by the existing endpoint. Commands and
+# notification self-tests forward the user's JWT to the existing authenticated endpoints.
+[functions.web-dashboard-api]
+verify_jwt = false

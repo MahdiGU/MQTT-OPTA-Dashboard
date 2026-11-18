@@ -6,6 +6,8 @@ Current system specification: [v0.6 PDF](docs/specification/ElMAJD_Automation_Sy
 
 ## Branch guide
 
+`Web_FLOW_Dashboard` provides the browser version of FLOW with the existing Supabase farm login, live equipment/3D views, shared production, alarms and authenticated commands. It adds a desktop sidebar and mobile layout. See [web setup, architecture and verification](web/README.md). The Android branch remains unmerged and unchanged.
+
 `Android_FLOW_Design` builds Android **1.16.0** with the approved FLOW interface: five bottom tabs, header access to Configuration/Communication, the Orbit architectural live view plus the rotatable 3D view, a new logo/launcher icon, and real daily/weekly production and mortality charts. See [implementation and test notes](docs/phase-5/06-flow-android.md). No merge has been made.
 
 `Android_Three_Designs` builds Android 1.15.0 with three selectable interfaces, Émeraude, Atelier and Argile, based on the 1.14.1 app. Use the palette button, Configuration or the login page to choose a design. See [the design guide](docs/phase-5/05-three-app-designs.md).
