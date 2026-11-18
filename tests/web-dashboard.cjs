@@ -55,7 +55,7 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
    if(url.pathname==='/functions/v1/web-dashboard-api')return respond(body.operation==='command'?{payload:body.payload}:{message:'accepted'});
    const name=url.pathname.split('/').at(-1);
    if(url.pathname.startsWith('/rest/v1/rpc/')){
-    if(name==='preview_daily_production')return respond({valid:true,eggs:800,production_rate:80,remaining_flock:1000,cartons_used:30,previous_date:today,first_record:false});
+    if(name==='preview_daily_production')return respond({valid:true,eggs:body.stock_count===700?0:800,production_rate:body.stock_count===700?0:80,remaining_flock:1000,cartons_used:body.stock_count===700?0:30,previous_date:new Date(Date.now()+3600000-2*86400000).toISOString().slice(0,10),first_record:body.stock_count===700});
     if(name==='notification_channels_status')return respond({gmail_configured:true,push_configured:true});
     return respond({});
    }
@@ -110,16 +110,56 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   await page.fill('#eggStock','4000');await page.fill('#eggSortie','300');
   await page.fill('#mortality','0');
   await page.waitForFunction(()=>document.getElementById('calculatedProduction').textContent.includes('800'));
+  assert.equal(await page.locator('#webProductionValidation').getAttribute('data-state'),'valid');
+  assert.equal(await page.locator('#webEquationPrevious').textContent(),'3 500');
+  await page.evaluate(()=>elMajdNativeEvent('production_preview',JSON.stringify({request_id:'stale-request',valid:true,eggs:9999,production_rate:99,previous_date:'2000-01-01'})));
+  assert.equal(await page.locator('#webEquationPrevious').textContent(),'3 500','late previews do not replace the current stock reference');
+  assert.equal(await page.locator('.web-ledger-table').isVisible(),true);
+  await screenshot('web-production');
+  // Initial stock uses the server's first-record rule rather than showing a misleading equation.
+  await page.fill('#eggStock','700');
+  await page.waitForFunction(()=>document.getElementById('webOpeningReference').hidden===false);
+  assert.equal(await page.locator('.web-production-equation').isVisible(),false);
+  assert.match(await page.locator('#calculatedProduction').textContent(),/^0\s/);
+  await page.fill('#eggStock','4000');
+  await page.waitForFunction(()=>document.getElementById('webOpeningReference').hidden===true&&document.getElementById('webProductionValidation').dataset.state==='valid');
   await page.click('#saveProduction');
   await page.waitForFunction(()=>document.getElementById('productionMessage').textContent.includes('saved')||document.getElementById('productionMessage').textContent.includes('enregistr'));
   assert.equal(requests.some(r=>r.path.endsWith('/rpc/record_daily_production')&&r.body.stock_count===4000&&r.body.target_farm===farm),true);
-  for(const width of [390,768,1440]){
+  assert.equal(await page.locator('#webProductionRows tr').count(),1);
+  assert.equal(await page.evaluate(()=>{const button=document.querySelector('[data-web-edit]');button.focus();elMajdNativeEvent('telemetry',JSON.stringify(state.payload));return document.activeElement===button&&button.isConnected;}),true,'live telemetry does not rebuild the ledger or interrupt keyboard focus');
+  await page.fill('#webProductionFrom',new Date(Date.now()+3600000+86400000).toISOString().slice(0,10));
+  assert.equal(await page.locator('#webProductionExport').isDisabled(),true);
+  assert.match(await page.locator('#webProductionRows').textContent(),/Aucune saisie/);
+  await page.click('#webClearProductionFilters');
+  await page.fill('#webProductionFrom',today);await page.fill('#webProductionTo','2020-01-01');
+  assert.match(await page.locator('#webProductionFilterError').textContent(),/date de début/);
+  await page.click('#webClearProductionFilters');
+  const downloading=page.waitForEvent('download');await page.click('#webProductionExport');const downloaded=await downloading;
+  const csv=fs.readFileSync(await downloaded.path(),'utf8');assert.match(csv,/3500/);assert.match(csv,/Stock final/);
+  assert.equal(csv.trim().split('\r\n').length,2,'CSV includes only the displayed filtered history rows');
+  await page.locator('[data-web-edit="1"]').click();
+  assert.equal(await page.locator('#productionDate').isDisabled(),true);
+  assert.match(await page.locator('#webEntryTitle').textContent(),/Correction/);
+  await page.click('#cancelProductionEdit');
+  assert.equal(await page.locator('#productionDate').isDisabled(),false);
+  // Reuse original role controls and verify the new ledger mirrors them.
+  tableRows.farm_members=[{role:'manager'}];await page.evaluate(()=>ElMajdNative.phase5Action('refresh','{}'));
+  await page.waitForFunction(()=>document.querySelectorAll('[data-web-edit]').length===1&&document.querySelectorAll('[data-web-delete]').length===0);
+  tableRows.farm_members=[{role:'viewer'}];await page.evaluate(()=>ElMajdNative.phase5Action('refresh','{}'));
+  await page.waitForFunction(()=>document.querySelectorAll('[data-web-edit]').length===0);
+  assert.equal(await page.locator('#saveProduction').isDisabled(),true);
+  tableRows.farm_members=[{role:'owner'}];await page.evaluate(()=>ElMajdNative.phase5Action('refresh','{}'));
+  await page.waitForSelector('[data-web-delete="1"]');
+  for(const width of [320,390,768,1440]){
    await page.setViewportSize({width,height:1000});
    for(const screen of ['overview','status','live3d','production','configuration','alarms','connection']){
     await page.click(`[data-nav="${screen}"]`);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${screen} fits width ${width}`);
    }
   }
+  await page.setViewportSize({width:390,height:844});await page.click('[data-nav="production"]');await screenshot('web-production-mobile');
+  assert.equal(await page.locator('#productionForm>.web-calculation').count(),1,'mobile places the calculation before saving');
   await page.setViewportSize({width:390,height:844});await page.click('[data-nav="overview"]');await screenshot('web-mobile');
   await page.reload();await page.waitForFunction(()=>state.cloud&&state.flock===1000);
   assert.equal(await page.locator('#loginView').isVisible(),false,'remembered session restores without a stored password');
