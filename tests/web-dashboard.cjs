@@ -111,6 +111,8 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   await page.fill('#mortality','0');
   await page.waitForFunction(()=>document.getElementById('calculatedProduction').textContent.includes('800'));
   assert.equal(await page.locator('#webProductionValidation').getAttribute('data-state'),'valid');
+  await page.fill('#mortality','00');
+  await page.waitForFunction(()=>document.getElementById('webProductionValidation').dataset.state==='valid');
   assert.equal(await page.locator('#webEquationPrevious').textContent(),'3 500');
   await page.evaluate(()=>elMajdNativeEvent('production_preview',JSON.stringify({request_id:'stale-request',valid:true,eggs:9999,production_rate:99,previous_date:'2000-01-01'})));
   assert.equal(await page.locator('#webEquationPrevious').textContent(),'3 500','late previews do not replace the current stock reference');

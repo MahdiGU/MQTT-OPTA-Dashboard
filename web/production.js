@@ -71,7 +71,7 @@
   e.history.after(ledger);const pagination=$('productionOlder').closest('.p5-actions');pagination.classList.add('web-ledger-pagination');historyPanel.append(pagination,$('productionPageStatus'));
   let role='viewer',lastRequest=null,lastResult=null,saving=false,filtered=[];
   const inputs=()=>({date:e.date.value,stock:e.stock.value,sortie:e.sortie.value,mortality:e.mortality.value});
-  const sameInput=snapshot=>snapshot&&['date','stock','sortie','mortality'].every(key=>String(snapshot[key])===String(inputs()[key]));
+  const sameInput=snapshot=>snapshot&&snapshot.date===e.date.value&&['stock','sortie','mortality'].every(key=>inputs()[key]!==''&&Number(snapshot[key])===Number(inputs()[key]));
   const ownButton=(attribute,id)=>[...e.history.querySelectorAll('['+attribute+']')].find(button=>button.getAttribute(attribute)===String(id));
   function renderSummary(){
     const rows=[...state.rows].filter(row=>row.production_date<=today()).sort((a,b)=>String(b.production_date).localeCompare(String(a.production_date))),latest=rows[0];
