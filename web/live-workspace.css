@@ -87,3 +87,17 @@ html[data-brand=elmajd] .wl-scene .live3d-model{height:auto;margin:10px 0 0;bord
 @media(max-width:700px){html[data-brand=elmajd] .web-live-workspace .live3d-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}html[data-brand=elmajd] .web-live-workspace .live3d-summary>div,.wl-temperature{padding:13px}.wl-scene{padding:10px}.wl-toolbar{gap:5px}html[data-brand=elmajd] .wl-toolbar button{font-size:.8125rem;padding:8px 9px}.wl-matrix{padding:12px 8px}.wl-matrix-grid{grid-template-columns:63px repeat(3,minmax(0,1fr));gap:5px}.wl-matrix-grid .wl-level{font-size:.75rem}.wl-matrix-grid button{font-size:.75rem;min-height:44px;padding:5px 2px;gap:3px}.wl-matrix-grid strong{font-size:.75rem}.wl-matrix-grid button i{width:5px;height:5px}.wl-matrix-grid button span{overflow-wrap:anywhere}html[data-brand=elmajd] .wl-workspace .live3d-detail{padding:18px}.wl-scene .live3d-model .live3d-viewport{height:390px}}
 @media(prefers-reduced-motion:reduce){.wl-rotor,.wl-chain-links,.wl-air{animation:none!important}}
 @media(max-width:700px){html[data-brand=elmajd] .wl-toolbar button{font-size:.875rem}.wl-matrix-grid button{font-size:.875rem}.wl-matrix-grid strong{font-size:.8125rem}}
+
+/* The same live front scene is used in the Overview card. */
+html[data-brand=elmajd] .wl-overview-card{display:flex;flex-direction:column;aspect-ratio:auto;min-height:0!important;height:auto;background:#f7f9fb}
+.wl-overview-header{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:18px 18px 0}
+html[data-brand=elmajd] .wl-overview-header .flow-building-title{position:static;font-size:.875rem;min-width:0;color:#536171;max-width:40%}
+html[data-brand=elmajd] .wl-overview-header .flow-temperature{position:static;max-width:60%;margin:0;padding:10px 12px;box-shadow:none;flex-shrink:0}
+html[data-brand=elmajd] .wl-overview-header .flow-temperature .overview-temp strong{font-size:2rem}
+html[data-brand=elmajd] .wl-overview-header .flow-temperature .overview-climate{max-width:200px;font-size:.75rem}
+html[data-brand=elmajd] .wl-overview-card .flow-building-open{position:relative;inset:auto;left:auto;right:auto;width:100%;display:block;aspect-ratio:1.25;min-height:0;flex:0 0 auto}
+#wlOverviewBuilding{display:block;position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+#wlOverviewBuilding svg{display:block;width:100%;height:100%}
+html[data-brand=elmajd] .wl-overview-card .flow-explore{position:static;transform:none;margin:0 18px 18px;align-self:center;min-height:44px;white-space:normal;text-align:center}
+#wlOverviewBuilding[data-wl-active=false] .wl-rotor,#wlOverviewBuilding[data-wl-active=false] .wl-chain-links,#wlOverviewBuilding[data-wl-active=false] .wl-air{animation-play-state:paused}
+@media(max-width:600px){.wl-overview-header{padding:14px 14px 0;gap:8px}html[data-brand=elmajd] .wl-overview-header .flow-building-title{font-size:.8125rem}html[data-brand=elmajd] .wl-overview-header .flow-temperature{padding:8px 10px}html[data-brand=elmajd] .wl-overview-header .flow-temperature .overview-temp strong{font-size:1.8rem}html[data-brand=elmajd] .wl-overview-header .flow-temperature .overview-climate{max-width:150px}}

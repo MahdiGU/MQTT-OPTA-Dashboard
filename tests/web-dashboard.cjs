@@ -99,6 +99,13 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   assert.equal(await page.locator('#password').inputValue(),'');
   assert.equal(await page.evaluate(()=>JSON.stringify(localStorage).includes('BrowserTestPassword12!')),false,'raw password is never persisted');
   assert.equal(await page.locator('.flow-chart-point').count(),1);
+  await page.waitForSelector('#wlOverviewBuilding .wl-pad[data-state="running"]');
+  assert.equal(await page.locator('#wlOverviewBuilding image').getAttribute('href'),'house-architecture.png');
+  for(const [kind,count] of [['fan',8],['feed',12],['cistern',3],['silo',2],['pad',2]])assert.equal(await page.locator('#wlOverviewBuilding .wl-'+kind).count(),count,'Overview uses the full shared equipment illustration');
+  assert.equal(await page.locator('#flowOverviewArt').count(),0,'legacy illustration no longer owns Overview');
+  assert.equal(await page.locator('#ovwlSteel').count(),1);assert.equal(await page.locator('#wlSteel').count(),1,'SVG resources have separate namespaces');
+  assert.match(await page.locator('#ovwlDepotCount').textContent(),/3.?500.*7.?000/);
+  assert.equal(await page.locator('#ovwlTrays>g').count(),12,'Overview depot follows saved stock');
   await screenshot('web-overview');
   assert.equal((await page.locator('.app>.nav').boundingBox()).x<40,true,'desktop uses the side navigation');
   assert.equal(await page.locator('#eggStock').evaluate(node=>parseFloat(getComputedStyle(node.closest('label').querySelector('span')).fontSize)>=14),true,'production labels remain readable');
@@ -108,6 +115,10 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   const change={ids:[binding.find(b=>b.table==='device_latest').id],data:{schema:'public',table:'device_latest',columns:Object.keys(row).map(name=>({name,type:typeof row[name]==='boolean'?'bool':typeof row[name]==='number'?'float8':typeof row[name]==='object'?'jsonb':'text'})),commit_timestamp:new Date().toISOString(),type:'UPDATE',record:row,old_record:{}}};
   websocket.send(JSON.stringify(join.array?[join.joinRef,null,join.topic,'postgres_changes',change]:{topic:join.topic,event:'postgres_changes',payload:change}));
   await page.waitForFunction(()=>document.getElementById('overviewTemperature').textContent==='31.2',undefined,{timeout:12000}).catch(async error=>{console.error('Realtime diagnostic',await page.evaluate(()=>({temp:e.otemp.textContent,connection:document.getElementById('realtimeDetail').textContent,payload:state.payload})),{join,binding,change});throw error;});
+  await page.waitForFunction(()=>document.querySelector('#wlOverviewBuilding [data-wl-preview="silo-0"]').dataset.state==='stopped'&&document.querySelector('#wlOverviewBuilding [data-wl-preview="silo-1"]').dataset.state==='running');
+  await page.locator('#wlOverviewBuilding [data-wl-preview="silo-1"]').dispatchEvent('click');
+  await page.waitForFunction(()=>document.querySelector('[data-screen="live3d"]').classList.contains('active')&&document.getElementById('wlSignal').textContent==='1');
+  assert.equal(await page.locator('#live3dSelectedName').textContent(),'Silo 2','Overview selection opens the matching equipment detail');
   await page.click('[data-nav="live3d"]');await page.waitForSelector('#wlBuilding .wl-silo[data-state="running"]');
   assert.equal(await page.locator('#wlBuilding .wl-fan').count(),8);
   assert.equal(await page.locator('#wlBuilding .wl-feed').count(),12);
@@ -143,7 +154,7 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   await page.click('[data-wl-view="top"]');assert.equal(await page.locator('.wl-plan').isVisible(),true);
   assert.equal(await page.locator('.wl-plan .wl-feed').count(),12);
   await page.click('[data-wl-labels]');assert.equal(await page.locator('#wlBuilding').evaluate(n=>n.classList.contains('wl-no-labels')),true);
-  await page.click('[data-wl-reset]');assert.equal(await page.locator('.wl-architecture').isVisible(),true);
+  await page.click('[data-wl-reset]');assert.equal(await page.locator('#wlBuilding .wl-architecture').isVisible(),true);
   await page.click('[data-wl-labels]');
   await page.locator('.wl-matrix-grid [data-wl-select="feed-11"]').click();
   await page.waitForFunction(()=>document.getElementById('live3dSelectedName').textContent.includes('Rangée 4')&&document.getElementById('wlChartStatus').textContent.includes('Aucun historique'));
@@ -154,6 +165,7 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   await page.waitForFunction(()=>document.querySelector('#wlBuilding .wl-silo').dataset.state==='unavailable'&&document.querySelector('#wlBuilding .wl-silo').getAttribute('aria-label').includes('Sans données'));
   assert.equal(await page.locator('#wlBuilding .wl-silo-state').first().textContent(),'—');
   assert.match(await page.locator('#wlBuilding .wl-silo').first().getAttribute('aria-label'),/Sans données/);
+  assert.equal(await page.locator('#wlOverviewBuilding .wl-silo').first().getAttribute('data-state'),'unavailable','Overview shares stale-data protection');
   // Restore telemetry after checking unknown never appears as OFF or empty.
   await page.evaluate(data=>elMajdNativeEvent('telemetry',JSON.stringify(data)),telemetry(row));
   await page.click('[data-wl-view="free"]');await page.waitForFunction(()=>document.getElementById('live3dViewport').dataset.renderer==='ready');

@@ -100,7 +100,23 @@
     ${[0,1,2,3].map(r=>`<g><rect x="${195+r*142}" y="275" width="85" height="400" rx="5" fill="url(#wlWire)" stroke="#8295a1"/>${[0,1,2].map(l=>group('feed-'+(r*3+l),`<path class="wl-chain-hit" d="M${209+r*142+l*25} 285v380"/><path class="wl-chain-rail" d="M${209+r*142+l*25} 285v380"/><path class="wl-chain-track" d="M${209+r*142+l*25} 285v380"/><path class="wl-chain-links" d="M${209+r*142+l*25} 285v380"/>`)).join('')}${label(237+r*142,710,t('Row '+(r+1)),125)}</g>`).join('')}
     ${[250,435,620].map((x,n)=>group('cistern-'+n,`<rect x="${x}" y="750" width="100" height="80" rx="8" fill="url(#wlTank)" stroke="#8498a2" stroke-width="3"/><rect class="wl-water" x="${x+6}" y="756" width="88" height="68" rx="4"/>${label(x+50,798,'C'+(n+1),50)}<rect class="wl-selection" x="${x-5}" y="745" width="110" height="90" rx="8"/>`)).join('')}${depot()}${silo(950,635,0)}${silo(1090,635,1)}</svg>`;}
   // Reuse front-view definitions in the plan without loading another renderer.
-  const frontMarkup=frontScene();
+  let frontMarkup=frontScene();
+  // Share the front illustration with Overview. Namespace every SVG resource so
+  // gradients, textures and inventory nodes never collide with the 3D tab.
+  const overviewCard=document.querySelector('.flow-building-card');overviewCard.classList.add('wl-overview-card');
+  const overviewArt=document.getElementById('flowOverviewArt');overviewArt.id='wlOverviewBuilding';
+  const overviewHeader=document.createElement('div');overviewHeader.className='wl-overview-header';
+  overviewHeader.append(overviewCard.querySelector('.flow-building-title'),overviewCard.querySelector('.flow-temperature'));overviewCard.prepend(overviewHeader);
+  function drawOverview(){
+    overviewArt.innerHTML=frontScene().replaceAll('id="wl','id="ovwl').replaceAll('url(#wl','url(#ovwl').replaceAll('href="#wl','href="#ovwl')
+      .replace(/data-wl-select=/g,'data-wl-preview=').replace(/ role="button"| tabindex="0"| aria-pressed="false"/g,'');
+  }
+  drawOverview();
+  overviewCard.querySelector('.flow-building-open').onclick=event=>{
+    const target=event.target.closest('[data-wl-preview]');
+    if(target){selected=target.dataset.wlPreview;api.select(selected);}
+    setView('front');document.querySelector('[data-nav="live3d"]').click();schedule();
+  };
   function drawBuilding(){building.innerHTML=view==='top'?topScene().replace('<rect x="120"',frontMarkup.match(/<defs>[\s\S]*?<\/defs>/)[0]+'<rect x="120"'):frontMarkup;building.classList.toggle('wl-no-labels',!labels);}
   function setView(next){view=next;const free=next==='free';if(free&&selected==='temperature')selected=api.snapshot().selected||'silo-0';window.FlowArt.setMode(free?'free':'architecture');building.hidden=free;model.hidden=!free;scene.querySelectorAll('[data-wl-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.wlView===next)));if(!free)drawBuilding();schedule();}
   scene.querySelectorAll('[data-wl-view]').forEach(b=>b.onclick=()=>setView(b.dataset.wlView));
@@ -110,16 +126,25 @@
   screen.addEventListener('click',pick);building.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key)&&event.target.matches('[data-wl-select]')){event.preventDefault();pick(event);}});
   const number=value=>value===null||value===undefined?'—':Number(value).toLocaleString(I18n.locale());
   const time=value=>Number.isFinite(Date.parse(value))?new Date(value).toLocaleTimeString(I18n.locale(),{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
-  const labelState=(item,status)=>status==='unavailable'?t('No recent data'):item.kind==='silo'||item.kind==='cistern'?t(status==='running'?'Full':'Empty'):item.kind==='fan'?t(status==='running'?'Control active':'Control inactive'):item.kind==='pad'?t(status==='running'?'Cooling active':'Stopped'):t(status==='running'?'Running confirmed':'Stopped');
+  const labelState=(item,status)=>item.kind==='depot'?document.getElementById('live3dStockState').textContent:status==='unavailable'?t('No recent data'):item.kind==='silo'||item.kind==='cistern'?t(status==='running'?'Full':'Empty'):item.kind==='fan'?t(status==='running'?'Control active':'Control inactive'):item.kind==='pad'?t(status==='running'?'Cooling active':'Stopped'):t(status==='running'?'Running confirmed':'Stopped');
   function update(){
     scheduled=false;const snap=api.snapshot();if(snap.selected!==lastApiSelection){lastApiSelection=snap.selected;if(snap.selected)selected=snap.selected;}
     screen.dataset.wlActive=String(!document.hidden&&screen.classList.contains('active'));
+    overviewArt.dataset.wlActive=String(!document.hidden&&overviewCard.closest('.screen').classList.contains('active'));
     const reading=snap.telemetry?.i1,tempValue=reading?.fault===0&&typeof reading.temp_c==='number'&&Number.isFinite(reading.temp_c)?reading.temp_c:null;
     document.getElementById('wlTemperature').textContent=tempValue===null?'—':number(tempValue)+' °C';
     screen.querySelectorAll('[data-wl-select]').forEach(node=>{const id=node.dataset.wlSelect,item=equipment.find(i=>i.id===id),status=snap.statuses[id]||'unavailable';node.setAttribute('aria-pressed',String(id===selected));if(!item)return;node.dataset.state=status;node.setAttribute('aria-label',name(item)+' · '+labelState(item,status));const badge=node.querySelector('.wl-silo-state');if(badge)badge.textContent=status==='unavailable'?'—':labelState(item,status);const matrixText=node.matches('button')&&node.querySelector('span');if(matrixText)matrixText.textContent=status==='unavailable'?'—':status==='running'?t('Running'):t('Stopped');});
+    overviewArt.querySelectorAll('[data-wl-preview]').forEach(node=>{
+      const id=node.dataset.wlPreview,item=equipment.find(i=>i.id===id),status=snap.statuses[id]||'unavailable';node.dataset.state=status;
+      node.setAttribute('aria-label',name(item)+' · '+labelState(item,status));
+      const badge=node.querySelector('.wl-silo-state');if(badge)badge.textContent=status==='unavailable'?'—':labelState(item,status);
+    });
     const inventory=snap.inventory,trays=document.getElementById('wlTrays');
     if(trays){const count=inventory?.available?Math.ceil(inventory.fill*24):0;trays.innerHTML=Array.from({length:count},(_,n)=>{const x=26+(n%4)*29,y=162-Math.floor(n/4)*18;return `<g><rect x="${x}" y="${y}" width="25" height="10" rx="2" fill="#bf9d6d"/>${[0,1,2].map(e=>`<ellipse cx="${x+5+e*7}" cy="${y}" rx="3" ry="4" fill="#f8e4bb"/>`).join('')}</g>`;}).join('');}
     const stock=document.getElementById('wlDepotCount');if(stock)stock.textContent=number(inventory?.stock)+' / '+number(inventory?.capacity);
+    const overviewTrays=document.getElementById('ovwlTrays'),overviewStock=document.getElementById('ovwlDepotCount');
+    if(overviewTrays&&trays)overviewTrays.innerHTML=trays.innerHTML;
+    if(overviewStock)overviewStock.textContent=number(inventory?.stock)+' / '+number(inventory?.capacity);
     const item=selected==='temperature'?{id:'temperature',kind:'temperature',source:'temp',title:'Temperature'}:equipment.find(i=>i.id===selected);if(!item)return;
     const status=item.kind==='temperature'?(tempValue===null?'unavailable':'running'):snap.statuses[item.id];
     detail.dataset.kind=item.kind;detail.dataset.state=status;document.getElementById('live3dSelectedName').textContent=name(item);
@@ -176,8 +201,9 @@
     matrix.querySelectorAll('strong').forEach((node,n)=>node.textContent=t('Row '+(n+1)));
     legend.children[0].textContent=t('Running confirmed')+' / '+t('Full');legend.children[1].textContent=t('Stopped')+' / '+t('Empty');legend.children[2].textContent=t('Cooling active');legend.children[3].textContent=t('No recent data');
   }
-  window.addEventListener('elmajd-language',()=>{translate();lastChartKey='';if(view!=='free')drawBuilding();schedule();});
-  document.addEventListener('visibilitychange',()=>{screen.dataset.wlActive=String(!document.hidden&&screen.classList.contains('active'));schedule();});new MutationObserver(schedule).observe(screen,{attributes:true,attributeFilter:['class']});
+  window.addEventListener('elmajd-language',()=>{translate();frontMarkup=frontScene();lastChartKey='';if(view!=='free')drawBuilding();drawOverview();schedule();});
+  document.addEventListener('visibilitychange',()=>{screen.dataset.wlActive=String(!document.hidden&&screen.classList.contains('active'));overviewArt.dataset.wlActive=String(!document.hidden&&overviewCard.closest('.screen').classList.contains('active'));schedule();});new MutationObserver(schedule).observe(screen,{attributes:true,attributeFilter:['class']});
+  new MutationObserver(schedule).observe(overviewCard.closest('.screen'),{attributes:true,attributeFilter:['class']});
   // A real default item, never a simulated full sensor. No additional cloud polling is introduced.
   drawBuilding();api.select(selected);update();
 })();

@@ -24,6 +24,8 @@ Selecting temperature, a cistern, a silo or a pad shows the already-loaded lates
 
 The browser regression suite covers all equipment counts, state mappings, blue shared pads, shutters, selection, camera/label controls, keyboard chart inspection, step plots, gaps, temperature scaling, stale data, French/English controls and 320/390/768/1440 layouts, alongside existing auth, production, permissions and commands. Screenshots are generated with mocked data. Android, firmware and database sources are unchanged. See [architectural asset provenance](brand/house-architecture.md) for the background creation notes.
 
+Overview now reuses this exact front-scene renderer and live status/inventory updates, including shuttered fans, the twelve chains, blue shared pads, cisterns, exterior silos and egg depot. Its SVG resources are namespaced independently from the 3D tab. Selecting equipment in Overview opens that item in the detailed 3D workspace. Temperature, flock, production, cartons and performance charts remain in Overview. The temperature summary sits above the scene to keep equipment unobscured on desktop and phone. The original overview image/state overlay is retired in the web build. No additional cloud reads are introduced.
+
 ## Use
 
 Sign in with the **same Supabase email and password as the Android app**. The pilot farm is `elmajd-poultry`. The browser reads/writes the existing shared data, rather than a separate database. Farm membership and permissions are enforced by RLS and the existing authenticated RPCs. Remembering login saves a refreshable session in this browser, never the raw password. Unchecked login uses session storage. Sign-out stops subscriptions and clears the session and displayed account data.
