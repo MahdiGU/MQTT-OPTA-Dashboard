@@ -38,6 +38,10 @@ Cooling pads in the shared Overview/front/top illustration are compact framed si
 
 Validation covers the confirmed 24/25 October boundary, GMT+1 midnight, continuity over New Year, partial weeks, missing/future/zero records, actual age display, age-week chart labels and sums, synchronized mortality controls, feed-silo labels, compact pad geometry and responsive layouts alongside the existing browser regressions. Screenshots use test data.
 
+### Approved cooling-pad proportions
+
+The owner approved the medium-size pad preview on 19 November 2026. The shared Overview/front renderer now uses that exact geometry: larger framed panels on both side walls near the entrance, a fine grille texture, bottom channels and short airflow strokes. The model is indicative, not an installation drawing. Both panels retain shared I7 feedback and blue active states, selection and history. Top/free views retain their existing footprint/physical model. The earlier very small front-view panels are superseded. Browser checks verify the approved size, identical Overview/3D shapes, separate texture IDs, active blue color and selection of the I7 details. Android remains unchanged.
+
 ## Use
 
 Sign in with the **same Supabase email and password as the Android app**. The pilot farm is `elmajd-poultry`. The browser reads/writes the existing shared data, rather than a separate database. Farm membership and permissions are enforced by RLS and the existing authenticated RPCs. Remembering login saves a refreshable session in this browser, never the raw password. Unchecked login uses session storage. Sign-out stops subscriptions and clears the session and displayed account data.

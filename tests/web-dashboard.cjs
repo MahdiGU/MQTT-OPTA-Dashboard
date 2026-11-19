@@ -111,7 +111,8 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   assert.equal(await page.locator('#siloGrid').evaluate(n=>n.closest('.panel').querySelector('h3').textContent),'Silos d’aliment');
   assert.equal(await page.locator('#asset-I5 .equipment-name').textContent(),'Silo d’aliment 1');
   const padBounds=await page.locator('#wlOverviewBuilding .wl-pad-surface').first().evaluate(n=>({height:n.getBBox().height,width:n.getBBox().width}));
-  assert.ok(padBounds.height<180&&padBounds.width<60,'architectural cooling pads use compact side enclosures');
+  assert.ok(padBounds.height>240&&padBounds.height<300&&padBounds.width>50&&padBounds.width<80,'cooling pads match the approved medium-size side enclosures');
+  assert.equal(await page.locator('#ovwlPadGrid').count(),1);assert.equal(await page.locator('#wlPadGrid').count(),1,'pad textures are namespaced between Overview and 3D');
   const ageRows=[{id:10,production_date:'2026-10-24',stock:2500,sortie:500,eggs:800,mortality:2,production_rate:80,chicken_count:1000},{id:11,production_date:'2026-10-25',stock:2700,sortie:700,eggs:900,mortality:3,production_rate:90,chicken_count:1000},{id:12,production_date:'2026-10-26',stock:3000,sortie:400,eggs:700,mortality:4,production_rate:70,chicken_count:1000}];
   const baselineProduction=production;production=ageRows;
   await page.evaluate(rows=>elMajdNativeEvent('production_history',JSON.stringify(rows)),ageRows);
@@ -152,6 +153,10 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   assert.equal(await page.locator('#wlBuilding [data-wl-select="pad-0"]').getAttribute('data-state'),'running');
   assert.equal(await page.locator('#wlBuilding [data-wl-select="pad-1"]').getAttribute('data-state'),'running');
   assert.equal(await page.locator('#wlBuilding [data-wl-select="pad-0"] .wl-pad-surface').evaluate(n=>getComputedStyle(n).fill),'rgb(55, 201, 240)');
+  assert.equal(await page.locator('#wlBuilding [data-wl-select="pad-0"] .wl-pad-surface').getAttribute('d'),await page.locator('#wlOverviewBuilding [data-wl-preview="pad-0"] .wl-pad-surface').getAttribute('d'),'Overview and 3D use the same approved pad geometry');
+  await page.locator('#wlBuilding [data-wl-select="pad-0"]').click();
+  await page.waitForFunction(()=>document.getElementById('live3dDetail').dataset.kind==='pad'&&document.getElementById('wlSignal').textContent==='1');
+  assert.match(await page.locator('#live3dSelectedSource').textContent(),/I7/,'larger pad remains selectable and uses shared feedback');
   await page.locator('#wlBuilding [data-wl-select="silo-1"]').dispatchEvent('click');
   await page.waitForFunction(()=>document.getElementById('live3dSelectedName').textContent==='Silo 2'&&document.getElementById('wlSignal').textContent==='1');
   assert.equal(await page.locator('#wlSignal').textContent(),'1');
