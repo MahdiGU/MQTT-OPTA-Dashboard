@@ -6,7 +6,7 @@
   let role='viewer', house='', editing=null, requestId=uid(), busy=false, productionBusy=false, warningC=30, criticalC=33, receiptEditing=null, receiptRows=[], referenceDay=null;
   let previewReady=false,previewRequest=0,previewTimer,flockBusy=false,flockRequestId=uid(),lastSharedData;
   const canEdit=()=>['owner','manager'].includes(role);
-  const call=(action,input={})=>{if(native&&state.cloud)window.ElMajdNative.phase5Action(action,JSON.stringify(input));else message('Cloud sign-in is required.');};
+  const call=(action,input={})=>{if(native&&state.cloud){if(action==='production_preview')window.dispatchEvent(new CustomEvent('elmajd-production-preview-request',{detail:{...input}}));window.ElMajdNative.phase5Action(action,JSON.stringify(input));}else message('Cloud sign-in is required.');};
   const message=text=>{$('phase5Message').textContent=text;};
   I18n.add({
     'Enter Stock, Sortie and mortality to check saved records.':'Saisissez le stock, la sortie et la mortalité pour vérifier les données enregistrées.',

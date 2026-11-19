@@ -31,6 +31,7 @@ for(const input of Object.keys(build.metafile.inputs)){
 fs.writeFileSync(path.join(out,'THIRD-PARTY-LICENSES.txt'),[...licenses.values()].join('\n\n--------------------------------\n\n'));
 fs.copyFileSync(path.join(root,'node_modules/@supabase/supabase-js/LICENSE'),path.join(out,'SUPABASE-LICENSE.txt'));
 let html=fs.readFileSync(path.join(source,'index.html'),'utf8');
+html=html.replace(/<!-- Android design start -->[\s\S]*?<!-- Android design end -->/,'');
 html=html.replace('<title>ElMajd Automation</title>','<title>ElMAJD Automation · Dashboard</title><meta name="description" content="Tableau de bord ElMAJD : température, équipements, production et alarmes de votre élevage."><link rel="icon" type="image/png" href="elmajd-logo.png">');
 html=html.replaceAll('src="elmajd-icon.png"','src="elmajd-logo.png"');
 html=html.replace('</head>','<script src="web-bridge.js"></script></head>');

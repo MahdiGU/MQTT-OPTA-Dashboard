@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.net.Uri;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -18,8 +19,36 @@ import android.webkit.WebViewClient;
 import android.webkit.WebResourceRequest;
 
 import org.json.JSONObject;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 public final class MainActivity extends Activity {
+    private static final int SAVE_PRODUCTION_CSV = 417;
+    private String pendingProductionCsv;
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != SAVE_PRODUCTION_CSV) return;
+        String csv = pendingProductionCsv;
+        pendingProductionCsv = null;
+        if (resultCode != RESULT_OK) {
+            sendEventToDashboard("csv_export_status", "CSV export cancelled.");
+            return;
+        }
+        Uri destination = data == null ? null : data.getData();
+        if (csv == null || destination == null || !"content".equals(destination.getScheme())) {
+            sendEventToDashboard("csv_export_status", "Could not save CSV. Please try again.");
+            return;
+        }
+        try (OutputStream stream = getContentResolver().openOutputStream(destination, "wt")) {
+            if (stream == null) throw new java.io.IOException("No document stream");
+            stream.write(csv.getBytes(StandardCharsets.UTF_8));
+            sendEventToDashboard("csv_export_status", "CSV saved.");
+        } catch (Exception error) {
+            sendEventToDashboard("csv_export_status", "Could not save CSV. Please try again.");
+        }
+    }
     private static final int NOTIFICATION_PERMISSION_REQUEST = 33;
     private WebView dashboard;
     private boolean receiverRegistered;
@@ -252,6 +281,27 @@ public final class MainActivity extends Activity {
             Intent service = new Intent(MainActivity.this, CloudForegroundService.class)
                 .setAction(CloudForegroundService.ACTION_REQUEST_HISTORY);
             startService(service);
+        }
+
+        @JavascriptInterface
+        public void exportProductionCsv(String csv, String filename) {
+            if (csv == null || csv.length() > 1_000_000 || filename == null
+                || !filename.matches("ElMAJD-production-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.csv")) return;
+            runOnUiThread(() -> {
+                if (pendingProductionCsv != null || isFinishing()) return;
+                pendingProductionCsv = csv;
+                Intent save = new Intent(Intent.ACTION_CREATE_DOCUMENT)
+                    .addCategory(Intent.CATEGORY_OPENABLE)
+                    .setType("text/csv")
+                    .putExtra(Intent.EXTRA_TITLE, filename);
+                try {
+                    startActivityForResult(save, SAVE_PRODUCTION_CSV);
+                    sendEventToDashboard("csv_export_status", "Choose where to save the CSV file.");
+                } catch (Exception error) {
+                    pendingProductionCsv = null;
+                    sendEventToDashboard("csv_export_status", "Could not save CSV. Please try again.");
+                }
+            });
         }
 
         @JavascriptInterface

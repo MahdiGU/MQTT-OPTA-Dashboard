@@ -77,7 +77,7 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
     assert.equal(await page.evaluate(()=>testCalls.some(([a,p])=>a==='receipt_edit'&&p.id==='receipt1'&&p.quantity===120)),true);
     await page.evaluate(()=>elMajdNativeEvent('phase5_saved','receipt_edit'));
     await page.click('[data-nav="production"]');assert.equal(await page.locator('[data-delete]').isVisible(),false);
-    await page.click('[data-edit-production="1"]');await page.fill('#eggStock','1100');await page.click('#saveProduction');
+    await page.click('[data-web-edit="1"]');await page.fill('#eggStock','1100');await page.click('#saveProduction');
     assert.equal(await page.evaluate(()=>testCalls.some(([a,p])=>a==='edit'&&p.id===1&&p.stock===1100)),true);
     await page.evaluate(()=>elMajdNativeEvent('phase5_saved','edit'));
     await page.click('[data-nav="configuration"]');await page.fill('#receiptQuantity','100');await page.click('#receiptSave');
@@ -89,7 +89,7 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
     await page.evaluate(data=>elMajdNativeEvent('phase5_data',JSON.stringify({...data,role:'viewer'})),data);
     await page.click('[data-nav="configuration"]');assert.equal(await page.locator('#receiptSave').isDisabled(),true);assert.equal(await page.locator('#saveConfiguration').isDisabled(),true);
     await page.evaluate(data=>elMajdNativeEvent('phase5_data',JSON.stringify({...data,role:'owner'})),data);await page.click('[data-nav="production"]');
-    assert.equal(await page.locator('[data-delete]').isVisible(),true);
+    assert.equal(await page.locator('[data-web-delete]').isVisible(),true);
     await page.click('[data-nav="configuration"]');page.once('dialog',d=>d.accept());await page.click('[data-receipt-delete="receipt1"]');
     assert.equal(await page.evaluate(()=>testCalls.some(([a,p])=>a==='receipt_delete'&&p.id==='receipt1')),true);
     await page.click('[data-nav="production"]');
@@ -101,7 +101,7 @@ const server=http.createServer((req,res)=>{const name=req.url.split('?')[0]==='/
     await page.evaluate(({paging,rows})=>elMajdNativeEvent('production_page',JSON.stringify({request_id:paging.request_id,rows,has_more:true})),{paging,rows:records.slice(30,60)});
     assert.equal(await page.locator('.production-row').count(),30);assert.equal(await page.locator('#latestProduction').textContent(),latestValue);
     assert.equal(await page.locator('[data-edit-production="10030"]').count(),1);
-    await page.evaluate(()=>autoPreview=false);await page.click('[data-edit-production="10030"]');
+    await page.evaluate(()=>autoPreview=false);await page.click('[data-web-edit="10030"]');
     await page.waitForFunction(()=>testCalls.filter(([a,p])=>a==='production_preview'&&p.id===10030).length>0);
     const preview=await page.evaluate(()=>testCalls.filter(([a])=>a==='production_preview').at(-1)[1]);
     await page.fill('#eggStock','1500');assert.equal(await page.locator('#saveProduction').isDisabled(),true);

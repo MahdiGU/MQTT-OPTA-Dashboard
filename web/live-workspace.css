@@ -35,6 +35,7 @@ html[data-brand=elmajd] .wl-toolbar button[aria-pressed=true]{background:#ff8b00
 .wl-fan-open{display:none}.wl-fan[data-state=running] .wl-fan-open{display:block}.wl-fan[data-state=running] .wl-fan-closed{display:none}
 .wl-rotor{transform-box:fill-box;transform-origin:center;animation:wl-fan-turn 2s linear infinite}
 .wl-fan[data-state=unavailable]{opacity:.6}.wl-fan[data-state=unavailable] .wl-fan-closed{opacity:.6}
+.wl-fan[data-state=unavailable] .wl-fan-closed{display:none}
 .wl-water{fill:#25b8ef;opacity:0}.wl-cistern[data-state=running] .wl-water{opacity:.68}
 .wl-grain{opacity:0}.wl-silo[data-state=running] .wl-grain{opacity:1}
 .wl-silo-state{font:700 22px Manrope,sans-serif;fill:#647181;text-anchor:middle}

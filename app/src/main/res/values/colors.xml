@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="dashboard_background">#F4FAFC</color>
-    <color name="dashboard_primary">#1569CF</color>
-    <color name="launcher_background">#EFFBFC</color>
+    <color name="dashboard_background">#F5F6F8</color>
+    <color name="dashboard_primary">#FF8B00</color>
+    <color name="launcher_background">#111316</color>
 </resources>

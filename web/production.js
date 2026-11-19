@@ -124,11 +124,8 @@
   $('webResetEntry').onclick=()=>{if(saving)return;$('cancelProductionEdit').click();reset();};
   for(const input of [e.date,e.stock,e.sortie,e.mortality])for(const type of ['input','change'])input.addEventListener(type,reset);
   form.addEventListener('submit',()=>{if(!e.prodBtn.disabled||!state.cloud||!['owner','manager'].includes(role))return;/* Original handler has already disabled it for a valid save. */if(lastResult?.valid&&sameInput(lastRequest)){saving=true;renderCalculation();renderHistory();}});
-  const oldCall=ElMajdNative.phase5Action;
-  ElMajdNative.phase5Action=function(action,payload){
-    if(action==='production_preview'){try{lastRequest=JSON.parse(payload);lastResult=null;}catch{lastRequest=null;}renderCalculation();}
-    return oldCall.call(this,action,payload);
-  };
+  // Android Java bridge methods are read-only. Observe requests without replacing them.
+  window.addEventListener('elmajd-production-preview-request',event=>{lastRequest={...event.detail};lastResult=null;renderCalculation();});
   const previous=window.elMajdNativeEvent;
   window.elMajdNativeEvent=(type,data)=>{
     previous(type,data);
@@ -156,6 +153,9 @@
     const headers=['Date (GMT+1)','Closing stock','Dispatches','Egg production','Rate (%)','Mortality','Flock after mortality'].map(t);
     const rows=filtered.map(row=>[row.production_date,row.stock,row.sortie,row.eggs,row.production_rate,row.mortality,row.chicken_count].map(value=>value===null||value===undefined?'':typeof value==='number'&&french?String(value).replace('.',','):String(value)));
     const csv=[headers,...rows].map(row=>row.map(value=>'"'+String(value).replace(/"/g,'""')+'"').join(separator)).join('\r\n');
+    if(document.documentElement.dataset.platform==='android'&&typeof window.ElMajdNative.exportProductionCsv==='function'){
+      window.ElMajdNative.exportProductionCsv('\ufeff'+csv,'ElMAJD-production-'+today()+'.csv');return;
+    }
     const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})),link=document.createElement('a');link.href=url;link.download='ElMAJD-production-'+today()+'.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   };
   new MutationObserver(renderHistory).observe(e.history,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','disabled']});

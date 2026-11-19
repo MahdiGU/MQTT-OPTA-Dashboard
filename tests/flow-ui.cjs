@@ -12,11 +12,11 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   await page.clock.install({time:new Date('2026-11-12T12:00:00Z')});
   page.on('pageerror',e=>errors.push(e.message));
   page.on('request',r=>{if(r.url().startsWith('http')&&!r.url().startsWith('http://127.0.0.1:'))external.push(r.url());});
-  await page.addInitScript(()=>{window.testCalls=[];window.ElMajdNative={hasSavedLogin:()=>false,requestCloudHistory:s=>testCalls.push(['history',s]),phase5Action:(a,p)=>testCalls.push([a,JSON.parse(p)])};});
+  await page.addInitScript(()=>{window.testCalls=[];window.ElMajdNative={hasSavedLogin:()=>false,requestCloudHistory:s=>testCalls.push(['history',s]),phase5Action:(a,p)=>testCalls.push([a,JSON.parse(p)]),exportProductionCsv:(csv,filename)=>testCalls.push(['csv',{csv,filename}])};Object.defineProperty(ElMajdNative,'phase5Action',{writable:false});});
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.evaluate(()=>document.fonts.ready);
   assert.equal(await page.locator('html').getAttribute('data-design'),'flow');
-  assert.equal(await page.locator('.login-brand img').getAttribute('src'),'flow-logo.svg');
+  assert.equal(await page.locator('.login-brand img').getAttribute('src'),'elmajd-logo.png');
   const shot=async name=>{if(process.env.FLOW_SCREENSHOTS){fs.mkdirSync(process.env.FLOW_SCREENSHOTS,{recursive:true});await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:path.join(process.env.FLOW_SCREENSHOTS,name+'.png'),fullPage:true});}};
   await shot('login');
   await page.evaluate(()=>{showApp();elMajdNativeEvent('cloud_connection','online');});
@@ -29,13 +29,13 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   const rows=[record('2026-11-11',90,900,3,3500),record('2026-11-09',80,800,2,3000),record('2026-11-08',60,600,1,2500)];
   await page.evaluate(rows=>{elMajdNativeEvent('configuration','{"chicken_count":1000}');elMajdNativeEvent('production_history',JSON.stringify(rows));},rows);
   await send({outputs:{D0:0,D1:1,D2:0,D3:0},inputs:{I2:1,I3:0,I4:1,I5:1,I6:0,I7:1,I8:0}});
-  await page.waitForFunction(()=>document.querySelector('#flowOverviewArt .model-kind-silos.state-running'));
+  await page.waitForFunction(()=>document.querySelector('#wlOverviewBuilding .wl-silo[data-state="running"]'));
   assert.equal((await page.locator('#overviewFlock').textContent()).replace(/\s/g,''),'1000');
-  assert.equal(await page.locator('#flowOverviewArt .model-kind-fans').count(),8);
-  assert.equal(await page.locator('#flowOverviewArt .model-kind-chains').count(),12);
-  assert.equal(await page.locator('#flowOverviewArt .flow-closed-shutters').count(),6);
-  assert.equal(await page.locator('#flowOverviewArt .model-kind-silos.state-running').count(),1);
-  assert.equal(await page.locator('#flowOverviewArt .model-kind-pads.state-running').count(),2);
+  assert.equal(await page.locator('#wlOverviewBuilding .wl-fan').count(),8);
+  assert.equal(await page.locator('#wlOverviewBuilding .wl-feed').count(),12);
+  assert.equal(await page.locator('#wlOverviewBuilding .wl-fan-closed:visible').count(),6);
+  assert.equal(await page.locator('#wlOverviewBuilding .wl-silo[data-state="running"]').count(),1);
+  assert.equal(await page.locator('#wlOverviewBuilding .wl-pad[data-state="running"]').count(),2);
   assert.match(await page.locator('#flowPerformance').innerText(),/76,67/);
   assert.equal(await page.locator('#flowPerformance .flow-chart-point').count(),3,'missing days have no plotted point');
   await page.click('[data-flow-period="weekly"]');
@@ -43,19 +43,19 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   assert.match(await page.locator('#flowChartDetail').textContent(),/2026-11-09.*85 %.*1[\s\u202f]?700.*5/);
   await page.click('[data-flow-metric="eggs"]');
   assert.equal(await page.locator('#flowPerformance .flow-chart-bar:not(.flow-mortality-bar)').count(),2);
-  await shot('overview');
+  await shot('overview');await page.click('[data-nav="production"]');await page.click('#webProductionExport');const exported=await page.evaluate(()=>testCalls.filter(([a])=>a==='csv').at(-1)[1]);assert.match(exported.csv,/2026-11-11/);assert.match(exported.filename,/ElMAJD-production-2026-11-12\.csv/);
   await page.click('[data-nav="status"]');await shot('status');
   assert.equal(await page.locator('.fan-card[data-flow-state="stopped"]').count(),6);
   await page.click('[data-nav="live3d"]');
-  assert.equal(await page.locator('#flowLiveArt').isVisible(),true);
+  assert.equal(await page.locator('#wlBuilding').isVisible(),true);
   assert.equal(await page.locator('script[src="live3d-scene.bundle.js"]').count(),0,'architectural mode avoids starting WebGL');
-  assert.equal(await page.locator('#flowLiveArt [data-flow-select]').count(),27);
+  assert.equal(await page.locator('#wlBuilding [data-wl-select]').count(),28);
   const beforeSelection=await page.evaluate(()=>testCalls.length);
-  const chain=page.locator('#flowLiveArt [data-flow-select="chains"][data-flow-index="5"]');
+  const chain=page.locator('#wlBuilding [data-wl-select="feed-5"]');
   await chain.focus();await page.keyboard.press('Enter');
   assert.match(await page.locator('#live3dSelectedName').textContent(),/Rangée 2.*Étage 3/);
   assert.equal(await page.evaluate(()=>testCalls.length),beforeSelection,'view selection sends no device command');
-  await page.locator('#flowLiveArt [data-flow-select="silos"][data-flow-index="1"]').click();
+  await page.locator('#wlBuilding [data-wl-select="silo-1"]').click();
   await page.click('#live3dLevelHistory');
   assert.equal(await page.locator('#historyDialog').getAttribute('data-sensor'),'I6');
   await page.evaluate(()=>{const now=Date.now();elMajdNativeEvent('history',JSON.stringify([{t:now-13*3600000,I6:99},{t:now-3600000,I6:0},{t:now-3300000,I6:1}]));});
@@ -65,21 +65,21 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   await page.click('#closeChart');
   await shot('live3d');
   await send({inputs:{I2:0,I3:1,I4:0,I5:0,I6:1,I7:0,I8:0}});
-  await page.waitForFunction(()=>document.querySelector('#flowLiveArt [data-flow-select="silos"][data-flow-index="1"]').classList.contains('state-running'));
-  const grain=index=>page.locator(`#flowLiveArt [data-flow-select="silos"][data-flow-index="${index}"] .flow-silo-contents`).evaluate(n=>getComputedStyle(n).opacity);
+  await page.waitForFunction(()=>document.querySelector('#wlBuilding [data-wl-select="silo-1"]').dataset.state==='running');
+  const grain=index=>page.locator(`#wlBuilding [data-wl-select="silo-${index}"] .wl-grain`).evaluate(n=>getComputedStyle(n).opacity);
   // Finish the short visual transition before inspecting its result.
   await page.clock.runFor(300);
   assert.equal(await grain(0),'0');assert.equal(await grain(1),'1');
-  const padFill=await page.locator('#flowLiveArt .flow-pad-hit').first().evaluate(n=>getComputedStyle(n).fill);
-  assert.equal(padFill,'rgb(188, 203, 208)');
+  const padFill=await page.locator('#wlBuilding .wl-pad-surface').first().evaluate(n=>getComputedStyle(n).fill);
+  assert.equal(padFill,'rgb(211, 220, 226)');
   await page.clock.runFor(21000);
-  await page.waitForFunction(()=>document.querySelectorAll('#flowLiveArt .state-unavailable').length===27);
-  assert.equal(await page.locator('#flowLiveArt .flow-closed-shutters').count(),0,'unknown is not represented as a confirmed OFF command');
+  await page.waitForFunction(()=>document.querySelectorAll('#wlBuilding [data-state="unavailable"]').length===27);
+  assert.equal(await page.locator('#wlBuilding .wl-fan-closed:visible').count(),0,'unknown is not represented as a confirmed OFF command');
   assert.equal((await page.locator('#live3dEggStock').textContent()).replace(/\s/g,''),'3500','shared saved inventory survives stale telemetry');
   await send({i1:{volts:5,temp_c:99,fault:1}});
   await page.waitForFunction(()=>e.temp.textContent==='—');
   await page.evaluate(()=>elMajdNativeEvent('cloud_connection','offline'));
-  await page.waitForFunction(()=>document.querySelectorAll('#flowLiveArt .state-unavailable').length===27);
+  await page.waitForFunction(()=>document.querySelectorAll('#wlBuilding [data-state="unavailable"]').length===27);
   for(const width of [320,390,768]){
    await page.setViewportSize({width,height:844});
    for(const route of ['overview','status','live3d','production','alarms','configuration','connection']){
@@ -91,7 +91,7 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   await page.setViewportSize({width:390,height:844});
   for(const route of ['production','configuration','connection','alarms']){await page.click(`[data-nav="${route}"]`);await shot(route);}
   await page.evaluate(()=>I18n.set('en'));
-  assert.match(await page.locator('[data-flow-mode="free"]').textContent(),/Free 3D view/);
+  assert.match(await page.locator('[data-wl-view="free"]').textContent(),/Free 3D view/);
   await page.evaluate(()=>{e.app.classList.add('hidden');e.login.classList.remove('hidden');});
   await page.waitForFunction(()=>state.rows.length===0);
   assert.equal(await page.locator('#flowPerformance .flow-chart-point').count(),0,'sign-out clears previous-account production charts');

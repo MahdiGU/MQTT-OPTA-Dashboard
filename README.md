@@ -6,6 +6,8 @@ Current system specification: [v0.6 PDF](docs/specification/ElMAJD_Automation_Sy
 
 ## Branch guide
 
+`Android_Orange_Live_Design` builds **Android 1.17.0 (34)** with the owner's orange/charcoal identity, matching live building views in Overview and 3D, inline sensor history, chain matrix, improved Production and native CSV export. Existing native cloud/background/notification services and pilot signing identity are retained. See [Android delivery and acceptance notes](docs/phase-5/07-orange-live-android.md). No merge performed.
+
 `Web_3D_Live_Workspace` extends the orange-logo web design with a larger live architectural scene, front/top/free views, selectable equipment and inline 12-hour sensor history, a twelve-chain feedback matrix and clear binary silo/cistern states. See [live workspace notes](web/README.md). Android, firmware and cloud storage are unchanged; no merge was performed.
 
 `Web_Orange_Logo_Design` refreshes the web dashboard around the owner's orange, white and charcoal ElMAJD Automation logo. It includes the original wordmark, a charcoal sidebar, lighter content panels, orange actions/charts and more readable desktop/mobile screens. See [web branding notes](web/README.md). No merge has been made.

@@ -1,0 +1,28 @@
+/* Keep phone/tablet navigation native while sharing the dashboard's visual language. */
+html[data-platform=android] .brand-sidebar-caption{display:none}
+html[data-platform=android] .app{max-width:980px;padding-bottom:calc(112px + env(safe-area-inset-bottom))}
+html[data-platform=android] .app>.nav{padding-bottom:env(safe-area-inset-bottom)}
+html[data-platform=android] .login{min-height:100dvh;max-width:480px;padding:24px;margin:auto}
+html[data-platform=android] .login-card{margin:auto;width:100%}
+html[data-platform=android] .flow-header-button{font-size:0!important;width:44px;min-height:44px;justify-content:center;padding:9px}
+html[data-platform=android] .flow-header-button .nav-icon{width:22px;height:22px}
+html[data-platform=android] .web-entry-step{display:none}
+html[data-platform=android] button{touch-action:manipulation}
+html[data-platform=android] .wl-workspace{grid-template-columns:minmax(0,1fr)}
+html[data-platform=android] .wl-workspace .live3d-detail{position:static}
+html[data-platform=android] .web-ledger-table button{min-height:44px;min-width:44px}
+html[data-platform=android] .web-ledger-pagination button{min-height:44px}
+html[data-platform=android] .web-ledger-scroll{overscroll-behavior-x:contain}
+html[data-platform=android] #androidExportStatus:empty{display:none}
+html[data-platform=android] .nav button{min-height:62px}
+@media(min-width:1050px){
+ html[data-platform=android] body:before{display:none}
+ html[data-platform=android] .app{margin:auto;padding:0 24px 112px}
+ html[data-platform=android] .appbar{position:sticky;inset:auto;top:0;display:flex;justify-content:space-between;padding:16px 0;min-height:84px;background:#f5f6f8f5;border-bottom:1px solid #e0e3e7}
+ html[data-platform=android] .identity img{width:188px}
+ html[data-platform=android] .flow-header-actions{position:static;display:flex;width:auto;gap:8px}
+ html[data-platform=android] .app>.nav{position:fixed;inset:auto 0 0;max-width:980px;margin:auto;width:auto;display:flex;background:#fff;border:1px solid #e0e3e7;border-bottom:0;border-radius:18px 18px 0 0;padding:8px}
+ html[data-platform=android] .app>.nav button{display:flex;flex:1;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:6px;font-size:.8125rem;color:#65717d}
+ html[data-platform=android] .app>.nav button.active{background:#fff0dc;color:#ad5100;border-color:#f4d1a5;box-shadow:none}
+ html[data-platform=android] .login{display:block;min-height:100vh;padding-top:48px}
+}

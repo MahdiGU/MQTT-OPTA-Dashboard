@@ -1,0 +1,255 @@
+/* Charcoal / white / signal orange, taken from the supplied ElMAJD wordmark. */
+:root{--web-sidebar:264px;--brand-orange:#ff8b00;--brand-orange-dark:#b85400;--brand-charcoal:#111316;--brand-steel:#5a616b;--flow:#ff8b00;--flow-soft:#fff1df;--g:#bf6000;--g2:#16a06d;--ink:#20242a;--muted:#646d77;--line:#e0e3e7;--bg:#f5f6f8;--amber:#f08b12;--shadow:0 6px 24px #11131607}
+html[data-brand=elmajd]{background:#f5f6f8;color-scheme:light}
+html[data-brand=elmajd] body{background:radial-gradient(ellipse at 94% 0,#fff0df 0,transparent 35%),#f5f6f8;color:var(--ink);font-size:1rem;line-height:1.5}
+html[data-brand=elmajd] button{cursor:pointer}html[data-brand=elmajd] button:disabled{cursor:default}
+html[data-brand=elmajd] :is(button,input,select,textarea,[role=button]):focus-visible{outline:3px solid #bc5c00;outline-offset:3px}
+html[data-brand=elmajd] .app{padding-bottom:112px}
+html[data-brand=elmajd] .appbar{background:#f5f6f8f5;border-color:#e0e3e7;min-height:83px}
+html[data-brand=elmajd] .identity{min-width:0;gap:0}
+html[data-brand=elmajd] .identity>div{display:none}
+html[data-brand=elmajd] .identity img{width:188px;height:auto;max-height:none;border:0;border-radius:10px;display:block;object-fit:contain;background:#111316}
+.brand-sidebar-caption{display:none}
+html[data-brand=elmajd] .web-kicker,html[data-brand=elmajd] .eyebrow{color:#68717b;font-size:.75rem;letter-spacing:.09em;font-weight:700}
+html[data-brand=elmajd] .hero h2,html[data-brand=elmajd] .live3d-heading h2{color:#20242a;font-weight:750;letter-spacing:-.055em;font-size:clamp(1.75rem,2.5vw,2.3rem)}
+html[data-brand=elmajd] .hero p{font-size:.9375rem;color:#68717b;line-height:1.7}
+html[data-brand=elmajd] .updated{font-size:.75rem;color:#68717b}
+html[data-brand=elmajd] .panel{background:#fff;border:1px solid #e0e3e7;border-radius:18px;box-shadow:var(--shadow)}
+html[data-brand=elmajd] .panel-head h3{font-size:1.2rem;letter-spacing:-.035em;color:#24282e}
+html[data-brand=elmajd] .hint{font-size:.8125rem;color:#69717a}
+html[data-brand=elmajd] .primary{background:#ff8b00;color:#16191d;font-size:.9375rem;border-radius:12px;box-shadow:0 5px 14px #ff8b0018;font-weight:800}
+html[data-brand=elmajd] .primary:hover:not(:disabled){background:#f27e00;box-shadow:0 6px 18px #e67a0025}
+html[data-brand=elmajd] :is(.p5-small,.p5-actions button,.flow-performance-link,.live3d-detail-actions button){background:#fff;border:1px solid #dcdfe4;border-radius:10px;color:#4f565f;font-size:.875rem}
+html[data-brand=elmajd] :is(.p5-small,.p5-actions button,.flow-performance-link,.live3d-detail-actions button):hover:not(:disabled){background:#fff2e3;border-color:#f2c898;color:#a64e00}
+html[data-brand=elmajd] .field>span{font-size:.875rem;color:#515a64;font-weight:650}
+html[data-brand=elmajd] .field :is(input,select,textarea){background:#fff;border-color:#d9dee4;color:#252b33;border-radius:10px;font-size:1rem}
+html[data-brand=elmajd] .field :is(input,select,textarea):focus{border-color:#dc7a16;box-shadow:0 0 0 3px #ff8b0017}
+html[data-brand=elmajd] select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='m5 8 5 5 5-5' fill='none' stroke='%235c626b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .8rem center;background-size:18px;padding-right:2.4rem!important}
+html[data-brand=elmajd] .note,html[data-brand=elmajd] .p5-section-note{font-size:.875rem;line-height:1.8;color:#68717b}
+html[data-brand=elmajd] .note{background:#f3f4f6;border-radius:12px}
+html[data-brand=elmajd] .message{font-size:.875rem;line-height:1.7;color:#5a626d}
+html[data-brand=elmajd] input[type=checkbox]{accent-color:#bd5b00}
+html[data-brand=elmajd] .flow-subbar{border-color:#e1e4e8}
+html[data-brand=elmajd] .flow-subbar>span{font-size:.8125rem;color:#707781}
+html[data-brand=elmajd] .connection{background:#e6f3ec;color:#256f51;font-size:.8125rem;border:1px solid #d4e9dd;box-shadow:none}
+html[data-brand=elmajd] .dot.connecting{background:#e0800e}
+html[data-brand=elmajd] .web-workspace strong{color:#272c32;font-size:1.125rem}
+html[data-brand=elmajd] .web-toolbar-actions button{color:#525963;border-color:#dce0e5;font-size:.875rem;background:#fff}
+html[data-brand=elmajd] .web-toolbar-actions button:hover{border-color:#edbd85;background:#fff4e8;color:#9e4e00}
+html[data-brand=elmajd] .web-user{background:#24282e;color:#ffa33b;width:40px;height:40px;border:1px solid #3a3f47}
+html[data-brand=elmajd] .flow-header-button{border-color:#dce0e5;color:#535b66;background:#fff}
+html[data-brand=elmajd] .flow-header-button.active{background:#fff0dd;color:#a94e00}
+html[data-brand=elmajd] .app>.nav{background:#fff;border-color:#dfe2e7;box-shadow:0 -4px 20px #16191d06}
+html[data-brand=elmajd] .app>.nav button{font-size:.75rem;color:#5e6670;border-radius:11px;overflow-wrap:anywhere}
+html[data-brand=elmajd] .app>.nav button.active{background:#fff0dc;color:#ad5100;box-shadow:inset 0 0 0 1px #f4d1a5}
+html[data-brand=elmajd] .kpis .kpi{border:1px solid #e0e3e7;border-radius:17px;background:#fff;box-shadow:var(--shadow)}
+html[data-brand=elmajd] .kpi>span{font-size:.875rem;color:#656d77;letter-spacing:0}
+html[data-brand=elmajd] .kpi strong{color:#292f36;font-size:1.9rem;overflow-wrap:anywhere}
+html[data-brand=elmajd] .kpi small{font-size:.8125rem;line-height:1.65;color:#6d7580}
+html[data-brand=elmajd] .kpi-icon{color:#c56800;background:transparent}
+html[data-brand=elmajd] .kpis .flow-metric-production{background:#1c2026;border-color:#1c2026;box-shadow:0 8px 18px #11131612}
+html[data-brand=elmajd] .flow-metric-production>span{color:#d2d5db}
+html[data-brand=elmajd] .flow-metric-production strong{color:#fff}
+html[data-brand=elmajd] .flow-metric-production small{color:#bfc5ce}
+html[data-brand=elmajd] .flow-metric-production .kpi-icon{background:#383027;color:#ffa037;border:1px solid #59422c}
+html[data-brand=elmajd] .flow-metric-cartons svg{color:#c46a08!important}
+html[data-brand=elmajd] .quick>div{background:#f3f4f6;border-radius:11px;border:1px solid #eceef1}
+html[data-brand=elmajd] .quick span{font-size:.8125rem;color:#69717a}
+html[data-brand=elmajd] .quick strong{font-size:1rem;color:#2c333b}
+html[data-brand=elmajd] .flow-building-card{background:radial-gradient(ellipse at 100% 0,#fff1dc,transparent 55%),#eff1f4;border-color:#dde2e8;border-radius:18px;box-shadow:var(--shadow)}
+html[data-brand=elmajd] .flow-building-title{color:#505b66;font-size:.875rem}
+html[data-brand=elmajd] .flow-explore{background:#fff;color:#282e35;border-color:#d8dee5;font-size:.875rem;border-radius:12px;box-shadow:0 5px 16px #11131610}
+html[data-brand=elmajd] .flow-explore svg{color:#d27200}
+html[data-brand=elmajd] .flow-temperature{border:1px solid #e3b77e;border-top:3px solid #ff8b00;border-radius:14px;background:#fffffff5;box-shadow:0 6px 18px #11131609}
+html[data-brand=elmajd] .flow-temperature .eyebrow{color:#6d5a45!important;font-size:.8125rem}
+html[data-brand=elmajd] .flow-temperature .overview-temp strong{color:#2b3037;font-size:2.25rem}
+html[data-brand=elmajd] .flow-temperature .overview-temp>span{color:#67707b;font-size:.875rem}
+html[data-brand=elmajd] .flow-temperature .overview-climate{color:#626b76;font-size:.8125rem;line-height:1.6}
+html[data-brand=elmajd] .flow-performance-heading h3{font-size:1.5rem;color:#262c33}
+html[data-brand=elmajd] .flow-period{background:#edf0f3;border-radius:12px}
+html[data-brand=elmajd] .flow-period button{border-radius:9px;color:#656c76;font-size:.875rem}
+html[data-brand=elmajd] .flow-period button[aria-pressed=true]{background:#fff;color:#ac5200;box-shadow:0 2px 6px #11131608}
+html[data-brand=elmajd] .flow-performance-range{color:#737b85;font-size:.8125rem}
+html[data-brand=elmajd] .flow-performance-summary{background:#f3f4f6;border:1px solid #e6e9ed;border-radius:14px}
+html[data-brand=elmajd] .flow-performance-summary span{color:#66707a;font-size:.875rem}
+html[data-brand=elmajd] .flow-performance-summary strong{color:#2c333a}
+html[data-brand=elmajd] .flow-performance-summary small{font-size:.8125rem}
+html[data-brand=elmajd] .flow-chart-heading h4{color:#3b434d;font-size:1rem}
+html[data-brand=elmajd] .flow-chart-heading>span{font-size:.8125rem}
+html[data-brand=elmajd] .flow-chart-axis{fill:#68717c}
+html[data-brand=elmajd] .flow-chart-grid{stroke:#e4e7eb}
+html[data-brand=elmajd] .flow-rate-line{stroke:#dc7700;stroke-width:2.5}
+html[data-brand=elmajd] .flow-chart-point{stroke:#c76b00}
+html[data-brand=elmajd] .flow-chart-bar{fill:#f09832}
+html[data-brand=elmajd] .flow-mortality-bar{fill:#bb6670}
+html[data-brand=elmajd] .flow-metric{background:#eff1f4;border-radius:9px}
+html[data-brand=elmajd] .flow-metric button{font-size:.875rem;color:#626a74;border-radius:7px}
+html[data-brand=elmajd] .flow-metric button[aria-pressed=true]{background:#fff;color:#a85400}
+html[data-brand=elmajd] .flow-chart-caption,html[data-brand=elmajd] .flow-point-detail{color:#6d7680;font-size:.8125rem}
+html[data-brand=elmajd] .web-chart-block+.web-chart-block{border-color:#e2e5e9}
+html[data-brand=elmajd] .flow-data-table summary{font-size:.875rem;color:#a55300}
+html[data-brand=elmajd] .flow-data-table table{font-size:.875rem}
+html[data-brand=elmajd] .flow-data-table td,html[data-brand=elmajd] .flow-data-table th{color:#525d69;border-color:#e2e6eb}
+html[data-brand=elmajd] .flow-data-table small{font-size:.75rem}
+/* Live state semantics remain green/red/blue; the surrounding surfaces are neutral. */
+html[data-brand=elmajd] .equipment{background:#f8f9fa;border-color:#e0e5e9;border-radius:14px}
+html[data-brand=elmajd] .equipment.full{background:#eff8f3;border-color:#c8e3d3}
+html[data-brand=elmajd] .equipment-name{color:#414b56;font-size:.875rem}
+html[data-brand=elmajd] .equipment-state{font-size:.875rem}
+html[data-brand=elmajd] .fan-card{background:#f7f8fa;border-color:#dfe3e8;border-radius:12px}
+html[data-brand=elmajd] .fan-card strong{font-size:.875rem}
+html[data-brand=elmajd] .fan-card small{font-size:.8125rem}
+html[data-brand=elmajd] .cooling-card{background:#f7f9fb;border-color:#dfe6ec;border-radius:14px}
+html[data-brand=elmajd] .cooling-card.on{background:#eaf7ff;border-color:#bbdff3}
+html[data-brand=elmajd] .cooling-copy strong{font-size:1rem}
+html[data-brand=elmajd] .cooling-copy span,html[data-brand=elmajd] .cooling-state{font-size:.875rem;line-height:1.6}
+html[data-brand=elmajd] .feed-chain-tile{border-radius:12px}
+html[data-brand=elmajd] .feed-chain-tile strong{font-size:.875rem}
+html[data-brand=elmajd] .feed-chain-tile small{font-size:.75rem}
+html[data-brand=elmajd] .feed-chain-state{font-size:.875rem}
+html[data-brand=elmajd] .flow-view-modes{background:#e9ecf0;border-radius:12px;padding:4px}
+html[data-brand=elmajd] .flow-view-modes button{color:#626a73;font-size:.875rem;border-radius:9px}
+html[data-brand=elmajd] .flow-view-modes button[aria-pressed=true]{background:#fff;color:#a95300}
+html[data-brand=elmajd] .flow-live-art,html[data-brand=elmajd] .live3d-model{background:radial-gradient(ellipse at 50% 60%,#e4e8ed,transparent 75%);border-color:#dce1e7;border-radius:18px}
+html[data-brand=elmajd] .live3d-summary>div{background:#fff;border-color:#dfe3e8;border-radius:13px}
+html[data-brand=elmajd] .live3d-summary span{font-size:.875rem;color:#525e6b}
+html[data-brand=elmajd] .live3d-summary small{font-size:.8125rem;color:#65717e}
+html[data-brand=elmajd] .live3d-summary strong{color:#2c343e}
+html[data-brand=elmajd] .live3d-detail{background:#fff;border-color:#dde2e8;border-radius:18px}
+html[data-brand=elmajd] .live3d-detail h3{color:#2b323b}
+html[data-brand=elmajd] .live3d-detail p{font-size:.9375rem;color:#687482}
+html[data-brand=elmajd] .live3d-detail strong{font-size:1rem}
+html[data-brand=elmajd] .live3d-equipment strong{font-size:.875rem}
+html[data-brand=elmajd] .live3d-equipment span{font-size:.875rem;line-height:1.5}
+html[data-brand=elmajd] .live3d-equipment small{font-size:.75rem}
+html[data-brand=elmajd] .live3d-note{font-size:.8125rem;line-height:1.8;color:#687482}
+html[data-brand=elmajd] .live3d-data{font-size:.875rem}
+html[data-brand=elmajd] .live3d-viewbar button{font-size:.875rem}
+html[data-brand=elmajd] .live3d-viewbar button[aria-pressed=true]{color:#a75400;border-color:#e9c095;background:#fff1df}
+html[data-brand=elmajd] .live3d-inventory{background:#fff7ec;border-color:#ebd5b8}
+html[data-brand=elmajd] .live3d-stock-stats strong,html[data-brand=elmajd] .live3d-stock-stats span{font-size:.875rem}
+html[data-brand=elmajd] .live3d-stock-meter{background:#e7ddd0}
+/* Production retains its workflow while adopting the new brand and larger labels. */
+html[data-brand=elmajd] .web-production-stat{border-color:#dfe3e8;border-radius:15px;background:#fff;padding:22px}
+html[data-brand=elmajd] .web-production-stat:after{display:none}
+html[data-brand=elmajd] .web-production-stat>span{font-size:.875rem;color:#68717b}
+html[data-brand=elmajd] .web-production-stat>strong{font-size:2.1rem;color:#2b323a}
+html[data-brand=elmajd] .web-production-stat>small{font-size:.8125rem;color:#737d88}
+html[data-brand=elmajd] .web-production-stat.stat-performance{border-top:3px solid #ff8b00;background:#fffaf3}
+html[data-brand=elmajd] .web-production-stat.stat-mortality{background:#fff;border-top:3px solid #bc6670}
+html[data-brand=elmajd] .web-entry-step{display:none}
+html[data-brand=elmajd] .web-entry-heading h3{font-size:1.35rem;color:#303741}
+html[data-brand=elmajd] .web-entry-heading>button{font-size:.875rem;color:#6d7580}
+html[data-brand=elmajd] .web-flock-context{background:#f1f3f5;color:#626d79;font-size:.875rem;border:1px solid #e3e7eb}
+html[data-brand=elmajd] .web-flock-context strong{color:#313943;font-size:1rem}
+html[data-brand=elmajd] .web-flock-context>button{font-size:.8125rem;color:#a75400}
+html[data-brand=elmajd] #productionForm .web-production-date>span,html[data-brand=elmajd] #productionForm .web-quantity>span{font-size:.875rem!important;color:#505a66}
+html[data-brand=elmajd] #productionForm .web-quantity input{border-color:#d8dfe6;color:#303843;border-radius:10px}
+html[data-brand=elmajd] .web-quantity small{font-size:.8125rem;color:#747d88}
+html[data-brand=elmajd] .web-validation{font-size:.875rem}
+html[data-brand=elmajd] .web-validation[data-state=pending]{background:#fff0da;color:#965500}
+html[data-brand=elmajd] .web-production-equation{border-color:#dfe3e8;gap:9px}
+html[data-brand=elmajd] .web-production-equation span{font-size:.875rem;color:#636e7b}
+html[data-brand=elmajd] .web-production-equation strong{color:#343d48}
+html[data-brand=elmajd] .web-production-equation small{font-size:.75rem;color:#767f8b}
+html[data-brand=elmajd] .web-production-equation>b{color:#a86421}
+html[data-brand=elmajd] .web-calculation{background:#f8f9fb;border-color:#dce1e7}
+html[data-brand=elmajd] .web-calculation .calc{background:linear-gradient(125deg,#191d23,#30343b);border-top:3px solid #f58c13;box-shadow:none;border-radius:14px}
+html[data-brand=elmajd] .web-calculation .calc>div span{font-size:.875rem;color:#ccd1d8}
+html[data-brand=elmajd] .web-calculation .calc>small{font-size:.8125rem;color:#bfc6cf}
+html[data-brand=elmajd] .web-calculation-note{color:#697582;font-size:.8125rem}
+html[data-brand=elmajd] #productionForm>.web-calculation{border-color:#dfe4e9;border-radius:12px}
+html[data-brand=elmajd] .web-entry-footer>#saveProduction{font-size:.9375rem;border-radius:11px}
+html[data-brand=elmajd] .web-entry-footer>#productionMessage{font-size:.8125rem}
+html[data-brand=elmajd] .web-ledger .panel-head>button{border-color:#dfd2be;background:#fff7eb;color:#9a4b00;font-size:.875rem;border-radius:10px}
+html[data-brand=elmajd] .web-ledger .panel-head p{color:#697583;font-size:.875rem}
+html[data-brand=elmajd] .web-ledger-filters{border-color:#e1e5e9}
+html[data-brand=elmajd] .web-ledger-filters .field>span{font-size:.875rem}
+html[data-brand=elmajd] .web-ledger-filters input{font-size:1rem}
+html[data-brand=elmajd] .web-ledger-filters>button{color:#956026;font-size:.8125rem}
+html[data-brand=elmajd] .web-ledger-filters>span{font-size:.8125rem;color:#6f7b88}
+html[data-brand=elmajd] .web-ledger-scroll{border-color:#dfe4e9;border-radius:10px}
+html[data-brand=elmajd] .web-ledger-table{font-size:.875rem;min-width:940px}
+html[data-brand=elmajd] .web-ledger-table thead th{font-size:.875rem;background:#f0f2f5;color:#56606d;border-color:#dfe4e9;padding:15px 13px;white-space:normal}
+html[data-brand=elmajd] .web-ledger-table tbody th{color:#424f5e;font-size:.875rem}
+html[data-brand=elmajd] .web-ledger-table td{color:#5e6b7a;border-color:#e7ebef}
+html[data-brand=elmajd] .web-ledger-table .web-eggs-cell{color:#ad5b00}
+html[data-brand=elmajd] .web-rate-cell{font-size:.875rem}
+html[data-brand=elmajd] .web-record-actions button{font-size:.8125rem;color:#5b6572;border-color:#dce3e8;min-height:40px}
+html[data-brand=elmajd] .web-record-actions [data-web-delete]{color:#a45e65;border-color:#ecd6d9}
+html[data-brand=elmajd] .web-ledger-pagination button{font-size:.875rem;color:#545f6d}
+html[data-brand=elmajd] .web-ledger-scope,html[data-brand=elmajd] .web-table-scroll-hint,html[data-brand=elmajd] .web-ledger>#productionPageStatus{font-size:.75rem;line-height:1.8;color:#6a7785}
+html[data-brand=elmajd] .web-ledger-has-scroll .web-table-scroll-hint{display:block}
+/* Alarms, account and diagnostics use the same neutral surfaces and readable type. */
+html[data-brand=elmajd] .comm-row{background:#f3f5f7;border-radius:12px}
+html[data-brand=elmajd] .comm-icon{background:#fff;color:#ae5b00;border:1px solid #e0e5ea}
+html[data-brand=elmajd] .comm-row span{font-size:.8125rem;color:#6b7582}
+html[data-brand=elmajd] .comm-row strong{font-size:.875rem;color:#3d4754}
+html[data-brand=elmajd] .comm-value{font-size:.875rem;color:#525e6c}
+html[data-brand=elmajd] .alarm-item{background:#fffaf2;border-color:#eddbc1;border-left-color:#de8a1c;border-radius:12px}
+html[data-brand=elmajd] .alarm-item.critical{background:#fff6f6;border-color:#f0d5d9;border-left-color:#c04c5f}
+html[data-brand=elmajd] .alarm-item strong{font-size:1rem}
+html[data-brand=elmajd] .alarm-item small{font-size:.875rem;line-height:1.7}
+html[data-brand=elmajd] .web-browser-note{background:#fff7e9;border-color:#f0d9b4;font-size:.875rem}
+html[data-brand=elmajd] .web-browser-note p{color:#776346}
+html[data-brand=elmajd] .dialog-body{background:#fff}
+html[data-brand=elmajd] .dialog-head h2{color:#2b343e}
+html[data-brand=elmajd] .dialog-note{font-size:.875rem;color:#687483}
+html[data-brand=elmajd] .close{background:#f1f3f6;color:#596472}
+/* Original wordmark is used intact; no recoloring or regenerated logo. */
+html[data-brand=elmajd] .login-brand{display:block;margin:0 0 4px}
+html[data-brand=elmajd] .login-brand img{display:block;width:100%;max-width:320px;height:auto;aspect-ratio:3;border-radius:10px;background:#111316;margin-bottom:14px}
+html[data-brand=elmajd] .login-brand h1{display:none}
+html[data-brand=elmajd] .login-brand p{font-size:.875rem;color:#6b7480;line-height:1.7}
+html[data-brand=elmajd] .login-card{background:#fff;border-color:#e0e4e9;border-radius:20px;box-shadow:0 18px 65px #1113160a;padding:28px;gap:18px}
+html[data-brand=elmajd] .login-section{color:#8e4d05;font-size:.75rem;letter-spacing:.08em;margin-top:6px}
+html[data-brand=elmajd] .login .remember{font-size:.875rem;line-height:1.6;color:#6a7581}
+html[data-brand=elmajd] .login .note{font-size:.875rem;color:#606d7c;padding:13px 15px}
+html[data-brand=elmajd] .login select{font-size:1rem}
+html[data-brand=elmajd] #forgotPassword{background:#f2f3f5;border-color:#dce1e7;color:#515d6b;font-size:.9375rem;border-radius:10px}
+html[data-brand=elmajd] #forgotPassword:hover{background:#fff2e0;border-color:#e5bc8c;color:#a15100}
+html[data-brand=elmajd] .web-product-brand>span{display:none}
+html[data-brand=elmajd] .web-product-brand img{width:100%;height:auto;max-width:470px;aspect-ratio:3;border-radius:12px;object-fit:contain}
+html[data-brand=elmajd] .web-login-story{background:linear-gradient(150deg,#111316,#171b21);padding:32px;border-radius:22px;box-shadow:0 16px 40px #11131614;overflow:hidden}
+html[data-brand=elmajd] .web-login-story>.web-kicker{color:#ffad46;margin-top:28px}
+html[data-brand=elmajd] .web-login-story h2{color:#fff;font-size:clamp(2.1rem,3.1vw,3.05rem);margin:14px 0 18px;max-width:510px}
+html[data-brand=elmajd] .web-login-story>p{color:#bfc5cd;font-size:1rem;line-height:1.8}
+html[data-brand=elmajd] .web-login-building{margin:0 -32px;height:340px;background:radial-gradient(ellipse at 50% 72%,#ff8b0014,transparent 70%)}
+html[data-brand=elmajd] .web-login-building>img{height:470px;top:-70px}
+html[data-brand=elmajd] .web-login-footer{color:#bac2cc;font-size:.8125rem;line-height:1.6;border-color:#343a43;gap:18px;align-items:flex-start;padding-top:20px}
+@media(min-width:1050px){
+ html[data-brand=elmajd] body:has(#appView:not(.hidden)):before{background:linear-gradient(165deg,#111316,#1b2027);border-color:#2f353f;width:264px}
+ html[data-brand=elmajd] .app{padding:0 32px 34px;max-width:1840px}
+ html[data-brand=elmajd] .appbar{height:102px}
+ html[data-brand=elmajd] .identity{left:15px;top:22px;width:234px;display:block}
+ html[data-brand=elmajd] .identity img{width:234px;height:78px;border-radius:9px;background:#111316}
+ .brand-sidebar-caption{display:block;font-size:.75rem;color:#9099a6;letter-spacing:.08em;text-transform:uppercase;margin:23px 0 0 15px;white-space:nowrap}
+ html[data-brand=elmajd] .app>.nav{left:16px;top:185px;width:232px;gap:8px;border:0;background:transparent;box-shadow:none}
+ html[data-brand=elmajd] .app>.nav button{font-size:.875rem;color:#b6bfcb;min-height:54px;padding:13px 17px;border:1px solid transparent;border-radius:11px;gap:15px}
+ html[data-brand=elmajd] .app>.nav button:hover{background:#252b34;color:#fff}
+ html[data-brand=elmajd] .app>.nav button.active{background:#382b1d;color:#ffae4d;border-color:#654522;box-shadow:inset 3px 0 0 #ff8b00}
+ html[data-brand=elmajd] .flow-header-actions{left:16px;bottom:28px;width:232px}
+ html[data-brand=elmajd] .flow-header-button{background:transparent;border:1px solid transparent;color:#aeb8c6;font-size:.875rem!important;padding:12px 17px;gap:14px}
+ html[data-brand=elmajd] .flow-header-button .nav-icon{margin:0;flex-shrink:0}
+ html[data-brand=elmajd] .flow-header-button.active{background:#382b1d;color:#ffae4d;border-color:#654522}
+ html[data-brand=elmajd] .flow-header-button:hover{background:#252b34;color:#fff}
+ html[data-brand=elmajd] .flow-subbar{min-height:48px}
+ html[data-brand=elmajd] .hero{padding:18px 0 22px}
+ html[data-brand=elmajd] [data-screen=overview]>.flow-building-card{min-height:485px}
+ html[data-brand=elmajd] [data-screen=overview]>.kpis .kpi{min-height:166px;padding:22px}
+ html[data-brand=elmajd] [data-screen=overview]>.kpis .kpi strong{font-size:1.85rem}
+ html[data-brand=elmajd] .flow-temperature{top:49px;right:18px;max-width:46%;padding:14px}
+ html[data-brand=elmajd] .flow-temperature .overview-temp strong{font-size:2.45rem}
+ html[data-brand=elmajd] .flow-temperature .overview-climate{font-size:.875rem}
+ html[data-brand=elmajd] .flow-performance-summary{max-width:670px}
+ html[data-brand=elmajd] .fan-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+ html[data-brand=elmajd] .live3d-picker .live3d-fans{grid-template-columns:repeat(4,minmax(0,1fr))}
+ html[data-brand=elmajd] .login{max-width:1380px;gap:52px;padding:42px 36px;grid-template-columns:minmax(0,1.25fr) minmax(380px,440px)}
+ html[data-brand=elmajd] .web-login-story{min-width:0}
+}
+@media(max-width:1049px){html[data-brand=elmajd] .app{padding-left:18px;padding-right:18px}.brand-sidebar-caption{display:none}html[data-brand=elmajd] .flow-header-button{width:44px;min-height:44px;font-size:0!important}.web-header-actions{gap:7px}html[data-brand=elmajd] .web-login-story{display:none}html[data-brand=elmajd] .login{max-width:480px;padding:24px}html[data-brand=elmajd] .flow-performance-summary{padding:17px 14px}html[data-brand=elmajd] .live3d-equipment span{font-size:.8125rem}}
+@media(max-width:600px){html[data-brand=elmajd] .hero{padding:20px 0 17px}html[data-brand=elmajd] .hero h2{font-size:1.8rem}html[data-brand=elmajd] .hero p{font-size:.875rem}html[data-brand=elmajd] .panel{padding:18px}html[data-brand=elmajd] .kpi>span{font-size:.8125rem}html[data-brand=elmajd] .kpi small{font-size:.75rem}html[data-brand=elmajd] .kpi strong{font-size:1.65rem}html[data-brand=elmajd] .flow-building-card{aspect-ratio:1.1}html[data-brand=elmajd] .flow-temperature{max-width:49%;top:44px;padding:10px;right:10px}html[data-brand=elmajd] .flow-temperature .eyebrow{font-size:.75rem}html[data-brand=elmajd] .flow-temperature .overview-temp strong{font-size:2rem}html[data-brand=elmajd] .flow-temperature .overview-climate{font-size:.75rem}html[data-brand=elmajd] .flow-building-title{font-size:.8125rem}html[data-brand=elmajd] .flow-explore{font-size:.8125rem}html[data-brand=elmajd] .web-production-stat{padding:17px 14px}html[data-brand=elmajd] .web-production-stat>span{font-size:.8125rem}html[data-brand=elmajd] .web-production-stat>strong{font-size:1.85rem}html[data-brand=elmajd] .web-production-stat>small{font-size:.75rem}html[data-brand=elmajd] .web-flock-context{flex-direction:column;align-items:flex-start;gap:5px}html[data-brand=elmajd] .web-production-equation{gap:6px}html[data-brand=elmajd] .web-production-equation span{font-size:.8125rem}html[data-brand=elmajd] .web-production-equation strong{font-size:1.15rem}html[data-brand=elmajd] .live3d-summary span,html[data-brand=elmajd] .live3d-summary small{font-size:.75rem}html[data-brand=elmajd] .fan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}html[data-brand=elmajd] .live3d-fans{grid-template-columns:repeat(2,minmax(0,1fr))}html[data-brand=elmajd] .comm-row{grid-template-columns:32px minmax(0,1fr);gap:10px}html[data-brand=elmajd] .comm-value{grid-column:2;max-width:100%;text-align:left}html[data-brand=elmajd] .comm-row span{font-size:.8125rem}html[data-brand=elmajd] .comm-row strong{font-size:.875rem}html[data-brand=elmajd] .cooling-card{grid-template-columns:65px minmax(0,1fr)}html[data-brand=elmajd] .cooling-pad{width:65px;height:63px}html[data-brand=elmajd] .feed-chain-tile{padding:12px 4px}html[data-brand=elmajd] .feed-chain-tile strong{font-size:.8125rem}html[data-brand=elmajd] .feed-chain-state{font-size:.75rem}}
+@media(max-width:350px){html[data-brand=elmajd] .identity img{width:160px}html[data-brand=elmajd] .app{padding-left:12px;padding-right:12px}html[data-brand=elmajd] .appbar{gap:7px;min-height:76px}html[data-brand=elmajd] .flow-header-actions{gap:5px}html[data-brand=elmajd] .flow-header-button{width:40px}html[data-brand=elmajd] .app>.nav button{font-size:.75rem}html[data-brand=elmajd] .field>span{line-height:1.6}html[data-brand=elmajd] .flow-period button{font-size:.8125rem}html[data-brand=elmajd] .web-ledger-filters input{font-size:.875rem}}
+
+@media(max-width:1049px){html[data-brand=elmajd] .flow-metric-cartons{padding-left:92px;padding-right:18px}html[data-brand=elmajd] .flow-metric-cartons svg{left:18px;right:auto;width:58px;height:52px;margin:0}}
+@supports(grid-template-rows:subgrid){html[data-brand=elmajd] #productionForm .web-quantity-stock,html[data-brand=elmajd] #productionForm .web-quantity-dispatch{display:grid;grid-template-rows:subgrid;grid-row:span 3}}

@@ -16,6 +16,7 @@ on:
       - Opta_Feed_Chain_Expansion
       - Android_Three_Designs
       - Android_FLOW_Design
+      - Android_Orange_Live_Design
   workflow_dispatch:
 
 permissions:
@@ -65,14 +66,13 @@ jobs:
           "$signer" verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk
 
       - name: Create named install package
-        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ElMajd-Automation-1.16.0.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ElMajd-Automation-1.17.0.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ElMajd-Automation-debug-apk
           path: |
-            app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/apk/debug/ElMajd-Automation-1.16.0.apk
+            app/build/outputs/apk/debug/ElMajd-Automation-1.17.0.apk
           if-no-files-found: error
           retention-days: 30
