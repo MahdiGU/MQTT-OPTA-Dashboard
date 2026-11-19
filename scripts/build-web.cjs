@@ -11,6 +11,9 @@ fs.copyFileSync(path.join(root,'web/desktop.css'),path.join(out,'desktop.css'));
 fs.copyFileSync(path.join(root,'web/layout.js'),path.join(out,'web-layout.js'));
 fs.copyFileSync(path.join(root,'web/production.js'),path.join(out,'web-production.js'));
 fs.copyFileSync(path.join(root,'web/production.css'),path.join(out,'production.css'));
+fs.copyFileSync(path.join(root,'web/brand.js'),path.join(out,'web-brand.js'));
+fs.copyFileSync(path.join(root,'web/brand.css'),path.join(out,'brand.css'));
+fs.copyFileSync(path.join(root,'web/brand/elmajd-logo.png'),path.join(out,'elmajd-logo.png'));
 const build=esbuild.buildSync({entryPoints:[path.join(root,'web/bridge.js')],outfile:path.join(out,'web-bridge.js'),bundle:true,format:'iife',target:'es2022',minify:true,legalComments:'eof',metafile:true});
 const licenses=new Map();
 for(const input of Object.keys(build.metafile.inputs)){
@@ -25,10 +28,11 @@ for(const input of Object.keys(build.metafile.inputs)){
 fs.writeFileSync(path.join(out,'THIRD-PARTY-LICENSES.txt'),[...licenses.values()].join('\n\n--------------------------------\n\n'));
 fs.copyFileSync(path.join(root,'node_modules/@supabase/supabase-js/LICENSE'),path.join(out,'SUPABASE-LICENSE.txt'));
 let html=fs.readFileSync(path.join(source,'index.html'),'utf8');
-html=html.replace('<title>ElMajd Automation</title>','<title>ElMAJD Automation · FLOW Dashboard</title><meta name="description" content="Tableau de bord ElMAJD : température, équipements, production et alarmes de votre élevage."><link rel="icon" type="image/svg+xml" href="flow-logo.svg">');
+html=html.replace('<title>ElMajd Automation</title>','<title>ElMAJD Automation · Dashboard</title><meta name="description" content="Tableau de bord ElMAJD : température, équipements, production et alarmes de votre élevage."><link rel="icon" type="image/png" href="elmajd-logo.png">');
+html=html.replaceAll('src="elmajd-icon.png"','src="elmajd-logo.png"');
 html=html.replace('</head>','<script src="web-bridge.js"></script></head>');
 // Loaded last so responsive web rules also override dynamically inserted app styles.
-html=html.replace('</body>','<script src="web-layout.js"></script><link rel="stylesheet" href="production.css"><script src="web-production.js"></script></body>');
+html=html.replace('</body>','<script src="web-layout.js"></script><link rel="stylesheet" href="production.css"><script src="web-production.js"></script><link rel="stylesheet" href="brand.css"><script src="web-brand.js"></script></body>');
 fs.writeFileSync(path.join(out,'index.html'),html);
 fs.writeFileSync(path.join(out,'_headers'),'/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n  Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\'; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: blob:; font-src \'self\'; connect-src \'self\' https://zlmaombpfdznambrgqiv.supabase.co wss://zlmaombpfdznambrgqiv.supabase.co; object-src \'none\'; base-uri \'self\'; frame-ancestors \'none\'\n');
 console.log('Built browser FLOW dashboard in web/dist (Android source unchanged).');

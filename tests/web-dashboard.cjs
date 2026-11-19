@@ -79,11 +79,17 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   });
   const base=`http://127.0.0.1:${server.address().port}`;
   await page.goto(base+'/?preview');await page.evaluate(()=>document.fonts.ready);
+  await page.waitForFunction(()=>document.querySelector('link[href="brand.css"]')?.sheet);
+  assert.equal(await page.locator('html').getAttribute('data-brand'),'elmajd');
+  assert.equal(await page.locator('.login-brand img').getAttribute('src'),'elmajd-logo.png');
+  assert.equal(await page.locator('.identity img').getAttribute('src'),'elmajd-logo.png');
+  assert.equal(await page.locator('#loginForm .primary').evaluate(node=>getComputedStyle(node).backgroundColor),'rgb(255, 139, 0)');
   assert.equal(await page.locator('#loginView').isVisible(),true,'web build never signs in through demo query parameters');
   await page.waitForFunction(()=>document.querySelector('link[href="desktop.css"]')?.sheet,undefined,{timeout:12000}).catch(async error=>{console.error(await page.evaluate(()=>({errors:document.getElementById('loginMessage').textContent,html:document.documentElement.dataset,styles:[...document.querySelectorAll('link[rel=stylesheet]')].map(l=>({href:l.href,loaded:!!l.sheet}))})));throw error;});
   assert.equal(await page.locator('.web-login-story').isVisible(),true,JSON.stringify(await page.evaluate(()=>({width:innerWidth,style:getComputedStyle(document.querySelector('.web-login-story')).display,errors:document.querySelector('#loginMessage').textContent}))));
-  const screenshot=async name=>{if(process.env.WEB_SCREENSHOTS){fs.mkdirSync(process.env.WEB_SCREENSHOTS,{recursive:true});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(process.env.WEB_SCREENSHOTS,name+'.png'),fullPage:true});}};
+  const screenshot=async name=>{if(process.env.WEB_SCREENSHOTS){fs.mkdirSync(process.env.WEB_SCREENSHOTS,{recursive:true});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(process.env.WEB_SCREENSHOTS,name+'.png'),fullPage:true,animations:'disabled'});if(name==='web-overview')await page.screenshot({path:path.join(process.env.WEB_SCREENSHOTS,'dashboard-preview.png'),animations:'disabled'});}};
   await screenshot('web-login');
+  await page.setViewportSize({width:320,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'new logo and login fit a narrow phone');await page.setViewportSize({width:1440,height:1000});
   await page.fill('#username',user.email);await page.fill('#password','BrowserTestPassword12!');await page.click('#loginForm button[type=submit]');
   await page.waitForFunction(()=>state.cloud&&state.flock===1000&&state.rows.length===1,undefined,{timeout:12000}).catch(async error=>{console.error('Sign-in diagnostic',await page.evaluate(()=>({cloud:state.cloud,flock:state.flock,rows:state.rows.length,login:document.getElementById('loginMessage').textContent,app:document.getElementById('appView').className})),requests.map(r=>r.path));throw error;});
   await page.waitForFunction(()=>/Subscribed|Abonn/.test(document.getElementById('realtimeDetail').textContent));
@@ -95,6 +101,8 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   assert.equal(await page.locator('.flow-chart-point').count(),1);
   await screenshot('web-overview');
   assert.equal((await page.locator('.app>.nav').boundingBox()).x<40,true,'desktop uses the side navigation');
+  assert.equal(await page.locator('#eggStock').evaluate(node=>parseFloat(getComputedStyle(node.closest('label').querySelector('span')).fontSize)>=14),true,'production labels remain readable');
+  assert.equal(await page.locator('#webResetEntry').isEnabled(),true);
   // A real SDK channel handles the server-shaped update; no native event shortcut is used.
   row={...row,temp_c:31.2,i5:false,i6:true,captured_at:new Date().toISOString(),received_at:new Date().toISOString()};
   const change={ids:[binding.find(b=>b.table==='device_latest').id],data:{schema:'public',table:'device_latest',columns:Object.keys(row).map(name=>({name,type:typeof row[name]==='boolean'?'bool':typeof row[name]==='number'?'float8':typeof row[name]==='object'?'jsonb':'text'})),commit_timestamp:new Date().toISOString(),type:'UPDATE',record:row,old_record:{}}};

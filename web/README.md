@@ -4,6 +4,16 @@ Browser conversion of Android FLOW 1.16.0, developed on `Web_FLOW_Dashboard` on 
 
 The web dashboard reuses the APK's local UI assets, 3D engine, I/O adapter, charts, production forms, validation and role-aware controls. A browser adapter replaces the Java bridge with the pinned Supabase JS SDK 2.119.0. Desktop users get a sidebar and multi-column workspace; smaller screens retain the five bottom tabs and header access to Configuration/Communication. French/English and the new FLOW branding are retained.
 
+## ElMAJD logo refresh — 19 November 2026
+
+`Web_Orange_Logo_Design` applies the owner's new ElMAJD Automation wordmark to the browser dashboard. The source is the [owner-provided shared logo](https://chatgpt.com/s/m_6afefcbaadfc819195506464fbb80f8c). `web/brand/elmajd-logo.png` contains the original 2172 × 724 PNG, used without recoloring, redrawing or cropping. SHA-256: `6f36e0eee90b600e1cba1742ecf4f3c8d26d250aeecffef41018e773851d3da0`.
+
+The identity uses signal orange `#ff8b00`, charcoal `#111316`, white panels and neutral steel-gray text. Desktop navigation is charcoal with orange selection; the main workspace stays light. The same logo appears on login, desktop/mobile navigation and favicon. Actions, charts, form focus, production calculations, data tables and account/communication panels share the palette. Running/stopped/alert/cooling colors retain their existing meanings; both cooling pads stay blue when active.
+
+The refresh increases regular labels to 14px and input/body text to 16px, uses larger neutral cards, aligns Stock/Sortie fields on narrow displays and removes decorative step numbers/arrows. Smaller navigation labels and secondary metadata remain responsive. Login, actual Supabase data, production calculations, history paging/CSV, role-aware corrections/deletion, alarms, commands and 3D interactions remain integrated. The Android source, APK, firmware, database and retention configuration are unchanged.
+
+`web/brand.js` and `web/brand.css` are web-only additions to the shared app assets. The build includes the exact original logo, and browser tests verify the branding, orange primary action, readable form labels, narrow login and all seven screen layouts at 320/390/768/1440 pixels alongside the existing functional checks. Screenshots use mocked test data and are design previews, not field measurements. No merge is performed.
+
 ## Use
 
 Sign in with the **same Supabase email and password as the Android app**. The pilot farm is `elmajd-poultry`. The browser reads/writes the existing shared data, rather than a separate database. Farm membership and permissions are enforced by RLS and the existing authenticated RPCs. Remembering login saves a refreshable session in this browser, never the raw password. Unchecked login uses session storage. Sign-out stops subscriptions and clears the session and displayed account data.
