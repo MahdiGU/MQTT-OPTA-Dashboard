@@ -108,7 +108,56 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
   const change={ids:[binding.find(b=>b.table==='device_latest').id],data:{schema:'public',table:'device_latest',columns:Object.keys(row).map(name=>({name,type:typeof row[name]==='boolean'?'bool':typeof row[name]==='number'?'float8':typeof row[name]==='object'?'jsonb':'text'})),commit_timestamp:new Date().toISOString(),type:'UPDATE',record:row,old_record:{}}};
   websocket.send(JSON.stringify(join.array?[join.joinRef,null,join.topic,'postgres_changes',change]:{topic:join.topic,event:'postgres_changes',payload:change}));
   await page.waitForFunction(()=>document.getElementById('overviewTemperature').textContent==='31.2',undefined,{timeout:12000}).catch(async error=>{console.error('Realtime diagnostic',await page.evaluate(()=>({temp:e.otemp.textContent,connection:document.getElementById('realtimeDetail').textContent,payload:state.payload})),{join,binding,change});throw error;});
-  await page.click('[data-nav="live3d"]');await page.waitForSelector('#flowLiveArt .model-kind-silos.state-running');await screenshot('web-live3d');
+  await page.click('[data-nav="live3d"]');await page.waitForSelector('#wlBuilding .wl-silo[data-state="running"]');
+  assert.equal(await page.locator('#wlBuilding .wl-fan').count(),8);
+  assert.equal(await page.locator('#wlBuilding .wl-feed').count(),12);
+  assert.equal(await page.locator('#wlBuilding .wl-cistern').count(),3);
+  assert.equal(await page.locator('#wlBuilding .wl-silo').count(),2);
+  assert.equal(await page.locator('.wl-matrix-grid button').count(),12);
+  assert.equal(await page.locator('#wlBuilding [data-wl-select="fan-0"] .wl-fan-closed').isVisible(),true,'OFF fan has closed shutters');
+  assert.equal(await page.locator('#wlBuilding [data-wl-select="fan-1"] .wl-fan-open').isVisible(),true);
+  assert.equal(await page.locator('#wlBuilding [data-wl-select="pad-0"]').getAttribute('data-state'),'running');
+  assert.equal(await page.locator('#wlBuilding [data-wl-select="pad-1"]').getAttribute('data-state'),'running');
+  assert.equal(await page.locator('#wlBuilding [data-wl-select="pad-0"] .wl-pad-surface').evaluate(n=>getComputedStyle(n).fill),'rgb(55, 201, 240)');
+  await page.locator('#wlBuilding [data-wl-select="silo-1"]').dispatchEvent('click');
+  await page.waitForFunction(()=>document.getElementById('live3dSelectedName').textContent==='Silo 2'&&document.getElementById('wlSignal').textContent==='1');
+  assert.equal(await page.locator('#wlSignal').textContent(),'1');
+  assert.equal(await page.locator('#wlChart circle').count(),1);
+  await page.locator('.wl-chart-hit').focus();await page.keyboard.press('End');assert.match(await page.locator('#wlChartReading').textContent(),/Vide/);
+  const historySamples=Array.from({length:144},(_,n)=>({t:Date.now()-(143-n)*300000-60000,temp:27+n/96,I6:n>60?1:0,I5:n>100?0:1}));
+  // Multiple latest-value samples exercise binary steps and keyboard inspection.
+  await page.evaluate(samples=>elMajdNativeEvent('history',JSON.stringify(samples)),historySamples);
+  await page.waitForFunction(()=>document.querySelectorAll('#wlChart circle').length===144);
+  assert.match(await page.locator('.wl-history-line').getAttribute('d'),/H/,'binary values use steps rather than interpolated levels');
+  await page.locator('.wl-chart-hit').focus();await page.keyboard.press('End');assert.match(await page.locator('#wlChartReading').textContent(),/Plein/);
+  await page.locator('.wl-chart-hit').blur();
+  await screenshot('web-live3d');
+  await page.click('.wl-temperature');await page.waitForFunction(()=>document.getElementById('live3dSelectedName').textContent==='Température');
+  assert.match(await page.locator('#live3dSelectedState').textContent(),/31,2/);
+  await page.waitForSelector('.wl-history-line.is-temperature');
+  assert.match(await page.locator('#wlChart').textContent(),/26,5/,'temperature axis follows historical minimum with padding');
+  const gapSamples=[{t:Date.now()-1500000,temp:18,I6:0},{t:Date.now()-1200000,temp:20,I6:1},{t:Date.now()-900000,temp:null,I6:null},{t:Date.now()-600000,temp:19,I6:0}];
+  await page.evaluate(samples=>elMajdNativeEvent('history',JSON.stringify(samples)),gapSamples);
+  await page.waitForFunction(()=>document.querySelectorAll('#wlChart circle').length===3);
+  assert.equal((await page.locator('.wl-history-line').getAttribute('d')).match(/M/g).length,2,'unknown measurements break history lines');
+  await page.click('[data-wl-view="top"]');assert.equal(await page.locator('.wl-plan').isVisible(),true);
+  assert.equal(await page.locator('.wl-plan .wl-feed').count(),12);
+  await page.click('[data-wl-labels]');assert.equal(await page.locator('#wlBuilding').evaluate(n=>n.classList.contains('wl-no-labels')),true);
+  await page.click('[data-wl-reset]');assert.equal(await page.locator('.wl-architecture').isVisible(),true);
+  await page.click('[data-wl-labels]');
+  await page.locator('.wl-matrix-grid [data-wl-select="feed-11"]').click();
+  await page.waitForFunction(()=>document.getElementById('live3dSelectedName').textContent.includes('Rangée 4')&&document.getElementById('wlChartStatus').textContent.includes('Aucun historique'));
+  assert.match(await page.locator('#wlChartStatus').textContent(),/Aucun historique/,'no invented history for chain feedback');
+  await page.evaluate(()=>I18n.set('en'));assert.equal(await page.locator('[data-wl-view="front"]').textContent(),'Front view');
+  await page.evaluate(()=>I18n.set('fr'));assert.equal(await page.locator('[data-wl-view="front"]').textContent(),'Vue avant');
+  await page.evaluate(()=>elMajdNativeEvent('device_status','offline'));
+  await page.waitForFunction(()=>document.querySelector('#wlBuilding .wl-silo').dataset.state==='unavailable'&&document.querySelector('#wlBuilding .wl-silo').getAttribute('aria-label').includes('Sans données'));
+  assert.equal(await page.locator('#wlBuilding .wl-silo-state').first().textContent(),'—');
+  assert.match(await page.locator('#wlBuilding .wl-silo').first().getAttribute('aria-label'),/Sans données/);
+  // Restore telemetry after checking unknown never appears as OFF or empty.
+  await page.evaluate(data=>elMajdNativeEvent('telemetry',JSON.stringify(data)),telemetry(row));
+  await page.click('[data-wl-view="free"]');await page.waitForFunction(()=>document.getElementById('live3dViewport').dataset.renderer==='ready');
+  await page.click('[data-wl-view="front"]');
   await page.click('[data-nav="connection"]');
   await page.selectOption('#commandTarget','LED2');await page.selectOption('#commandAction','OFF');await page.click('#sendCommand');
   await page.waitForFunction(()=>document.getElementById('commandMessage').textContent.includes('LED2 OFF'));
@@ -169,6 +218,7 @@ const server=http.createServer((req,res)=>{const name=new URL(req.url,'http://lo
    }
   }
   await page.setViewportSize({width:390,height:844});await page.click('[data-nav="production"]');await screenshot('web-production-mobile');
+  await page.click('[data-nav="live3d"]');await screenshot('web-live3d-mobile');
   assert.equal(await page.locator('#productionForm>.web-calculation').count(),1,'mobile places the calculation before saving');
   await page.setViewportSize({width:390,height:844});await page.click('[data-nav="overview"]');await screenshot('web-mobile');
   await page.reload();await page.waitForFunction(()=>state.cloud&&state.flock===1000);

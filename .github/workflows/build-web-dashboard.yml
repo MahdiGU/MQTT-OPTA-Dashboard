@@ -1,7 +1,7 @@
 name: Verify FLOW web dashboard
 on:
   push:
-    branches: [Web_FLOW_Dashboard, Web_Orange_Logo_Design]
+    branches: [Web_FLOW_Dashboard, Web_Orange_Logo_Design, Web_3D_Live_Workspace]
   workflow_dispatch:
 permissions:
   contents: read

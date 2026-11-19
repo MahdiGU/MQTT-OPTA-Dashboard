@@ -13,7 +13,10 @@ fs.copyFileSync(path.join(root,'web/production.js'),path.join(out,'web-productio
 fs.copyFileSync(path.join(root,'web/production.css'),path.join(out,'production.css'));
 fs.copyFileSync(path.join(root,'web/brand.js'),path.join(out,'web-brand.js'));
 fs.copyFileSync(path.join(root,'web/brand.css'),path.join(out,'brand.css'));
+fs.copyFileSync(path.join(root,'web/live-workspace.js'),path.join(out,'web-live-workspace.js'));
+fs.copyFileSync(path.join(root,'web/live-workspace.css'),path.join(out,'live-workspace.css'));
 fs.copyFileSync(path.join(root,'web/brand/elmajd-logo.png'),path.join(out,'elmajd-logo.png'));
+fs.copyFileSync(path.join(root,'web/brand/house-architecture.png'),path.join(out,'house-architecture.png'));
 const build=esbuild.buildSync({entryPoints:[path.join(root,'web/bridge.js')],outfile:path.join(out,'web-bridge.js'),bundle:true,format:'iife',target:'es2022',minify:true,legalComments:'eof',metafile:true});
 const licenses=new Map();
 for(const input of Object.keys(build.metafile.inputs)){
@@ -32,7 +35,7 @@ html=html.replace('<title>ElMajd Automation</title>','<title>ElMAJD Automation Â
 html=html.replaceAll('src="elmajd-icon.png"','src="elmajd-logo.png"');
 html=html.replace('</head>','<script src="web-bridge.js"></script></head>');
 // Loaded last so responsive web rules also override dynamically inserted app styles.
-html=html.replace('</body>','<script src="web-layout.js"></script><link rel="stylesheet" href="production.css"><script src="web-production.js"></script><link rel="stylesheet" href="brand.css"><script src="web-brand.js"></script></body>');
+html=html.replace('</body>','<script src="web-layout.js"></script><link rel="stylesheet" href="production.css"><script src="web-production.js"></script><link rel="stylesheet" href="brand.css"><script src="web-brand.js"></script><link rel="stylesheet" href="live-workspace.css"><script src="web-live-workspace.js"></script></body>');
 fs.writeFileSync(path.join(out,'index.html'),html);
 fs.writeFileSync(path.join(out,'_headers'),'/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n  Content-Security-Policy: default-src \'self\'; script-src \'self\' \'unsafe-inline\'; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data: blob:; font-src \'self\'; connect-src \'self\' https://zlmaombpfdznambrgqiv.supabase.co wss://zlmaombpfdznambrgqiv.supabase.co; object-src \'none\'; base-uri \'self\'; frame-ancestors \'none\'\n');
 console.log('Built browser FLOW dashboard in web/dist (Android source unchanged).');
