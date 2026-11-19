@@ -1,5 +1,14 @@
 /* Charcoal / white / signal orange, taken from the supplied ElMAJD wordmark. */
 :root{--web-sidebar:264px;--brand-orange:#ff8b00;--brand-orange-dark:#b85400;--brand-charcoal:#111316;--brand-steel:#5a616b;--flow:#ff8b00;--flow-soft:#fff1df;--g:#bf6000;--g2:#16a06d;--ink:#20242a;--muted:#646d77;--line:#e0e3e7;--bg:#f5f6f8;--amber:#f08b12;--shadow:0 6px 24px #11131607}
+.web-flock-age-card{grid-column:1/-1!important;display:flex;justify-content:space-between;align-items:center;gap:18px;min-height:104px!important;padding:18px 22px!important;border-left:3px solid #ff8b00!important}
+html[data-brand=elmajd] .web-flock-age-card strong{font-size:1.4rem!important;margin:5px 0 0}.web-flock-age-card>div:last-child{text-align:right}.web-flock-age-card b{font-size:.875rem;color:#a85200}.web-flock-age-card small{display:block;margin-top:5px}
+.web-age-reference h3{font-size:1.1rem;margin:0 0 12px}.web-age-reference p{font-size:.875rem;line-height:1.7;color:#68717b}.web-age-reference strong{font-size:.9375rem}
+.web-period-note{font-size:.8125rem;color:#6d7680;margin:6px 0 15px}
+html[data-brand=elmajd] .web-mortality-period{float:none;margin:0;max-width:260px}
+.web-chart-block .flow-mortality-heading{border-top:0;margin-top:0;padding-top:0}.web-chart-block .flow-chart-heading{min-height:52px;gap:12px}
+@media(max-width:600px){.web-chart-block .flow-mortality-heading{flex-wrap:wrap;margin-bottom:14px}}
+.web-mortality-period button{min-height:44px}.web-period-tick{font-size:12px}.flow-data-table th small{display:block;font-size:.75rem;font-weight:400;margin-top:5px}
+@media(max-width:480px){.web-flock-age-card{gap:12px;padding:16px!important}.web-flock-age-card b{font-size:.8125rem}html[data-brand=elmajd] .web-flock-age-card strong{font-size:1.2rem!important}}
 html[data-brand=elmajd]{background:#f5f6f8;color-scheme:light}
 html[data-brand=elmajd] body{background:radial-gradient(ellipse at 94% 0,#fff0df 0,transparent 35%),#f5f6f8;color:var(--ink);font-size:1rem;line-height:1.5}
 html[data-brand=elmajd] button{cursor:pointer}html[data-brand=elmajd] button:disabled{cursor:default}

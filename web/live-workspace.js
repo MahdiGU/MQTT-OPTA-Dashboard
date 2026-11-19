@@ -91,12 +91,12 @@
     <path d="M40 824V650L240 148v172Z" fill="url(#wlWall)" stroke="#acbbc5" stroke-width="3"/>
     <path d="M932 824V650L815 148v172Z" fill="url(#wlWall)" stroke="#acbbc5" stroke-width="3"/>
     <path d="M36 650 238 141 525 49 819 141 936 650" fill="none" stroke="#ccd8e4" stroke-width="11"/></g>
-    ${group('pad-0','<path class="wl-pad-surface" d="M62 643 219 244v178L62 756Z"/><path class="wl-air" d="M95 535q80-45 145 0m-105 50q80-45 145 0"/>')}
-    ${group('pad-1','<path class="wl-pad-surface" d="M749 246 878 644v112L749 423Z"/><path class="wl-air" d="M714 535q80-45 145 0m-180 50q80-45 145 0"/>')}
+    ${group('pad-0','<path class="wl-pad-frame" d="M79 641 111 566v80l-32 67Z"/><path class="wl-pad-surface" d="M79 641 111 566v80l-32 67Z"/><path class="wl-pad-ribs" d="m83 632 23 19m-18-34 18 16m-12-31 12 15m-7-29 7 13"/><path class="wl-air" d="M110 610q25-12 45 0m-45 30q25-12 45 0"/>')}
+    ${group('pad-1','<path class="wl-pad-frame" d="m838 567 26 75v71l-26-67Z"/><path class="wl-pad-surface" d="m838 567 26 75v71l-26-67Z"/><path class="wl-pad-ribs" d="m842 584 17 64m-17-40 17 58m-17-33 17 50"/><path class="wl-air" d="M838 610q-25-12-45 0m45 30q-25-12-45 0"/>')}
     ${[[245,224],[315,224],[430,224],[500,224],[430,147],[500,147],[615,224],[685,224]].map((p,n)=>fan(...p,n)).join('')}
     ${Array.from({length:4},(_,r)=>cageRow(r)).join('')}${[330,465,600].map(tank).join('')}${depot()}${silo(982,630,0)}${silo(1110,630,1)}</svg>`;}
   function topScene(){return `<svg class="wl-plan" viewBox="0 0 1200 960" role="group" aria-label="${esc(t('Top view'))}"><rect x="120" y="80" width="700" height="780" rx="10" fill="#e9edf0" stroke="#bbc7cf" stroke-width="10"/>${[[200,85],[275,85],[400,85],[475,85],[400,160],[475,160],[625,85],[700,85]].map((p,n)=>fan(...p,n)).join('')}
-    ${[0,1].map(n=>group('pad-'+n,`<rect class="wl-pad-surface" x="${n?792:128}" y="300" width="20" height="340" rx="6"/>`)).join('')}
+    ${[0,1].map(n=>group('pad-'+n,`<rect class="wl-pad-surface" x="${n?792:128}" y="634" width="20" height="149" rx="4"/>`)).join('')}
     ${[0,1,2,3].map(r=>`<g><rect x="${195+r*142}" y="275" width="85" height="400" rx="5" fill="url(#wlWire)" stroke="#8295a1"/>${[0,1,2].map(l=>group('feed-'+(r*3+l),`<path class="wl-chain-hit" d="M${209+r*142+l*25} 285v380"/><path class="wl-chain-rail" d="M${209+r*142+l*25} 285v380"/><path class="wl-chain-track" d="M${209+r*142+l*25} 285v380"/><path class="wl-chain-links" d="M${209+r*142+l*25} 285v380"/>`)).join('')}${label(237+r*142,710,t('Row '+(r+1)),125)}</g>`).join('')}
     ${[250,435,620].map((x,n)=>group('cistern-'+n,`<rect x="${x}" y="750" width="100" height="80" rx="8" fill="url(#wlTank)" stroke="#8498a2" stroke-width="3"/><rect class="wl-water" x="${x+6}" y="756" width="88" height="68" rx="4"/>${label(x+50,798,'C'+(n+1),50)}<rect class="wl-selection" x="${x-5}" y="745" width="110" height="90" rx="8"/>`)).join('')}${depot()}${silo(950,635,0)}${silo(1090,635,1)}</svg>`;}
   // Reuse front-view definitions in the plan without loading another renderer.

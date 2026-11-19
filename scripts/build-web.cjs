@@ -6,6 +6,8 @@ const assets=['flow.css','flow-scene.css','flow-building.png','flow-logo.svg','f
   'flow-scene-view.js','flow-performance.js','i18n.js','phase5.js','account.js','history.js','feed-chains.js',
   'live3d.js','live3d.css','live3d-scene.bundle.js','THREE-LICENSE.txt','elmajd-icon.png'];
 for(const asset of assets)fs.copyFileSync(path.join(source,asset),path.join(out,asset));
+fs.copyFileSync(path.join(root,'web/flock-age.js'),path.join(out,'web-flock-age.js'));
+fs.copyFileSync(path.join(root,'web/performance.js'),path.join(out,'flow-performance.js'));
 fs.cpSync(path.join(source,'fonts'),path.join(out,'fonts'),{recursive:true});
 fs.copyFileSync(path.join(root,'web/desktop.css'),path.join(out,'desktop.css'));
 fs.copyFileSync(path.join(root,'web/layout.js'),path.join(out,'web-layout.js'));
@@ -31,6 +33,7 @@ for(const input of Object.keys(build.metafile.inputs)){
 fs.writeFileSync(path.join(out,'THIRD-PARTY-LICENSES.txt'),[...licenses.values()].join('\n\n--------------------------------\n\n'));
 fs.copyFileSync(path.join(root,'node_modules/@supabase/supabase-js/LICENSE'),path.join(out,'SUPABASE-LICENSE.txt'));
 let html=fs.readFileSync(path.join(source,'index.html'),'utf8');
+html=html.replace('<script src="flow-performance.js">','<script src="web-flock-age.js"></script><script src="flow-performance.js">');
 html=html.replace('<title>ElMajd Automation</title>','<title>ElMAJD Automation · Dashboard</title><meta name="description" content="Tableau de bord ElMAJD : température, équipements, production et alarmes de votre élevage."><link rel="icon" type="image/png" href="elmajd-logo.png">');
 html=html.replaceAll('src="elmajd-icon.png"','src="elmajd-logo.png"');
 html=html.replace('</head>','<script src="web-bridge.js"></script></head>');

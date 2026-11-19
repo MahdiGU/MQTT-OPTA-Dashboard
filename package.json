@@ -6,7 +6,7 @@
     "build:3d": "node scripts/build-live3d.cjs",
     "test:ui": "node tests/phase5-ui.cjs && node tests/live3d-ui.cjs && node tests/flow-ui.cjs",
     "build:web": "node scripts/build-web.cjs",
-    "test:web": "node tests/web-dashboard.cjs",
+    "test:web": "node tests/flock-age.cjs && node tests/web-dashboard.cjs",
     "preview:web": "node scripts/preview-web.cjs"
   },
   "devDependencies": {
