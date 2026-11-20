@@ -5,7 +5,7 @@
   "scripts": {
     "sync:android": "node scripts/sync-android-design.cjs",
     "build:3d": "node scripts/build-live3d.cjs",
-    "test:ui": "node scripts/sync-android-design.cjs --check && node tests/phase5-ui.cjs && node tests/live3d-ui.cjs && node tests/flow-ui.cjs",
+    "test:ui": "node scripts/sync-android-design.cjs --check && node tests/flock-age.cjs && node tests/phase5-ui.cjs && node tests/live3d-ui.cjs && node tests/flow-ui.cjs",
     "build:web": "node scripts/build-web.cjs",
     "test:web": "node tests/web-dashboard.cjs",
     "preview:web": "node scripts/preview-web.cjs"

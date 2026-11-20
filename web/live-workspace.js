@@ -59,6 +59,12 @@
     <g class="wl-fan-closed"><rect x="5" y="5" width="56" height="56" fill="#bccad1"/>${Array.from({length:7},(_,i)=>`<path d="M6 ${7+i*8}h54v6H6Z" fill="url(#wlSteel)" stroke="#8298a3" stroke-width=".8"/>`).join('')}</g><circle class="wl-signal" cx="59" cy="7" r="4"/>${label(33,-12,'V'+(n+1),42)}</g>`);}
   function tank(x,n){return group('cistern-'+n,`<g transform="translate(${x} 768)"><ellipse cx="48" cy="112" rx="61" ry="10" fill="#39454a18"/><rect x="-5" y="99" width="110" height="14" rx="2" fill="#c3a26e"/><path d="M0 7 12 0h85l9 7v94H0Z" fill="url(#wlTank)" stroke="#a8b7bd" stroke-width="2"/><rect class="wl-water" x="7" y="24" width="91" height="70" rx="5"/><path d="M0 7h106M0 31h106M0 54h106M0 77h106M0 99h106M7 7v92M31 7v92M57 7v92M82 7v92M101 7v92" fill="none" stroke="#72848c" stroke-width="2.7"/><ellipse cx="53" cy="5" rx="13" ry="4" fill="#3b454b"/>${label(52,133,'C'+(n+1),55)}<circle class="wl-signal" cx="53" cy="91" r="5"/><rect class="wl-selection" x="-8" y="-8" width="122" height="125" rx="7"/></g>`);}
   function silo(x,y,n){return group('silo-'+n,`<g transform="translate(${x} ${y})"><ellipse cx="0" cy="220" rx="55" ry="12" fill="#39454a18"/><path d="M-36 125v91m72-91v91m-72 0 72-78m0 78-72-78" stroke="#778a94" stroke-width="5"/><path d="M-45 111 0 165l45-54" fill="url(#wlSteel)" stroke="#8698a2" stroke-width="2"/><rect x="-45" y="-21" width="90" height="138" rx="9" fill="url(#wlSteel)" stroke="#83949c" stroke-width="2"/>${Array.from({length:28},(_,i)=>`<path d="M-44 ${-14+i*4.5}h88" stroke="#81929b" stroke-opacity=".35"/>`).join('')}<path d="M-48-17 0-48 48-17Z" fill="url(#wlSteel)" stroke="#83949c" stroke-width="2"/><ellipse cy="-46" rx="6" ry="3" fill="#bcc7cd"/><rect x="-28" y="7" width="56" height="82" rx="8" fill="#e2e8ec" stroke="#7d929e" stroke-width="3"/><rect class="wl-grain" x="-24" y="11" width="48" height="74" rx="5" fill="url(#wlGrain)"/><rect class="wl-selection" x="-53" y="-54" width="106" height="279" rx="10"/>${label(0,245,'S'+(n+1),115)}<text class="wl-silo-state wl-label" x="0" y="275">—</text></g>`);}
+  function coolingPad(index){
+    // Exact front-view geometry from the owner's approved medium-size proposal.
+    const shapes=[{surface:'M71 636 128 493v140L71 767Z',air:'M128 567q35-14 55 0m-55 44q35-14 55 0',base:'M67 765 130 630l5 8-63 137Z'},
+      {surface:'m822 493 47 143v131l-47-134Z',air:'M822 567q-35-14-55 0m55 44q-35-14-55 0',base:'m819 630 55 135-5 10-55-137Z'}];
+    const shape=shapes[index];return group('pad-'+index,`<path class="wl-pad-frame" d="${shape.surface}"/><path class="wl-pad-surface" d="${shape.surface}"/><path class="wl-air" d="${shape.air}"/><path d="${shape.surface}" fill="url(#wlPadGrid)" pointer-events="none"/><path d="${shape.base}" fill="#748c9a" stroke="#c0ced5" stroke-width="1.5" pointer-events="none"/>`);
+  }
   function cageRow(r){
     const xb=277+r*121,xf=199+r*177.3;let cells='',rails='';
     for(let level=0;level<3;level++){
@@ -80,6 +86,7 @@
     <linearGradient id="wlTank"><stop stop-color="#d2dde2"/><stop offset=".4" stop-color="#f4f7f8"/><stop offset="1" stop-color="#b9c8cf"/></linearGradient>
     <linearGradient id="wlCage" x2="0" y2="1"><stop stop-color="#d4dde1"/><stop offset="1" stop-color="#f4f6f7"/></linearGradient>
     <pattern id="wlWire" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0h8v8" fill="none" stroke="#81959e" stroke-opacity=".5" stroke-width=".8"/></pattern>
+    <pattern id="wlPadGrid" patternUnits="userSpaceOnUse" width="8" height="10"><path d="M0 0h8v10M3 0v10M0 5h8" fill="none" stroke="#3b8199" stroke-opacity=".45" stroke-width="1"/></pattern>
     <pattern id="wlGrain" width="9" height="10" patternUnits="userSpaceOnUse"><rect width="9" height="10" fill="#dfbb70"/><ellipse cx="3" cy="3" rx="1.4" ry="2.5" fill="#f7dca6"/><ellipse cx="8" cy="8" rx="1.3" ry="2" fill="#bb8f42"/></pattern>
     <g id="wlHen"><ellipse cx="0" cy="0" rx="12" ry="10" fill="#fffdf2" stroke="#d8d2bf"/><path d="m-10-2-8-8 4 14" fill="#e7dfcc"/><ellipse cx="9" cy="-11" rx="5" ry="7" fill="#fff9e9"/><path d="m7-17 2-5 2 4 3-2v5" fill="#ca5143"/><circle cx="11" cy="-13" r="1" fill="#3b4146"/><path d="m14-11 5 2-5 1M-3 9v7m8-7v7" stroke="#c49552" stroke-width="2"/></g></defs>
     <image href="house-architecture.png" x="-20" y="64" width="1040" height="832" preserveAspectRatio="none"/>
@@ -91,12 +98,11 @@
     <path d="M40 824V650L240 148v172Z" fill="url(#wlWall)" stroke="#acbbc5" stroke-width="3"/>
     <path d="M932 824V650L815 148v172Z" fill="url(#wlWall)" stroke="#acbbc5" stroke-width="3"/>
     <path d="M36 650 238 141 525 49 819 141 936 650" fill="none" stroke="#ccd8e4" stroke-width="11"/></g>
-    ${group('pad-0','<path class="wl-pad-surface" d="M62 643 219 244v178L62 756Z"/><path class="wl-air" d="M95 535q80-45 145 0m-105 50q80-45 145 0"/>')}
-    ${group('pad-1','<path class="wl-pad-surface" d="M749 246 878 644v112L749 423Z"/><path class="wl-air" d="M714 535q80-45 145 0m-180 50q80-45 145 0"/>')}
+    ${[0,1].map(coolingPad).join('')}
     ${[[245,224],[315,224],[430,224],[500,224],[430,147],[500,147],[615,224],[685,224]].map((p,n)=>fan(...p,n)).join('')}
     ${Array.from({length:4},(_,r)=>cageRow(r)).join('')}${[330,465,600].map(tank).join('')}${depot()}${silo(982,630,0)}${silo(1110,630,1)}</svg>`;}
   function topScene(){return `<svg class="wl-plan" viewBox="0 0 1200 960" role="group" aria-label="${esc(t('Top view'))}"><rect x="120" y="80" width="700" height="780" rx="10" fill="#e9edf0" stroke="#bbc7cf" stroke-width="10"/>${[[200,85],[275,85],[400,85],[475,85],[400,160],[475,160],[625,85],[700,85]].map((p,n)=>fan(...p,n)).join('')}
-    ${[0,1].map(n=>group('pad-'+n,`<rect class="wl-pad-surface" x="${n?792:128}" y="300" width="20" height="340" rx="6"/>`)).join('')}
+    ${[0,1].map(n=>group('pad-'+n,`<rect class="wl-pad-surface" x="${n?792:128}" y="634" width="20" height="149" rx="4"/>`)).join('')}
     ${[0,1,2,3].map(r=>`<g><rect x="${195+r*142}" y="275" width="85" height="400" rx="5" fill="url(#wlWire)" stroke="#8295a1"/>${[0,1,2].map(l=>group('feed-'+(r*3+l),`<path class="wl-chain-hit" d="M${209+r*142+l*25} 285v380"/><path class="wl-chain-rail" d="M${209+r*142+l*25} 285v380"/><path class="wl-chain-track" d="M${209+r*142+l*25} 285v380"/><path class="wl-chain-links" d="M${209+r*142+l*25} 285v380"/>`)).join('')}${label(237+r*142,710,t('Row '+(r+1)),125)}</g>`).join('')}
     ${[250,435,620].map((x,n)=>group('cistern-'+n,`<rect x="${x}" y="750" width="100" height="80" rx="8" fill="url(#wlTank)" stroke="#8498a2" stroke-width="3"/><rect class="wl-water" x="${x+6}" y="756" width="88" height="68" rx="4"/>${label(x+50,798,'C'+(n+1),50)}<rect class="wl-selection" x="${x-5}" y="745" width="110" height="90" rx="8"/>`)).join('')}${depot()}${silo(950,635,0)}${silo(1090,635,1)}</svg>`;}
   // Reuse front-view definitions in the plan without loading another renderer.

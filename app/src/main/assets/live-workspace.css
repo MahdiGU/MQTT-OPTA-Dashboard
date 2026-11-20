@@ -41,6 +41,7 @@ html[data-brand=elmajd] .wl-toolbar button[aria-pressed=true]{background:#ff8b00
 .wl-silo-state{font:700 22px Manrope,sans-serif;fill:#647181;text-anchor:middle}
 .wl-silo[data-state=running] .wl-silo-state{fill:#17835a}.wl-silo[data-state=stopped] .wl-silo-state{fill:#9c5260}
 .wl-pad-surface{fill:#d3dce2;stroke:#9baeb9;stroke-width:3}.wl-pad[data-state=running] .wl-pad-surface{fill:#37c9f0;stroke:#1ea3d5}
+.wl-pad-frame{fill:#8b9da7;stroke:#748994;stroke-width:9;stroke-linejoin:round}.wl-pad-ribs{fill:none;stroke:#5e8597;stroke-width:1.5;opacity:.6;pointer-events:none}
 .wl-air{fill:none;stroke:#b8f2ff;stroke-width:7;stroke-linecap:round;stroke-dasharray:30 12;opacity:0;pointer-events:none}
 .wl-pad[data-state=running] .wl-air{opacity:.7;animation:wl-chain-move 3s linear infinite}
 .wl-part[data-state=unavailable] .wl-pad-surface{fill:#b9c2cb;stroke:#8897a5}

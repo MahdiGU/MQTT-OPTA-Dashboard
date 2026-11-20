@@ -5,6 +5,9 @@
   document.querySelector('meta[name="theme-color"]').content='#111316';
   document.title='ElMAJD Automation · Dashboard';
   I18n.add({'Farm supervision':'Supervision avicole','Operations workspace':'Espace de supervision','ElMAJD Automation logo':'Logo ElMAJD Automation','Delayed':'Données retardées'});
+  I18n.add({'Feed silos':'Silos d’aliment','Feed silo 1':'Silo d’aliment 1','Feed silo 2':'Silo d’aliment 2','Alveole silo 1':'Silo d’aliment 1','Alveole silo 2':'Silo d’aliment 2'});
+  document.querySelector('#siloGrid').closest('.panel').querySelector('h3').textContent='Feed silos';
+  for(const [key,label] of [['I5','Feed silo 1'],['I6','Feed silo 2']]){NAMES[key]=label;document.querySelector('#asset-'+key+' .equipment-name').textContent=label;}
   document.querySelectorAll('.identity img,.login-brand img,.web-product-brand img').forEach(image=>{
     image.src='elmajd-logo.png';image.alt=t('ElMAJD Automation logo');image.width=2172;image.height=724;
   });
